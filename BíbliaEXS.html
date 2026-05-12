@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bíblia Premium</title>
+    <!-- Fontes e Ícones Modernos -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Biblioteca para transformar HTML em Imagem -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        /* Sistema de Cores e Temas dinâmicos */
+        :root {
+            --bg-color: #121212;
+            --text-color: #f1f1f1;
+            --accent-color: #4CAF50;
+            --secondary-bg: #1e1e1e;
+            --item-bg: #2c2c2c;
+            --danger-color: #ff5252;
+            --highlight-default: #ffeb3b;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* ----- BARRA SUPERIOR (HEADER) ----- */
+        header {
+            width: 100%;
+            background-color: var(--secondary-bg);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            z-index: 900;
+            transition: background-color 0.3s;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: color 0.2s, transform 0.2s;
+            padding: 5px;
+        }
+
+        .icon-btn:hover { color: var(--accent-color); transform: scale(1.1); }
+
+        h1 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Navegação Horizontal */
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            padding-bottom: 12px;
+        }
+
+        .nav-tab {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+            opacity: 0.6;
+        }
+
+        .nav-tab.active {
+            opacity: 1;
+            border-bottom: 2px solid var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        /* ----- TELAS (VIEWS) ----- */
+        .view-section {
+            display: none;
+            width: 100%;
+            max-width: 800px;
+            padding: 25px 20px;
+            box-sizing: border-box;
+            animation: fadeIn 0.4s ease;
+            position: relative;
+        }
+
+        .view-section.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ----- TELA INICIAL (HOME / DEVOCIONAL) ----- */
+        .card-devocional {
+            background-color: var(--secondary-bg);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            text-align: center;
+            border-top: 4px solid var(--accent-color);
+            transition: background-color 0.3s;
+        }
+
+        .card-devocional h2 {
+            color: var(--accent-color);
+            margin-top: 0;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .verse-of-day { font-size: 1.3rem; font-style: italic; line-height: 1.6; margin: 20px 0; }
+        .verse-ref { font-weight: 600; color: var(--accent-color); display: block; margin-bottom: 20px; }
+        
+        .devocional-text {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: var(--text-color);
+            opacity: 0.85;
+            text-align: left;
+            border-top: 1px solid var(--item-bg);
+            padding-top: 20px;
+        }
+
+        /* ----- LEITURA DA BÍBLIA & CONTROLES MODERNOS ----- */
+        .controls-wrapper {
+            background-color: var(--secondary-bg);
+            border-radius: 12px;
+            padding: 10px 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .reading-controls {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            background-color: var(--item-bg);
+            border-radius: 8px;
+            padding: 4px 10px;
+            gap: 8px;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .control-group i { color: var(--accent-color); font-size: 0.9rem; }
+
+        select {
+            border: none;
+            background: transparent;
+            color: var(--text-color);
+            font-size: 0.9rem;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+            width: 100%;
+            padding: 8px 0;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+        }
+
+        .btn-read {
+            background-color: var(--accent-color);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: filter 0.2s, transform 0.1s;
+            width: 100%;
+        }
+        .btn-read:hover { filter: brightness(1.1); }
+        .btn-read:active { transform: scale(0.95); }
+
+        .btn-share {
+            background-color: var(--item-bg);
+            color: var(--text-color);
+            border: 1px solid rgba(255,255,255,0.1);
+            width: auto;
+        }
+
+        .verse {
+            margin-bottom: 12px;
+            line-height: 1.8;
+            font-size: 1.1rem;
+            padding: 6px 10px;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .verse:hover { background-color: var(--item-bg); }
+
+        .verse-num {
+            font-weight: 700;
+            color: var(--accent-color);
+            margin-right: 6px;
+            font-size: 0.8rem;
+            vertical-align: super;
+            opacity: 0.8;
+        }
+
+        .highlighted-text {
+            color: #121212;
+            border-radius: 4px;
+            padding: 2px 4px;
+            font-weight: 500;
+            display: inline;
+            transition: background-color 0.3s;
+        }
+
+        /* ----- MENU LATERAL (MARCAÇÕES) ----- */
+        #sidebar {
+            position: fixed;
+            top: 0; left: -320px; width: 320px; height: 100%;
+            background-color: var(--secondary-bg);
+            box-shadow: 5px 0 20px rgba(0,0,0,0.3);
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1000; padding: 20px; overflow-y: auto; box-sizing: border-box;
+        }
+        #sidebar.open { left: 0; }
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--item-bg); padding-bottom: 15px; margin-bottom: 20px; }
+        .sidebar-header h2 { margin: 0; font-size: 1.1rem; color: var(--accent-color); }
+        .highlight-item {
+            background-color: var(--item-bg); padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; border-left: 4px solid; position: relative;
+        }
+        .highlight-ref { font-weight: 600; color: var(--accent-color); display: block; margin-bottom: 6px; font-size: 0.85rem; }
+        .btn-delete { position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--danger-color); cursor: pointer; font-size: 1rem; opacity: 0.6; }
+        .btn-delete:hover { opacity: 1; transform: scale(1.1); }
+
+        /* ----- MODAL DE CONFIGURAÇÕES ----- */
+        #settingsModal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center;
+            z-index: 2000; backdrop-filter: blur(3px);
+        }
+        #settingsModal.open { display: flex; }
+        .modal-content {
+            background-color: var(--secondary-bg); padding: 25px; border-radius: 16px; width: 90%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-header h2 { margin: 0; color: var(--accent-color); font-size: 1.2rem; }
+        .theme-section { margin-bottom: 20px; }
+        .theme-section label { display: block; margin-bottom: 10px; font-size: 0.85rem; font-weight: 600; color: var(--text-color); opacity: 0.8;}
+        .color-picker-group { display: flex; justify-content: space-between; align-items: center; background-color: var(--item-bg); padding: 10px 15px; border-radius: 10px; margin-bottom: 8px; font-size: 0.9rem;}
+        
+        .preset-themes { display: flex; gap: 10px; margin-bottom: 20px; }
+        .preset-btn { 
+            flex: 1; padding: 12px 0; border-radius: 10px; border: none; cursor: pointer; 
+            font-weight: 600; font-size: 0.9rem; background-color: var(--bg-color); color: var(--text-color);
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .preset-btn:hover { filter: brightness(1.1); }
+        .preset-btn:active { transform: scale(0.92); }
+        .preset-btn.active-theme { background-color: var(--accent-color); color: #ffffff; box-shadow: inset 0 3px 6px rgba(0,0,0,0.3); transform: scale(0.96); }
+
+        .btn-save { width: 100%; background: var(--accent-color); color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; gap: 8px; }
+
+        /* ----- BOTÃO FLUTUANTE DE GRIFO (FAB) ----- */
+        .fab-container {
+            position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; align-items: center; gap: 12px; z-index: 1000;
+        }
+        .fab-btn {
+            width: 60px; height: 60px; border-radius: 50%; background-color: var(--accent-color); color: #fff; border: none;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3); font-size: 1.5rem; cursor: pointer; display: flex; justify-content: center; align-items: center;
+            transition: transform 0.2s, filter 0.2s, background-color 0.3s;
+        }
+        .fab-btn:hover { transform: scale(1.1); filter: brightness(1.1); }
+        .fab-btn:active { transform: scale(0.95); }
+        .fab-container input[type="color"] {
+            -webkit-appearance: none; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; padding: 0; background: transparent;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: transform 0.2s;
+        }
+        .fab-container input[type="color"]:hover { transform: scale(1.1); }
+        .fab-container input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        .fab-container input[type="color"]::-webkit-color-swatch { border: 2px solid var(--secondary-bg); border-radius: 50%; }
+
+        /* ----- ESTILOS OCULTOS PARA GERAR IMAGEM ----- */
+        #share-wrapper { position: absolute; left: -9999px; top: -9999px; }
+        #share-card {
+            width: 1080px; height: 1080px; background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7));
+            background-size: cover; background-position: center; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; padding: 100px; box-sizing: border-box;
+            color: #fff; font-family: 'Inter', sans-serif; text-align: center;
+        }
+        #share-verse { font-size: 3.5rem; font-style: italic; font-weight: 600; margin-bottom: 50px; line-height: 1.4; text-shadow: 2px 2px 10px rgba(0,0,0,0.6); }
+        #share-ref { font-size: 2.2rem; font-weight: 700; color: #e0f2f1; background-color: rgba(76, 175, 80, 0.8); padding: 10px 30px; border-radius: 50px; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+    </style>
+</head>
+<body>
+
+    <!-- Menu Lateral: Marcações -->
+    <div id="sidebar">
+        <div class="sidebar-header">
+            <h2><i class="fa-solid fa-bookmark"></i> Minhas Marcações</h2>
+            <button class="icon-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="highlightsList"></div>
+    </div>
+
+    <!-- Modal de Configurações de Tema -->
+    <div id="settingsModal" onclick="if(event.target === this) toggleSettings()">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-palette"></i> Temas e Cores</h2>
+                <button class="icon-btn" onclick="toggleSettings()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="theme-section">
+                <label>Temas Prontos</label>
+                <div class="preset-themes">
+                    <button id="btn-theme-dark" class="preset-btn" onclick="applyPreset('dark')">Dark</button>
+                    <button id="btn-theme-light" class="preset-btn" onclick="applyPreset('light')">Light</button>
+                    <button id="btn-theme-clean" class="preset-btn" onclick="applyPreset('clean')">Clean</button>
+                </div>
+            </div>
+
+            <div class="theme-section">
+                <label>Cores Customizadas</label>
+                <div class="color-picker-group">
+                    <span>Fundo</span>
+                    <input type="color" id="customBg" value="#121212">
+                </div>
+                <div class="color-picker-group">
+                    <span>Texto</span>
+                    <input type="color" id="customText" value="#f1f1f1">
+                </div>
+                <div class="color-picker-group">
+                    <span>Detalhes</span>
+                    <input type="color" id="customAccent" value="#4CAF50">
+                </div>
+            </div>
+            <button class="btn-save" onclick="saveCustomTheme()"><i class="fa-solid fa-floppy-disk"></i> Salvar Meu Padrão</button>
+        </div>
+    </div>
+
+    <!-- Cabeçalho Principal -->
+    <header>
+        <div class="top-bar">
+            <button class="icon-btn" onclick="toggleSidebar()" title="Marcações"><i class="fa-solid fa-bars-staggered"></i></button>
+            <h1><i class="fa-solid fa-book-bible"></i> BÍBLIA</h1>
+            <button class="icon-btn" onclick="toggleSettings()" title="Configurações"><i class="fa-solid fa-sliders"></i></button>
+        </div>
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="switchView('home')">Início</button>
+            <button class="nav-tab" onclick="switchView('reader')">Leitura</button>
+        </div>
+    </header>
+
+    <!-- TELA 1: Início / Devocional -->
+    <main id="view-home" class="view-section active">
+        <div class="card-devocional">
+            <h2>Versículo do Dia</h2>
+            <div id="daily-content"></div>
+            
+            <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px; flex-wrap: wrap;">
+                <button class="btn-read btn-share" id="btnShare" onclick="shareVerse()">
+                    <i class="fa-solid fa-share-nodes"></i> Compartilhar
+                </button>
+                <button class="btn-read" style="width: auto;" onclick="switchView('reader')">
+                    Ler a Bíblia <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- TELA 2: Leitor da Bíblia -->
+    <main id="view-reader" class="view-section">
+        
+        <div class="controls-wrapper">
+            <div class="reading-controls">
+                <div class="control-group">
+                    <i class="fa-solid fa-language"></i>
+                    <!-- As versões serão auto-preenchidas magicamente aqui -->
+                    <select id="versionSelect">
+                        <option value="almeida" style="font-weight: bold;">Almeida (Padrão)</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <i class="fa-solid fa-book-open"></i>
+                    <select id="bookSelect"></select>
+                </div>
+                <div class="control-group" style="min-width: 80px;">
+                    <i class="fa-solid fa-hashtag"></i>
+                    <select id="chapterSelect"></select>
+                </div>
+                <div class="control-group" style="min-width: 90px;">
+                    <i class="fa-solid fa-list-ol"></i>
+                    <select id="verseSelect">
+                        <option value="">Todos</option>
+                    </select>
+                </div>
+            </div>
+            
+            <button class="btn-read" onclick="loadChapter()"><i class="fa-solid fa-magnifying-glass"></i> Carregar Capítulo</button>
+        </div>
+
+        <div id="bible-content">
+            <div style="text-align: center; margin-top: 60px; color: var(--text-color); opacity: 0.5; font-size: 0.95rem;">
+                <i class="fa-solid fa-book-journal-whills" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i><br>
+                Selecione o livro, capítulo e versão para iniciar.
+            </div>
+        </div>
+
+        <!-- BOTÃO FLUTUANTE (FAB) PARA GRIFAR -->
+        <div class="fab-container">
+            <input type="color" id="highlightColor" value="#a3e4d7" title="Cor da marcação">
+            <button class="fab-btn" onclick="highlightSelection()" title="Grifar versículo">
+                <i class="fa-solid fa-highlighter"></i>
+            </button>
+        </div>
+    </main>
+
+    <!-- Canvas Oculto para Geração da Imagem -->
+    <div id="share-wrapper">
+        <div id="share-card">
+            <div id="share-verse"></div>
+            <div id="share-ref"></div>
+        </div>
+    </div>
+
+    <script>
+        // --- DADOS BÁSICOS ---
+        const devotionals = [
+            { ref: "João 3:16", verse: "Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito, para que todo aquele que nele crê não pereça, mas tenha a vida eterna.", devo: "O amor de Deus não possui limites. Ele entregou o que tinha de mais precioso por nós. Lembre-se de que o seu valor não é medido pelas suas falhas, mas pelo sacrifício de Cristo." },
+            { ref: "Filipenses 4:13", verse: "Posso todas as coisas naquele que me fortalece.", devo: "Não importa o tamanho do desafio de hoje. Sua força não vem das suas habilidades, mas da presença constante de Deus. Confie nEle para superar." },
+            { ref: "Salmos 23:1", verse: "O Senhor é o meu pastor; nada me faltará.", devo: "A figura do pastor traz cuidado e proteção. Quando deixamos Deus guiar nossos passos, podemos descansar com a certeza de que Ele proverá o necessário." },
+            { ref: "Isaías 41:10", verse: "Não temas, porque eu sou contigo; não te assombres, porque eu sou o teu Deus; eu te fortaleço, e te ajudo, e te sustento com a destra da minha justiça.", devo: "A presença de Deus afasta o medo. Não importa o que aconteça ao seu redor, Ele é quem te sustenta. Confie na justiça e na força do Senhor." }
+        ];
+
+        const books = [
+            "Gênesis", "Êxodo", "Levítico", "Números", "Deuteronômio", "Josué", "Juízes", "Rute", 
+            "1 Samuel", "2 Samuel", "1 Reis", "2 Reis", "1 Crônicas", "2 Crônicas", "Esdras", "Neemias", "Ester", "Jó", "Salmos", "Provérbios", "Eclesiastes", "Cânticos", "Isaías", "Jeremias", "Lamentações", "Ezequiel", "Daniel", "Oséias", "Joel", "Amós", "Obadias", "Jonas", "Miquéias", "Naum", "Habacuque", "Sofonias", "Ageu", "Zacarias", "Malaquias", 
+            "Mateus", "Marcos", "Lucas", "João", "Atos", "Romanos", "1 Coríntios", "2 Coríntios", "Gálatas", "Efésios", "Filipenses", "Colossenses", "1 Tessalonicenses", "2 Tessalonicenses", "1 Timóteo", "2 Timóteo", "Tito", "Filemom", "Hebreus", "Tiago", "1 Pedro", "2 Pedro", "1 João", "2 João", "3 João", "Judas", "Apocalipse"
+        ];
+
+        let currentChapterData = null;
+        let currentDevo = null; 
+
+        window.onload = async () => {
+            initSelects();
+            await scanLocalVersions(); // Ativa o Radar de arquivos!
+            
+            loadDevotional();
+            loadTheme();
+            updateSidebarList();
+        }
+
+        // --- RADAR DE ARQUIVOS (Auto-Detect Inteligente) ---
+        async function scanLocalVersions() {
+            const select = document.getElementById('versionSelect');
+            
+            // Possíveis arquivos que o usuário pode colocar na pasta do servidor
+            const possibleFiles = [
+                { file: 'nvi.json', name: 'NVI' },
+                { file: 'acf.json', name: 'ACF' },
+                { file: 'ara.json', name: 'ARA' },
+                { file: 'arc.json', name: 'ARC' },
+                { file: 'nvt.json', name: 'NVT' },
+                { file: 'ntlh.json', name: 'NTLH' },
+                { file: 'kja.json', name: 'KJA' },
+                { file: 'naa.json', name: 'NAA' },
+                { file: 'nbv.json', name: 'NBV' }
+            ];
+
+            for (const v of possibleFiles) {
+                try {
+                    // Manda um ping silencioso pro servidor para ver se o arquivo existe
+                    let response = await fetch('./' + v.file, { method: 'HEAD' });
+                    if (response.ok) {
+                        const opt = document.createElement('option');
+                        opt.value = './' + v.file;
+                        opt.textContent = v.name;
+                        select.appendChild(opt);
+                    }
+                } catch (e) {
+                    // Se não achar o arquivo (ou se estiver rodando local file://), ele apenas ignora silenciosamente.
+                }
+            }
+
+            // Restaura a versão salva se ela existir na nova lista atualizada
+            const savedVersion = localStorage.getItem('bibleVersion');
+            if(savedVersion && [...select.options].some(o => o.value === savedVersion)) {
+                select.value = savedVersion;
+            }
+        }
+
+        function switchView(viewName) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+            document.getElementById(`view-${viewName}`).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            updateSidebarList();
+        }
+
+        function toggleSettings() {
+            const modal = document.getElementById('settingsModal');
+            modal.classList.toggle('open');
+        }
+
+        function loadDevotional() {
+            const today = new Date().toDateString(); 
+            const savedDate = localStorage.getItem('devoDate'); 
+            let savedIndex = localStorage.getItem('devoIndex'); 
+
+            if (savedDate !== today || savedIndex === null) {
+                savedIndex = Math.floor(Math.random() * devotionals.length);
+                localStorage.setItem('devoDate', today);
+                localStorage.setItem('devoIndex', savedIndex);
+            }
+
+            currentDevo = devotionals[parseInt(savedIndex)];
+            document.getElementById('daily-content').innerHTML = `
+                <div class="verse-of-day">"${currentDevo.verse}"</div>
+                <span class="verse-ref"><i class="fa-solid fa-bookmark"></i> ${currentDevo.ref}</span>
+                <div class="devocional-text">${currentDevo.devo}</div>
+            `;
+        }
+
+        async function shareVerse() {
+            const btn = document.getElementById('btnShare');
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
+            
+            document.getElementById('share-verse').textContent = `"${currentDevo.verse}"`;
+            document.getElementById('share-ref').textContent = currentDevo.ref;
+            document.getElementById('share-card').style.backgroundImage = `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url('https://picsum.photos/1080/1080?random=${Date.now()}')`;
+            
+            const element = document.getElementById('share-card');
+            
+            setTimeout(async () => {
+                try {
+                    const canvas = await html2canvas(element, { useCORS: true, scale: 2 });
+                    
+                    canvas.toBlob(async (blob) => {
+                        const fileName = `Versiculo-${currentDevo.ref.replace(':', '-')}.jpg`;
+                        const file = new File([blob], fileName, { type: 'image/jpeg' });
+                        
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            try {
+                                await navigator.share({ title: 'Versículo do Dia', files: [file] });
+                            } catch (e) {
+                                const link = document.createElement('a');
+                                link.download = fileName; link.href = URL.createObjectURL(blob); link.click();
+                            }
+                        } else {
+                            const link = document.createElement('a');
+                            link.download = fileName; link.href = URL.createObjectURL(blob); link.click();
+                        }
+                    }, 'image/jpeg', 0.9);
+
+                } catch (error) {
+                    alert("Ocorreu um erro ao gerar a imagem. Verifique sua conexão.");
+                } finally {
+                    btn.innerHTML = originalHTML; 
+                }
+            }, 1000); 
+        }
+
+        const presets = {
+            dark: { bg: '#121212', text: '#f1f1f1', accent: '#4CAF50', secBg: '#1e1e1e', itemBg: '#2c2c2c' },
+            light: { bg: '#f9fafb', text: '#1f2937', accent: '#3b82f6', secBg: '#ffffff', itemBg: '#f3f4f6' },
+            clean: { bg: '#fdfbf7', text: '#3e3e3e', accent: '#6c9a8b', secBg: '#ffffff', itemBg: '#f2efe9' }
+        };
+
+        function applyTheme(colors) {
+            document.documentElement.style.setProperty('--bg-color', colors.bg);
+            document.documentElement.style.setProperty('--text-color', colors.text);
+            document.documentElement.style.setProperty('--accent-color', colors.accent);
+            document.documentElement.style.setProperty('--secondary-bg', colors.secBg);
+            document.documentElement.style.setProperty('--item-bg', colors.itemBg);
+            
+            document.getElementById('customBg').value = colors.bg;
+            document.getElementById('customText').value = colors.text;
+            document.getElementById('customAccent').value = colors.accent;
+        }
+
+        function updateActiveThemeButton(presetName) {
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active-theme'));
+            const activeBtn = document.getElementById(`btn-theme-${presetName}`);
+            if(activeBtn) activeBtn.classList.add('active-theme');
+        }
+
+        function applyPreset(presetName) {
+            applyTheme(presets[presetName]);
+            updateActiveThemeButton(presetName);
+            localStorage.setItem('bibleTheme', JSON.stringify(presets[presetName]));
+            localStorage.setItem('bibleThemeName', presetName); 
+        }
+
+        function saveCustomTheme() {
+            const bg = document.getElementById('customBg').value;
+            const text = document.getElementById('customText').value;
+            const accent = document.getElementById('customAccent').value;
+            
+            const isDark = (parseInt(bg.replace('#', ''), 16) < 0xffffff/2);
+            const secBg = isDark ? lightenColor(bg, 8) : darkenColor(bg, 4);
+            const itemBg = isDark ? lightenColor(bg, 16) : darkenColor(bg, 8);
+
+            const customTheme = { bg, text, accent, secBg, itemBg };
+            applyTheme(customTheme);
+            
+            updateActiveThemeButton('custom');
+            localStorage.setItem('bibleTheme', JSON.stringify(customTheme));
+            localStorage.setItem('bibleThemeName', 'custom');
+            toggleSettings();
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('bibleTheme');
+            const savedThemeName = localStorage.getItem('bibleThemeName') || 'dark'; 
+            if (savedTheme) applyTheme(JSON.parse(savedTheme));
+            updateActiveThemeButton(savedThemeName);
+        }
+
+        function lightenColor(color, percent) {
+            let num = parseInt(color.replace("#",""),16), amt = Math.round(2.55 * percent),
+            R = (num >> 16) + amt, B = (num >> 8 & 0x00FF) + amt, G = (num & 0x0000FF) + amt;
+            return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 + (B<255?B<1?0:B:255)*0x100 + (G<255?G<1?0:G:255)).toString(16).slice(1);
+        }
+        function darkenColor(color, percent) { return lightenColor(color, -percent); }
+
+        function initSelects() {
+            const bookSelect = document.getElementById('bookSelect');
+            const chapterSelect = document.getElementById('chapterSelect');
+            const verseSelect = document.getElementById('verseSelect');
+
+            books.forEach(book => {
+                const option = document.createElement('option');
+                option.value = book; option.textContent = book;
+                bookSelect.appendChild(option);
+            });
+
+            for(let i = 1; i <= 150; i++) {
+                const option = document.createElement('option');
+                option.value = i; option.textContent = `Cap. ${i}`;
+                chapterSelect.appendChild(option);
+            }
+            
+            for(let i = 1; i <= 176; i++) {
+                const option = document.createElement('option');
+                option.value = i; option.textContent = `V. ${i}`;
+                verseSelect.appendChild(option);
+            }
+        }
+
+        async function loadChapter() {
+            const book = document.getElementById('bookSelect').value;
+            const chapter = document.getElementById('chapterSelect').value;
+            const verse = document.getElementById('verseSelect').value;
+            let version = document.getElementById('versionSelect').value;
+            const contentDiv = document.getElementById('bible-content');
+
+            localStorage.setItem('bibleVersion', version);
+
+            contentDiv.innerHTML = '<div style="text-align: center; margin-top: 50px;"><i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: var(--accent-color)"></i><p style="opacity:0.7;">Carregando...</p></div>';
+
+            try {
+                // SE O RADAR ACHOU UM JSON LOCAL
+                if (version.endsWith('.json')) {
+                    let response = await fetch(version);
+                    if (!response.ok) throw new Error(`Não foi possível carregar o arquivo ${version}.`);
+                    
+                    let bibleData = await response.json();
+                    
+                    let bookData = bibleData.find(b => b.name === book || (b.abbrev && b.abbrev.toLowerCase() === book.toLowerCase()));
+                    if(!bookData) {
+                        const bookIndex = books.indexOf(book);
+                        if(bookIndex !== -1 && bibleData[bookIndex]) bookData = bibleData[bookIndex];
+                        else throw new Error("Livro não encontrado no arquivo JSON.");
+                    }
+
+                    const chapterIndex = parseInt(chapter) - 1;
+                    const chapterData = bookData.chapters[chapterIndex];
+                    if(!chapterData) throw new Error("Capítulo não encontrado no JSON.");
+
+                    let verses = [];
+                    if (verse) {
+                        const verseIndex = parseInt(verse) - 1;
+                        if(!chapterData[verseIndex]) throw new Error("Versículo não encontrado.");
+                        verses.push({ verse: parseInt(verse), text: chapterData[verseIndex] });
+                    } else {
+                        verses = chapterData.map((txt, idx) => ({ verse: idx + 1, text: txt }));
+                    }
+
+                    currentChapterData = { reference: `${book} ${chapter}`, verses: verses };
+                    renderContent();
+                    return;
+                }
+
+                // CASO SEJA A ALMEIDA (ONLINE API)
+                let reference = `${encodeURIComponent(book)}+${chapter}`;
+                if(verse) reference += `:${verse}`;
+                
+                let url = `https://bible-api.com/${reference}?translation=${version}`;
+                let response = await fetch(url);
+
+                if (!response.ok) throw new Error('Referência não encontrada.');
+
+                currentChapterData = await response.json();
+                renderContent();
+
+            } catch (error) {
+                contentDiv.innerHTML = `<div style="text-align: center; color: var(--danger-color); margin-top:50px;"><i class="fa-solid fa-triangle-exclamation"></i> Erro: ${error.message}</div>`;
+            }
+        }
+
+        function renderContent() {
+            if (!currentChapterData) return;
+            
+            const contentDiv = document.getElementById('bible-content');
+            let html = `<h2 style="color: var(--accent-color); border-bottom: 1px solid var(--item-bg); padding-bottom: 10px; font-size: 1.3rem;">${currentChapterData.reference}</h2>`;
+            
+            const highlights = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
+            const versesArray = currentChapterData.verses || [currentChapterData];
+
+            versesArray.forEach(v => {
+                let textHTML = v.text;
+                let vNumber = v.verse || v.number;
+                
+                let verseHighlight = highlights.find(h => h.book === document.getElementById('bookSelect').value && h.chapter == document.getElementById('chapterSelect').value && h.verse == vNumber);
+
+                if (verseHighlight) {
+                    textHTML = `<span class="highlighted-text" style="background-color: ${verseHighlight.color};">${textHTML}</span>`;
+                }
+
+                html += `
+                    <div class="verse" data-verse="${vNumber}">
+                        <span class="verse-num">${vNumber}</span>
+                        <span class="verse-text">${textHTML}</span>
+                    </div>
+                `;
+            });
+
+            contentDiv.innerHTML = html;
+        }
+
+        function highlightSelection() {
+            const selection = window.getSelection();
+            let textToHighlight = selection.toString().trim();
+            let verseNum = null;
+
+            if (selection.anchorNode) {
+                let parentEl = selection.anchorNode.nodeType === 3 ? selection.anchorNode.parentNode : selection.anchorNode;
+                let verseEl = parentEl.closest('.verse');
+                
+                if (verseEl) {
+                    verseNum = verseEl.getAttribute('data-verse');
+                    if (!textToHighlight) {
+                        textToHighlight = verseEl.querySelector('.verse-text').innerText;
+                    }
+                }
+            }
+
+            if(!verseNum) {
+                const versesArray = currentChapterData.verses || [currentChapterData];
+                verseNum = versesArray.length === 1 ? (versesArray[0].verse || versesArray[0].number) : document.getElementById('verseSelect').value;
+                
+                if(!verseNum) {
+                    alert("Toque ou selecione um trecho de um versículo na tela para usar o marcador.");
+                    return;
+                }
+            }
+
+            const color = document.getElementById('highlightColor').value;
+            const book = document.getElementById('bookSelect').value;
+            const chapter = document.getElementById('chapterSelect').value;
+
+            let highlights = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
+            
+            highlights = highlights.filter(h => !(h.book === book && h.chapter == chapter && h.verse == verseNum));
+
+            highlights.push({ 
+                id: Date.now(),
+                book: book, 
+                chapter: chapter, 
+                verse: verseNum,
+                text: textToHighlight || `Versículo ${verseNum}`, 
+                color: color 
+            });
+            
+            localStorage.setItem('bibleHighlights', JSON.stringify(highlights));
+
+            selection.removeAllRanges();
+            renderContent();
+            updateSidebarList();
+        }
+
+        function updateSidebarList() {
+            const listDiv = document.getElementById('highlightsList');
+            const highlights = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
+
+            if (highlights.length === 0) {
+                listDiv.innerHTML = '<p style="color: var(--text-color); opacity: 0.5; font-size: 0.9rem; text-align: center; margin-top: 30px;">Nenhum texto grifado.</p>';
+                return;
+            }
+
+            listDiv.innerHTML = '';
+            highlights.slice().reverse().forEach(h => {
+                const item = document.createElement('div');
+                item.className = 'highlight-item';
+                item.style.borderLeftColor = h.color;
+                
+                item.innerHTML = `
+                    <button class="btn-delete" onclick="deleteHighlight(${h.id})" title="Excluir"><i class="fa-solid fa-trash-can"></i></button>
+                    <span class="highlight-ref">${h.book} ${h.chapter}:${h.verse}</span>
+                    "<em>${h.text}</em>"
+                `;
+                listDiv.appendChild(item);
+            });
+        }
+
+        function deleteHighlight(id) {
+            let highlights = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
+            highlights = highlights.filter(h => h.id !== id);
+            localStorage.setItem('bibleHighlights', JSON.stringify(highlights));
+            
+            updateSidebarList();
+            if(document.getElementById('view-reader').classList.contains('active')) {
+                renderContent();
+            }
+        }
+    </script>
+</body>
+</html>
