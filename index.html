@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bíblia Premium</title>
-    <!-- Fontes e Ícones Modernos -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Biblioteca para transformar HTML em Imagem -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         /* Sistema de Cores e Temas dinâmicos */
@@ -33,6 +32,7 @@
             min-height: 100vh;
             overflow-x: hidden;
             transition: background-color 0.3s, color 0.3s;
+            position: relative; /* Necessário para os post-its absolutos */
         }
 
         /* ----- BARRA SUPERIOR (HEADER) ----- */
@@ -262,7 +262,8 @@
             background-color: var(--secondary-bg);
             box-shadow: 5px 0 20px rgba(0,0,0,0.3);
             transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 1000; padding: 20px; overflow-y: auto; box-sizing: border-box;
+            z-index: 2000;
+            padding: 20px; overflow-y: auto; box-sizing: border-box;
         }
         #sidebar.open { left: 0; }
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--item-bg); padding-bottom: 15px; margin-bottom: 20px; }
@@ -278,7 +279,8 @@
         #settingsModal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center;
-            z-index: 2000; backdrop-filter: blur(3px);
+            z-index: 3000; 
+            backdrop-filter: blur(3px);
         }
         #settingsModal.open { display: flex; }
         .modal-content {
@@ -305,7 +307,7 @@
 
         /* ----- BOTÃO FLUTUANTE DE GRIFO (FAB) ----- */
         .fab-container {
-            position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; align-items: center; gap: 12px; z-index: 1000;
+            position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; align-items: center; gap: 12px; z-index: 950; 
         }
         .fab-btn {
             width: 60px; height: 60px; border-radius: 50%; background-color: var(--accent-color); color: #fff; border: none;
@@ -332,11 +334,75 @@
         }
         #share-verse { font-size: 3.5rem; font-style: italic; font-weight: 600; margin-bottom: 50px; line-height: 1.4; text-shadow: 2px 2px 10px rgba(0,0,0,0.6); }
         #share-ref { font-size: 2.2rem; font-weight: 700; color: #e0f2f1; background-color: rgba(76, 175, 80, 0.8); padding: 10px 30px; border-radius: 50px; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+
+        /* ----- POST-ITS ULTRA REALISTAS E REDIMENSIONÁVEIS ----- */
+        .post-it-note {
+            position: absolute;
+            width: 180px; height: 180px; min-width: 120px; min-height: 120px;
+            max-width: 500px; max-height: 500px;
+            box-shadow: 2px 2px 2px rgba(0,0,0,0.1), 5px 10px 15px rgba(0,0,0,0.2), inset 0 -15px 30px rgba(0,0,0,0.05);
+            border-bottom-right-radius: 50px 10px; z-index: 500; 
+            display: flex; flex-direction: column; transform: rotate(-1deg); 
+            transition: transform 0.1s, box-shadow 0.1s, background-color 0.3s;
+            overflow: hidden; resize: both;
+        }
+        
+        .post-it-note::after {
+            content: ""; position: absolute; bottom: 0; right: 0; width: 35px; height: 20px;
+            background: linear-gradient(135deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0) 50%), linear-gradient(to right, rgba(0,0,0,0.1), rgba(0,0,0,0));
+            box-shadow: -3px -3px 5px rgba(0,0,0,0.1); border-bottom-right-radius: 50px 10px;
+            pointer-events: none; z-index: 2;
+        }
+
+        .post-it-note:hover {
+            z-index: 501; box-shadow: 2px 2px 2px rgba(0,0,0,0.1), 7px 14px 20px rgba(0,0,0,0.25), inset 0 -15px 30px rgba(0,0,0,0.05);
+        }
+
+        .post-it-note.dragging {
+            opacity: 0.9; transform: scale(1.03) rotate(0deg);
+            box-shadow: 10px 20px 30px rgba(0,0,0,0.3); z-index: 502 !important; cursor: grabbing;
+        }
+
+        .post-it-header {
+            width: 100%; height: 30px; background: rgba(0,0,0,0.06); cursor: grab;
+            display: flex; justify-content: flex-end; align-items: center; padding: 0 8px;
+            box-sizing: border-box; border-top-left-radius: 2px; border-top-right-radius: 2px; flex-shrink: 0; 
+        }
+        .post-it-note.dragging .post-it-header { cursor: grabbing; }
+
+        .post-it-content-wrapper {
+            flex: 1; padding: 10px 15px 30px 15px; overflow: hidden;
+            display: flex; justify-content: center; align-items: center; position: relative;
+        }
+
+        .post-it-content {
+            width: 100%; height: 100%; font-family: 'Kalam', cursive; font-size: 1.1rem;
+            color: rgba(0,0,0,0.8); outline: none; border: none; background: transparent;
+            resize: none; line-height: 1.3; overflow-y: auto; text-align: center;
+            text-shadow: 0px 1px 0px rgba(255,255,255,0.2); padding: 0; box-sizing: border-box;
+        }
+        
+        .post-it-content::-webkit-scrollbar { width: 4px; }
+        .post-it-content::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
+
+        .post-it-controls { display: flex; gap: 8px; align-items: center; z-index: 5; }
+        .post-it-btn {
+            background: none; border: none; cursor: pointer;
+            color: rgba(0,0,0,0.4); font-size: 0.9rem; padding: 2px; transition: color 0.2s, transform 0.1s;
+        }
+        .post-it-btn:hover { color: #000; transform: scale(1.1); }
+
+        .post-it-color {
+            width: 18px; height: 18px; padding: 0; border: none; border-radius: 50%;
+            cursor: pointer; background: transparent; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+        }
+        .post-it-color::-webkit-color-swatch-wrapper { padding: 0; }
+        .post-it-color::-webkit-color-swatch { border: 1px solid rgba(0,0,0,0.2); border-radius: 50%; }
+
     </style>
 </head>
 <body>
 
-    <!-- Menu Lateral: Marcações -->
     <div id="sidebar">
         <div class="sidebar-header">
             <h2><i class="fa-solid fa-bookmark"></i> Minhas Marcações</h2>
@@ -345,7 +411,6 @@
         <div id="highlightsList"></div>
     </div>
 
-    <!-- Modal de Configurações de Tema -->
     <div id="settingsModal" onclick="if(event.target === this) toggleSettings()">
         <div class="modal-content">
             <div class="modal-header">
@@ -381,7 +446,6 @@
         </div>
     </div>
 
-    <!-- Cabeçalho Principal -->
     <header>
         <div class="top-bar">
             <button class="icon-btn" onclick="toggleSidebar()" title="Marcações"><i class="fa-solid fa-bars-staggered"></i></button>
@@ -394,7 +458,6 @@
         </div>
     </header>
 
-    <!-- TELA 1: Início / Devocional -->
     <main id="view-home" class="view-section active">
         <div class="card-devocional">
             <h2>Versículo do Dia</h2>
@@ -411,14 +474,12 @@
         </div>
     </main>
 
-    <!-- TELA 2: Leitor da Bíblia -->
     <main id="view-reader" class="view-section">
         
         <div class="controls-wrapper">
             <div class="reading-controls">
                 <div class="control-group">
                     <i class="fa-solid fa-language"></i>
-                    <!-- As versões serão auto-preenchidas magicamente aqui -->
                     <select id="versionSelect">
                         <option value="almeida" style="font-weight: bold;">Almeida (Padrão)</option>
                     </select>
@@ -449,8 +510,11 @@
             </div>
         </div>
 
-        <!-- BOTÃO FLUTUANTE (FAB) PARA GRIFAR -->
         <div class="fab-container">
+            <button class="fab-btn" style="background-color: #f1c40f; color: #121212;" onclick="createNewPostIt()" title="Colar Post-it na página">
+                <i class="fa-solid fa-sticky-note"></i>
+            </button>
+            
             <input type="color" id="highlightColor" value="#a3e4d7" title="Cor da marcação">
             <button class="fab-btn" onclick="highlightSelection()" title="Grifar versículo">
                 <i class="fa-solid fa-highlighter"></i>
@@ -458,7 +522,6 @@
         </div>
     </main>
 
-    <!-- Canvas Oculto para Geração da Imagem -->
     <div id="share-wrapper">
         <div id="share-card">
             <div id="share-verse"></div>
@@ -483,36 +546,30 @@
 
         let currentChapterData = null;
         let currentDevo = null; 
+        let postItsData = [];
 
         window.onload = async () => {
             initSelects();
-            await scanLocalVersions(); // Ativa o Radar de arquivos!
+            await scanLocalVersions(); 
             
             loadDevotional();
             loadTheme();
             updateSidebarList();
+            loadPostIts(); 
         }
 
-        // --- RADAR DE ARQUIVOS (Auto-Detect Inteligente) ---
         async function scanLocalVersions() {
             const select = document.getElementById('versionSelect');
-            
-            // Possíveis arquivos que o usuário pode colocar na pasta do servidor
             const possibleFiles = [
-                { file: 'nvi.json', name: 'NVI' },
-                { file: 'acf.json', name: 'ACF' },
-                { file: 'ara.json', name: 'ARA' },
-                { file: 'arc.json', name: 'ARC' },
-                { file: 'nvt.json', name: 'NVT' },
-                { file: 'ntlh.json', name: 'NTLH' },
-                { file: 'kja.json', name: 'KJA' },
-                { file: 'naa.json', name: 'NAA' },
+                { file: 'nvi.json', name: 'NVI' }, { file: 'acf.json', name: 'ACF' },
+                { file: 'ara.json', name: 'ARA' }, { file: 'arc.json', name: 'ARC' },
+                { file: 'nvt.json', name: 'NVT' }, { file: 'ntlh.json', name: 'NTLH' },
+                { file: 'kja.json', name: 'KJA' }, { file: 'naa.json', name: 'NAA' },
                 { file: 'nbv.json', name: 'NBV' }
             ];
 
             for (const v of possibleFiles) {
                 try {
-                    // Manda um ping silencioso pro servidor para ver se o arquivo existe
                     let response = await fetch('./' + v.file, { method: 'HEAD' });
                     if (response.ok) {
                         const opt = document.createElement('option');
@@ -520,12 +577,8 @@
                         opt.textContent = v.name;
                         select.appendChild(opt);
                     }
-                } catch (e) {
-                    // Se não achar o arquivo (ou se estiver rodando local file://), ele apenas ignora silenciosamente.
-                }
+                } catch (e) {}
             }
-
-            // Restaura a versão salva se ela existir na nova lista atualizada
             const savedVersion = localStorage.getItem('bibleVersion');
             if(savedVersion && [...select.options].some(o => o.value === savedVersion)) {
                 select.value = savedVersion;
@@ -536,7 +589,15 @@
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
             document.getElementById(`view-${viewName}`).classList.add('active');
-            event.currentTarget.classList.add('active');
+            
+            if(event && event.currentTarget && event.currentTarget.classList.contains('nav-tab')) {
+                event.currentTarget.classList.add('active');
+            } else {
+                const targetTab = document.querySelector(`.nav-tab[onclick="switchView('${viewName}')"]`);
+                if(targetTab) targetTab.classList.add('active');
+            }
+
+            updatePostItsVisibility(); // Atualiza a visibilidade dos post-its para a nova aba
         }
 
         function toggleSidebar() {
@@ -582,31 +643,17 @@
             setTimeout(async () => {
                 try {
                     const canvas = await html2canvas(element, { useCORS: true, scale: 2 });
-                    
                     canvas.toBlob(async (blob) => {
                         const fileName = `Versiculo-${currentDevo.ref.replace(':', '-')}.jpg`;
                         const file = new File([blob], fileName, { type: 'image/jpeg' });
-                        
                         if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                            try {
-                                await navigator.share({ title: 'Versículo do Dia', files: [file] });
-                            } catch (e) {
-                                const link = document.createElement('a');
-                                link.download = fileName; link.href = URL.createObjectURL(blob); link.click();
-                            }
-                        } else {
-                            const link = document.createElement('a');
-                            link.download = fileName; link.href = URL.createObjectURL(blob); link.click();
-                        }
+                            try { await navigator.share({ title: 'Versículo do Dia', files: [file] }); } catch (e) { downloadFallback(blob, fileName); }
+                        } else { downloadFallback(blob, fileName); }
                     }, 'image/jpeg', 0.9);
-
-                } catch (error) {
-                    alert("Ocorreu um erro ao gerar a imagem. Verifique sua conexão.");
-                } finally {
-                    btn.innerHTML = originalHTML; 
-                }
+                } catch (error) { alert("Erro ao gerar imagem."); } finally { btn.innerHTML = originalHTML; }
             }, 1000); 
         }
+        function downloadFallback(blob, fileName) { const link = document.createElement('a'); link.download = fileName; link.href = URL.createObjectURL(blob); link.click(); }
 
         const presets = {
             dark: { bg: '#121212', text: '#f1f1f1', accent: '#4CAF50', secBg: '#1e1e1e', itemBg: '#2c2c2c' },
@@ -615,14 +662,11 @@
         };
 
         function applyTheme(colors) {
-            document.documentElement.style.setProperty('--bg-color', colors.bg);
-            document.documentElement.style.setProperty('--text-color', colors.text);
-            document.documentElement.style.setProperty('--accent-color', colors.accent);
-            document.documentElement.style.setProperty('--secondary-bg', colors.secBg);
-            document.documentElement.style.setProperty('--item-bg', colors.itemBg);
-            
-            document.getElementById('customBg').value = colors.bg;
-            document.getElementById('customText').value = colors.text;
+            const doc = document.documentElement;
+            doc.style.setProperty('--bg-color', colors.bg); doc.style.setProperty('--text-color', colors.text);
+            doc.style.setProperty('--accent-color', colors.accent); doc.style.setProperty('--secondary-bg', colors.secBg);
+            doc.style.setProperty('--item-bg', colors.itemBg);
+            document.getElementById('customBg').value = colors.bg; document.getElementById('customText').value = colors.text;
             document.getElementById('customAccent').value = colors.accent;
         }
 
@@ -632,244 +676,339 @@
             if(activeBtn) activeBtn.classList.add('active-theme');
         }
 
-        function applyPreset(presetName) {
-            applyTheme(presets[presetName]);
-            updateActiveThemeButton(presetName);
-            localStorage.setItem('bibleTheme', JSON.stringify(presets[presetName]));
-            localStorage.setItem('bibleThemeName', presetName); 
-        }
+        function applyPreset(presetName) { applyTheme(presets[presetName]); updateActiveThemeButton(presetName); localStorage.setItem('bibleTheme', JSON.stringify(presets[presetName])); localStorage.setItem('bibleThemeName', presetName); }
 
         function saveCustomTheme() {
-            const bg = document.getElementById('customBg').value;
-            const text = document.getElementById('customText').value;
+            const bg = document.getElementById('customBg').value; const text = document.getElementById('customText').value;
             const accent = document.getElementById('customAccent').value;
-            
             const isDark = (parseInt(bg.replace('#', ''), 16) < 0xffffff/2);
             const secBg = isDark ? lightenColor(bg, 8) : darkenColor(bg, 4);
             const itemBg = isDark ? lightenColor(bg, 16) : darkenColor(bg, 8);
-
             const customTheme = { bg, text, accent, secBg, itemBg };
-            applyTheme(customTheme);
-            
-            updateActiveThemeButton('custom');
-            localStorage.setItem('bibleTheme', JSON.stringify(customTheme));
-            localStorage.setItem('bibleThemeName', 'custom');
-            toggleSettings();
+            applyTheme(customTheme); updateActiveThemeButton('custom'); localStorage.setItem('bibleTheme', JSON.stringify(customTheme)); localStorage.setItem('bibleThemeName', 'custom'); toggleSettings();
         }
 
-        function loadTheme() {
-            const savedTheme = localStorage.getItem('bibleTheme');
-            const savedThemeName = localStorage.getItem('bibleThemeName') || 'dark'; 
-            if (savedTheme) applyTheme(JSON.parse(savedTheme));
-            updateActiveThemeButton(savedThemeName);
-        }
-
-        function lightenColor(color, percent) {
-            let num = parseInt(color.replace("#",""),16), amt = Math.round(2.55 * percent),
-            R = (num >> 16) + amt, B = (num >> 8 & 0x00FF) + amt, G = (num & 0x0000FF) + amt;
-            return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 + (B<255?B<1?0:B:255)*0x100 + (G<255?G<1?0:G:255)).toString(16).slice(1);
-        }
+        function loadTheme() { const savedTheme = localStorage.getItem('bibleTheme'); const savedThemeName = localStorage.getItem('bibleThemeName') || 'dark'; if (savedTheme) applyTheme(JSON.parse(savedTheme)); updateActiveThemeButton(savedThemeName); }
+        function lightenColor(color, percent) { let num = parseInt(color.replace("#",""),16), amt = Math.round(2.55 * percent), R = (num >> 16) + amt, B = (num >> 8 & 0x00FF) + amt, G = (num & 0x0000FF) + amt; return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 + (B<255?B<1?0:B:255)*0x100 + (G<255?G<1?0:G:255)).toString(16).slice(1); }
         function darkenColor(color, percent) { return lightenColor(color, -percent); }
 
         function initSelects() {
-            const bookSelect = document.getElementById('bookSelect');
-            const chapterSelect = document.getElementById('chapterSelect');
-            const verseSelect = document.getElementById('verseSelect');
-
-            books.forEach(book => {
-                const option = document.createElement('option');
-                option.value = book; option.textContent = book;
-                bookSelect.appendChild(option);
-            });
-
-            for(let i = 1; i <= 150; i++) {
-                const option = document.createElement('option');
-                option.value = i; option.textContent = `Cap. ${i}`;
-                chapterSelect.appendChild(option);
-            }
-            
-            for(let i = 1; i <= 176; i++) {
-                const option = document.createElement('option');
-                option.value = i; option.textContent = `V. ${i}`;
-                verseSelect.appendChild(option);
-            }
+            const bookSelect = document.getElementById('bookSelect'); const chapterSelect = document.getElementById('chapterSelect'); const verseSelect = document.getElementById('verseSelect');
+            books.forEach(book => { const option = document.createElement('option'); option.value = book; option.textContent = book; bookSelect.appendChild(option); });
+            for(let i = 1; i <= 150; i++) { const option = document.createElement('option'); option.value = i; option.textContent = `Cap. ${i}`; chapterSelect.appendChild(option); }
+            for(let i = 1; i <= 176; i++) { const option = document.createElement('option'); option.value = i; option.textContent = `V. ${i}`; verseSelect.appendChild(option); }
         }
 
         async function loadChapter() {
-            const book = document.getElementById('bookSelect').value;
-            const chapter = document.getElementById('chapterSelect').value;
-            const verse = document.getElementById('verseSelect').value;
-            let version = document.getElementById('versionSelect').value;
-            const contentDiv = document.getElementById('bible-content');
-
+            const book = document.getElementById('bookSelect').value; const chapter = document.getElementById('chapterSelect').value; const verse = document.getElementById('verseSelect').value;
+            let version = document.getElementById('versionSelect').value; const contentDiv = document.getElementById('bible-content');
             localStorage.setItem('bibleVersion', version);
-
-            contentDiv.innerHTML = '<div style="text-align: center; margin-top: 50px;"><i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: var(--accent-color)"></i><p style="opacity:0.7;">Carregando...</p></div>';
-
+            contentDiv.innerHTML = '<div style="text-align: center; margin-top: 50px;"><i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: var(--accent-color)"></i></div>';
             try {
-                // SE O RADAR ACHOU UM JSON LOCAL
                 if (version.endsWith('.json')) {
-                    let response = await fetch(version);
-                    if (!response.ok) throw new Error(`Não foi possível carregar o arquivo ${version}.`);
-                    
+                    let response = await fetch(version); if (!response.ok) throw new Error("Erro arquivo.");
                     let bibleData = await response.json();
-                    
                     let bookData = bibleData.find(b => b.name === book || (b.abbrev && b.abbrev.toLowerCase() === book.toLowerCase()));
-                    if(!bookData) {
-                        const bookIndex = books.indexOf(book);
-                        if(bookIndex !== -1 && bibleData[bookIndex]) bookData = bibleData[bookIndex];
-                        else throw new Error("Livro não encontrado no arquivo JSON.");
-                    }
-
-                    const chapterIndex = parseInt(chapter) - 1;
-                    const chapterData = bookData.chapters[chapterIndex];
-                    if(!chapterData) throw new Error("Capítulo não encontrado no JSON.");
-
-                    let verses = [];
-                    if (verse) {
-                        const verseIndex = parseInt(verse) - 1;
-                        if(!chapterData[verseIndex]) throw new Error("Versículo não encontrado.");
-                        verses.push({ verse: parseInt(verse), text: chapterData[verseIndex] });
-                    } else {
-                        verses = chapterData.map((txt, idx) => ({ verse: idx + 1, text: txt }));
-                    }
-
+                    if(!bookData) bookData = bibleData[books.indexOf(book)];
+                    const chapterData = bookData.chapters[parseInt(chapter) - 1];
+                    let verses = verse ? [{ verse: parseInt(verse), text: chapterData[parseInt(verse) - 1] }] : chapterData.map((txt, idx) => ({ verse: idx + 1, text: txt }));
                     currentChapterData = { reference: `${book} ${chapter}`, verses: verses };
-                    renderContent();
-                    return;
+                } else {
+                    let ref = `${encodeURIComponent(book)}+${chapter}${verse ? ':'+verse : ''}`;
+                    let response = await fetch(`https://bible-api.com/${ref}?translation=${version}`);
+                    if (!response.ok) throw new Error('Ñ achei.'); currentChapterData = await response.json();
                 }
-
-                // CASO SEJA A ALMEIDA (ONLINE API)
-                let reference = `${encodeURIComponent(book)}+${chapter}`;
-                if(verse) reference += `:${verse}`;
-                
-                let url = `https://bible-api.com/${reference}?translation=${version}`;
-                let response = await fetch(url);
-
-                if (!response.ok) throw new Error('Referência não encontrada.');
-
-                currentChapterData = await response.json();
                 renderContent();
-
-            } catch (error) {
-                contentDiv.innerHTML = `<div style="text-align: center; color: var(--danger-color); margin-top:50px;"><i class="fa-solid fa-triangle-exclamation"></i> Erro: ${error.message}</div>`;
-            }
+            } catch (error) { contentDiv.innerHTML = `<div style="text-align:center;color:var(--danger-color);">${error.message}</div>`; }
         }
 
         function renderContent() {
             if (!currentChapterData) return;
-            
             const contentDiv = document.getElementById('bible-content');
-            let html = `<h2 style="color: var(--accent-color); border-bottom: 1px solid var(--item-bg); padding-bottom: 10px; font-size: 1.3rem;">${currentChapterData.reference}</h2>`;
-            
+            let html = `<h2 style="color: var(--accent-color);">${currentChapterData.reference}</h2>`;
             const highlights = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
-            const versesArray = currentChapterData.verses || [currentChapterData];
-
-            versesArray.forEach(v => {
-                let textHTML = v.text;
-                let vNumber = v.verse || v.number;
-                
-                let verseHighlight = highlights.find(h => h.book === document.getElementById('bookSelect').value && h.chapter == document.getElementById('chapterSelect').value && h.verse == vNumber);
-
-                if (verseHighlight) {
-                    textHTML = `<span class="highlighted-text" style="background-color: ${verseHighlight.color};">${textHTML}</span>`;
-                }
-
-                html += `
-                    <div class="verse" data-verse="${vNumber}">
-                        <span class="verse-num">${vNumber}</span>
-                        <span class="verse-text">${textHTML}</span>
-                    </div>
-                `;
+            (currentChapterData.verses || [currentChapterData]).forEach(v => {
+                let vNum = v.verse || v.number;
+                let h = highlights.find(h => h.book === document.getElementById('bookSelect').value && h.chapter == document.getElementById('chapterSelect').value && h.verse == vNum);
+                html += `<div class="verse" data-verse="${vNum}"><span class="verse-num">${vNum}</span><span class="verse-text">${h ? `<span class="highlighted-text" style="background-color:${h.color}">${v.text}</span>` : v.text}</span></div>`;
             });
-
             contentDiv.innerHTML = html;
+
+            updatePostItsVisibility(); // Atualiza se os post-its dessa página devem aparecer
         }
 
         function highlightSelection() {
-            const selection = window.getSelection();
-            let textToHighlight = selection.toString().trim();
-            let verseNum = null;
-
-            if (selection.anchorNode) {
-                let parentEl = selection.anchorNode.nodeType === 3 ? selection.anchorNode.parentNode : selection.anchorNode;
-                let verseEl = parentEl.closest('.verse');
-                
-                if (verseEl) {
-                    verseNum = verseEl.getAttribute('data-verse');
-                    if (!textToHighlight) {
-                        textToHighlight = verseEl.querySelector('.verse-text').innerText;
-                    }
-                }
-            }
-
-            if(!verseNum) {
-                const versesArray = currentChapterData.verses || [currentChapterData];
-                verseNum = versesArray.length === 1 ? (versesArray[0].verse || versesArray[0].number) : document.getElementById('verseSelect').value;
-                
-                if(!verseNum) {
-                    alert("Toque ou selecione um trecho de um versículo na tela para usar o marcador.");
-                    return;
-                }
-            }
-
-            const color = document.getElementById('highlightColor').value;
-            const book = document.getElementById('bookSelect').value;
-            const chapter = document.getElementById('chapterSelect').value;
-
-            let highlights = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
-            
-            highlights = highlights.filter(h => !(h.book === book && h.chapter == chapter && h.verse == verseNum));
-
-            highlights.push({ 
-                id: Date.now(),
-                book: book, 
-                chapter: chapter, 
-                verse: verseNum,
-                text: textToHighlight || `Versículo ${verseNum}`, 
-                color: color 
-            });
-            
-            localStorage.setItem('bibleHighlights', JSON.stringify(highlights));
-
-            selection.removeAllRanges();
-            renderContent();
-            updateSidebarList();
+            const sel = window.getSelection(); let text = sel.toString().trim(); let vNum = null;
+            if (sel.anchorNode) { let p = sel.anchorNode.parentNode.closest('.verse'); if (p) { vNum = p.getAttribute('data-verse'); if (!text) text = p.querySelector('.verse-text').innerText; } }
+            if(!vNum) { alert("Selecione um versículo."); return; }
+            const color = document.getElementById('highlightColor').value; const book = document.getElementById('bookSelect').value; const chapter = document.getElementById('chapterSelect').value;
+            let h = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
+            h = h.filter(x => !(x.book === book && x.chapter == chapter && x.verse == vNum));
+            h.push({ id: Date.now(), book, chapter, verse: vNum, text: text || `V. ${vNum}`, color });
+            localStorage.setItem('bibleHighlights', JSON.stringify(h)); sel.removeAllRanges(); renderContent(); updateSidebarList();
         }
 
         function updateSidebarList() {
-            const listDiv = document.getElementById('highlightsList');
-            const highlights = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
+            const list = document.getElementById('highlightsList'); const h = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
+            if (h.length === 0) { list.innerHTML = '<p style="text-align:center;opacity:0.5;">Vazio.</p>'; return; }
+            list.innerHTML = ''; h.slice().reverse().forEach(x => {
+                const item = document.createElement('div'); item.className = 'highlight-item'; item.style.borderLeftColor = x.color;
+                item.innerHTML = `<button class="btn-delete" onclick="deleteHighlight(${x.id})"><i class="fa-solid fa-trash-can"></i></button><span class="highlight-ref">${x.book} ${x.chapter}:${x.verse}</span>"<em>${x.text}</em>"`;
+                list.appendChild(item);
+            });
+        }
+        function deleteHighlight(id) { let h = JSON.parse(localStorage.getItem('bibleHighlights') || '[]'); h = h.filter(x => x.id !== id); localStorage.setItem('bibleHighlights', JSON.stringify(h)); updateSidebarList(); if(document.getElementById('view-reader').classList.contains('active')) renderContent(); }
 
-            if (highlights.length === 0) {
-                listDiv.innerHTML = '<p style="color: var(--text-color); opacity: 0.5; font-size: 0.9rem; text-align: center; margin-top: 30px;">Nenhum texto grifado.</p>';
-                return;
+        // ==========================================
+        //  LÓGICA INTELIGENTE DOS POST-ITS
+        // ==========================================
+        
+        function loadPostIts() {
+            postItsData = JSON.parse(localStorage.getItem('biblePostIts') || '[]');
+            // Auto-limpeza: Destrói permanentemente notas que foram salvas sem nenhum texto (fantasmas)
+            postItsData = postItsData.filter(p => p.text && p.text.trim() !== '');
+            savePostIts();
+            
+            postItsData.forEach(data => renderPostItElement(data));
+            updatePostItsVisibility(); 
+        }
+
+        function savePostIts() {
+            localStorage.setItem('biblePostIts', JSON.stringify(postItsData));
+        }
+
+        // Função responsável por gerenciar quando e onde as notas devem aparecer
+        function updatePostItsVisibility() {
+            const activeViewId = document.querySelector('.view-section.active').id.replace('view-', '');
+            const currentVerse = document.getElementById('verseSelect').value;
+            
+            let loadedBook = null;
+            let loadedChapter = null;
+
+            // Extrai o livro e capítulo do texto que de fato está renderizado na tela
+            if (currentChapterData && currentChapterData.reference) {
+                const refParts = currentChapterData.reference.split(' ');
+                loadedChapter = refParts.pop(); 
+                loadedBook = refParts.join(' '); 
             }
 
-            listDiv.innerHTML = '';
-            highlights.slice().reverse().forEach(h => {
-                const item = document.createElement('div');
-                item.className = 'highlight-item';
-                item.style.borderLeftColor = h.color;
-                
-                item.innerHTML = `
-                    <button class="btn-delete" onclick="deleteHighlight(${h.id})" title="Excluir"><i class="fa-solid fa-trash-can"></i></button>
-                    <span class="highlight-ref">${h.book} ${h.chapter}:${h.verse}</span>
-                    "<em>${h.text}</em>"
-                `;
-                listDiv.appendChild(item);
+            document.querySelectorAll('.post-it-note').forEach(note => {
+                const postItId = parseInt(note.id.replace('postit-', ''));
+                const data = postItsData.find(p => p.id === postItId);
+                if (!data) return;
+
+                let shouldShow = false;
+
+                if (activeViewId === 'home' && data.view === 'home') {
+                    shouldShow = true;
+                } else if (activeViewId === 'reader' && data.view === 'reader') {
+                    // Condição de Versículo Isolado: Se selecionado algum versículo específico, não mostra NENHUMA nota.
+                    if (currentVerse === "") { 
+                        // Verifica se o livro e o capítulo da nota são exatamente os que estão abertos na tela agora
+                        if (data.book === loadedBook && data.chapter == loadedChapter) {
+                            shouldShow = true;
+                        }
+                    }
+                }
+
+                note.style.display = shouldShow ? 'flex' : 'none';
             });
         }
 
-        function deleteHighlight(id) {
-            let highlights = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
-            highlights = highlights.filter(h => h.id !== id);
-            localStorage.setItem('bibleHighlights', JSON.stringify(highlights));
-            
-            updateSidebarList();
-            if(document.getElementById('view-reader').classList.contains('active')) {
-                renderContent();
+        function createNewPostIt() {
+            const scrollY = window.scrollY || document.documentElement.scrollTop;
+            const startX = (window.innerWidth / 2) - 90; 
+            const startY = scrollY + (window.innerHeight / 2) - 90;
+
+            const activeViewId = document.querySelector('.view-section.active').id.replace('view-', '');
+            const currentVerse = document.getElementById('verseSelect').value;
+
+            let loadedBook = null;
+            let loadedChapter = null;
+
+            if (activeViewId === 'reader') {
+                if (!currentChapterData) {
+                    alert("Carregue um capítulo primeiro antes de colar uma nota.");
+                    return;
+                }
+                if (currentVerse !== "") {
+                    alert("Não é possível colar adesivos em um versículo isolado. Selecione 'Todos' na aba de versículos.");
+                    return;
+                }
+                
+                const refParts = currentChapterData.reference.split(' ');
+                loadedChapter = refParts.pop();
+                loadedBook = refParts.join(' ');
             }
+
+            const newPostIt = {
+                id: Date.now(),
+                view: activeViewId, 
+                book: loadedBook, // Trava no livro exato
+                chapter: loadedChapter, // Trava no capítulo exato
+                x: startX > 10 ? startX : 10,
+                y: startY > 10 ? startY : 10,
+                w: 180, 
+                h: 180, 
+                color: '#ffeb3b',
+                text: ''
+            };
+
+            postItsData.push(newPostIt);
+            savePostIts();
+            renderPostItElement(newPostIt);
+        }
+
+        function renderPostItElement(data) {
+            const postIt = document.createElement('div');
+            postIt.className = 'post-it-note';
+            postIt.id = `postit-${data.id}`;
+            
+            postIt.style.left = `${data.x}px`;
+            postIt.style.top = `${data.y}px`;
+            postIt.style.width = `${data.w}px`;
+            postIt.style.height = `${data.h}px`;
+            postIt.style.backgroundColor = data.color;
+
+            // Cabeçalho (Área de arrastar e botões)
+            const header = document.createElement('div');
+            header.className = 'post-it-header';
+            
+            const controls = document.createElement('div');
+            controls.className = 'post-it-controls';
+
+            const colorInput = document.createElement('input');
+            colorInput.type = 'color';
+            colorInput.className = 'post-it-color';
+            colorInput.value = data.color;
+            colorInput.title = 'Mudar cor';
+            colorInput.addEventListener('input', (e) => {
+                data.color = e.target.value;
+                postIt.style.backgroundColor = data.color;
+                savePostIts();
+            });
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'post-it-btn';
+            deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+            deleteBtn.title = 'Excluir nota';
+            deleteBtn.onclick = () => {
+                if(confirm("Deseja excluir esta nota definitiva?")){
+                    postIt.remove();
+                    postItsData = postItsData.filter(p => p.id !== data.id);
+                    savePostIts();
+                }
+            };
+
+            controls.appendChild(colorInput);
+            controls.appendChild(deleteBtn);
+            header.appendChild(controls);
+            postIt.appendChild(header);
+
+            // Container do texto para centralização
+            const contentWrapper = document.createElement('div');
+            contentWrapper.className = 'post-it-content-wrapper';
+
+            // Área de texto
+            const textArea = document.createElement('textarea');
+            textArea.className = 'post-it-content';
+            textArea.placeholder = 'Anote...';
+            textArea.value = data.text;
+            
+            // Auto-Save ao digitar
+            textArea.addEventListener('input', (e) => {
+                data.text = e.target.value;
+                savePostIts();
+            });
+
+            // Lógica de Destruição: Se clicar fora da nota e ela estiver vazia, ela se auto-destrói
+            textArea.addEventListener('blur', (e) => {
+                if (data.text.trim() === '') {
+                    postIt.remove();
+                    postItsData = postItsData.filter(p => p.id !== data.id);
+                    savePostIts();
+                }
+            });
+
+            contentWrapper.appendChild(textArea);
+            postIt.appendChild(contentWrapper);
+
+            document.body.appendChild(postIt);
+            
+            makeDraggableAndResizable(postIt, data);
+
+            // Foco automático ao criar nota nova
+            if(data.text === '') {
+                textArea.focus();
+            }
+        }
+
+        function makeDraggableAndResizable(element, data) {
+            const header = element.querySelector('.post-it-header');
+            let isDragging = false;
+            let startX, startY, initialX, initialY;
+
+            function startDrag(e) {
+                if (e.target.closest('.post-it-controls')) return; 
+                
+                isDragging = true;
+                element.classList.add('dragging');
+                const event = e.type.includes('touch') ? e.touches[0] : e;
+                startX = event.clientX;
+                startY = event.clientY;
+                initialX = element.offsetLeft;
+                initialY = element.offsetTop;
+                
+                document.addEventListener('mousemove', drag, { passive: false });
+                document.addEventListener('mouseup', stopDrag);
+                document.addEventListener('touchmove', drag, { passive: false });
+                document.addEventListener('touchend', stopDrag);
+            }
+
+            function drag(e) {
+                if (!isDragging) return;
+                if(e.cancelable) e.preventDefault(); 
+                
+                const event = e.type.includes('touch') ? e.touches[0] : e;
+                const dx = event.clientX - startX;
+                const dy = event.clientY - startY;
+                
+                element.style.left = (initialX + dx) + 'px';
+                element.style.top = (initialY + dy) + 'px';
+            }
+
+            function stopDrag(e) {
+                if (!isDragging) return;
+                isDragging = false;
+                element.classList.remove('dragging');
+                
+                document.removeEventListener('mousemove', drag);
+                document.removeEventListener('mouseup', stopDrag);
+                document.removeEventListener('touchmove', drag);
+                document.removeEventListener('touchend', stopDrag);
+
+                data.x = parseInt(element.style.left);
+                data.y = parseInt(element.style.top);
+                savePostIts();
+            }
+
+            header.addEventListener('mousedown', startDrag);
+            header.addEventListener('touchstart', startDrag, { passive: false });
+
+            const resizeObserver = new ResizeObserver(entries => {
+                for (let entry of entries) {
+                    const newW = Math.round(entry.contentRect.width);
+                    const newH = Math.round(entry.contentRect.height);
+                    
+                    if(!isDragging && (newW !== data.w || newH !== data.h) && newW > 0 && newH > 0) {
+                        data.w = element.offsetWidth;
+                        data.h = element.offsetHeight;
+                        savePostIts();
+                    }
+                }
+            });
+
+            resizeObserver.observe(element);
         }
     </script>
 </body>
