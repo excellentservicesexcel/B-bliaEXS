@@ -32,7 +32,7 @@
             min-height: 100vh;
             overflow-x: hidden;
             transition: background-color 0.3s, color 0.3s;
-            position: relative; /* Necessário para os post-its absolutos */
+            position: relative; 
         }
 
         /* ----- BARRA SUPERIOR (HEADER) ----- */
@@ -76,7 +76,6 @@
             gap: 10px;
         }
 
-        /* Navegação Horizontal */
         .nav-tabs {
             display: flex;
             justify-content: center;
@@ -121,7 +120,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* ----- TELA INICIAL (HOME / DEVOCIONAL) ----- */
+        /* ----- TELA INICIAL (HOME) ----- */
         .card-devocional {
             background-color: var(--secondary-bg);
             border-radius: 16px;
@@ -132,145 +131,43 @@
             transition: background-color 0.3s;
         }
 
-        .card-devocional h2 {
-            color: var(--accent-color);
-            margin-top: 0;
-            font-size: 1.1rem;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-        }
-
+        .card-devocional h2 { color: var(--accent-color); margin-top: 0; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1.5px; }
         .verse-of-day { font-size: 1.3rem; font-style: italic; line-height: 1.6; margin: 20px 0; }
         .verse-ref { font-weight: 600; color: var(--accent-color); display: block; margin-bottom: 20px; }
-        
-        .devocional-text {
-            font-size: 0.95rem;
-            line-height: 1.7;
-            color: var(--text-color);
-            opacity: 0.85;
-            text-align: left;
-            border-top: 1px solid var(--item-bg);
-            padding-top: 20px;
-        }
+        .devocional-text { font-size: 0.95rem; line-height: 1.7; color: var(--text-color); opacity: 0.85; text-align: left; border-top: 1px solid var(--item-bg); padding-top: 20px; }
 
-        /* ----- LEITURA DA BÍBLIA & CONTROLES MODERNOS ----- */
+        /* ----- LEITURA & CONTROLES ----- */
         .controls-wrapper {
-            background-color: var(--secondary-bg);
-            border-radius: 12px;
-            padding: 10px 15px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            margin-bottom: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+            background-color: var(--secondary-bg); border-radius: 12px; padding: 10px 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px; display: flex; flex-direction: column; gap: 15px;
         }
 
-        .reading-controls {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .control-group {
-            display: flex;
-            align-items: center;
-            background-color: var(--item-bg);
-            border-radius: 8px;
-            padding: 4px 10px;
-            gap: 8px;
-            flex: 1;
-            min-width: 120px;
-        }
-
+        .reading-controls { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; align-items: center; }
+        .control-group { display: flex; align-items: center; background-color: var(--item-bg); border-radius: 8px; padding: 4px 10px; gap: 8px; flex: 1; min-width: 120px; }
         .control-group i { color: var(--accent-color); font-size: 0.9rem; }
+        select { border: none; background: transparent; color: var(--text-color); font-size: 0.9rem; outline: none; font-family: 'Inter', sans-serif; cursor: pointer; width: 100%; padding: 8px 0; -webkit-appearance: none; -moz-appearance: none; appearance: none; }
 
-        select {
-            border: none;
-            background: transparent;
-            color: var(--text-color);
-            font-size: 0.9rem;
-            outline: none;
-            font-family: 'Inter', sans-serif;
-            cursor: pointer;
-            width: 100%;
-            padding: 8px 0;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-        }
-
-        .btn-read {
-            background-color: var(--accent-color);
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            padding: 10px 20px;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: filter 0.2s, transform 0.1s;
-            width: 100%;
-        }
+        .btn-read { background-color: var(--accent-color); color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: filter 0.2s, transform 0.1s; width: 100%; }
         .btn-read:hover { filter: brightness(1.1); }
         .btn-read:active { transform: scale(0.95); }
+        .btn-share { background-color: var(--item-bg); color: var(--text-color); border: 1px solid rgba(255,255,255,0.1); width: auto; }
 
-        .btn-share {
-            background-color: var(--item-bg);
-            color: var(--text-color);
-            border: 1px solid rgba(255,255,255,0.1);
-            width: auto;
-        }
-
-        .verse {
-            margin-bottom: 12px;
-            line-height: 1.8;
-            font-size: 1.1rem;
-            padding: 6px 10px;
-            border-radius: 8px;
-            transition: background-color 0.2s;
-        }
-
+        .verse { margin-bottom: 12px; line-height: 1.8; font-size: 1.1rem; padding: 6px 10px; border-radius: 8px; transition: background-color 0.2s; }
         .verse:hover { background-color: var(--item-bg); }
-
-        .verse-num {
-            font-weight: 700;
-            color: var(--accent-color);
-            margin-right: 6px;
-            font-size: 0.8rem;
-            vertical-align: super;
-            opacity: 0.8;
-        }
-
-        .highlighted-text {
-            color: #121212;
-            border-radius: 4px;
-            padding: 2px 4px;
-            font-weight: 500;
-            display: inline;
-            transition: background-color 0.3s;
-        }
+        .verse-num { font-weight: 700; color: var(--accent-color); margin-right: 6px; font-size: 0.8rem; vertical-align: super; opacity: 0.8; }
+        .verse-text { outline: none; transition: background 0.2s; border-radius: 4px; }
 
         /* ----- MENU LATERAL (MARCAÇÕES) ----- */
         #sidebar {
-            position: fixed;
-            top: 0; left: -320px; width: 320px; height: 100%;
-            background-color: var(--secondary-bg);
-            box-shadow: 5px 0 20px rgba(0,0,0,0.3);
-            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            z-index: 2000;
+            position: fixed; top: 0; left: -320px; width: 320px; height: 100%;
+            background-color: var(--secondary-bg); box-shadow: 5px 0 20px rgba(0,0,0,0.3);
+            transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1); z-index: 2000;
             padding: 20px; overflow-y: auto; box-sizing: border-box;
         }
         #sidebar.open { left: 0; }
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--item-bg); padding-bottom: 15px; margin-bottom: 20px; }
         .sidebar-header h2 { margin: 0; font-size: 1.1rem; color: var(--accent-color); }
-        .highlight-item {
-            background-color: var(--item-bg); padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; border-left: 4px solid; position: relative;
-        }
+        .highlight-item { background-color: var(--item-bg); padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; border-left: 4px solid; position: relative; }
         .highlight-ref { font-weight: 600; color: var(--accent-color); display: block; margin-bottom: 6px; font-size: 0.85rem; }
         .btn-delete { position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--danger-color); cursor: pointer; font-size: 1rem; opacity: 0.6; }
         .btn-delete:hover { opacity: 1; transform: scale(1.1); }
@@ -278,34 +175,86 @@
         /* ----- MODAL DE CONFIGURAÇÕES ----- */
         #settingsModal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center;
-            z-index: 3000; 
-            backdrop-filter: blur(3px);
+            background-color: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 3000; backdrop-filter: blur(3px);
         }
         #settingsModal.open { display: flex; }
-        .modal-content {
-            background-color: var(--secondary-bg); padding: 25px; border-radius: 16px; width: 90%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            max-height: 90vh; overflow-y: auto;
-        }
+        .modal-content { background-color: var(--secondary-bg); padding: 25px; border-radius: 16px; width: 90%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .modal-header h2 { margin: 0; color: var(--accent-color); font-size: 1.2rem; }
         .theme-section { margin-bottom: 20px; }
         .theme-section label { display: block; margin-bottom: 10px; font-size: 0.85rem; font-weight: 600; color: var(--text-color); opacity: 0.8;}
         .color-picker-group { display: flex; justify-content: space-between; align-items: center; background-color: var(--item-bg); padding: 10px 15px; border-radius: 10px; margin-bottom: 8px; font-size: 0.9rem;}
-        
         .preset-themes { display: flex; gap: 10px; margin-bottom: 20px; }
-        .preset-btn { 
-            flex: 1; padding: 12px 0; border-radius: 10px; border: none; cursor: pointer; 
-            font-weight: 600; font-size: 0.9rem; background-color: var(--bg-color); color: var(--text-color);
-            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
+        .preset-btn { flex: 1; padding: 12px 0; border-radius: 10px; border: none; cursor: pointer; font-weight: 600; font-size: 0.9rem; background-color: var(--bg-color); color: var(--text-color); transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .preset-btn:hover { filter: brightness(1.1); }
-        .preset-btn:active { transform: scale(0.92); }
         .preset-btn.active-theme { background-color: var(--accent-color); color: #ffffff; box-shadow: inset 0 3px 6px rgba(0,0,0,0.3); transform: scale(0.96); }
-
         .btn-save { width: 100%; background: var(--accent-color); color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; gap: 8px; }
 
-        /* ----- BOTÃO FLUTUANTE DE GRIFO (FAB) ----- */
+        /* ----- ALERTAS E CONFIRMAÇÕES ELEGANTES ----- */
+        .custom-alert-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 5000;
+            display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.2s ease;
+        }
+        .custom-alert-overlay.open { display: flex; opacity: 1; }
+        .custom-alert-box {
+            background: var(--secondary-bg); padding: 25px 30px; border-radius: 20px;
+            text-align: center; max-width: 300px; width: 90%;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 2px 5px rgba(255,255,255,0.05);
+            transform: scale(0.9); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .custom-alert-overlay.open .custom-alert-box { transform: scale(1); }
+        .custom-alert-box h3 { margin: 0 0 15px 0; color: var(--text-color); font-size: 1.2rem; }
+        .custom-alert-box p { color: var(--text-color); opacity: 0.8; font-size: 0.95rem; line-height: 1.5; margin-bottom: 25px; }
+        .custom-alert-box .actions { display: flex; gap: 10px; justify-content: center; }
+        .custom-alert-box button { flex: 1; padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; font-family: 'Inter', sans-serif; }
+        .custom-alert-box .btn-ok { background: var(--accent-color); color: #fff; }
+        .custom-alert-box .btn-ok:active { transform: scale(0.95); }
+        .custom-alert-box .btn-cancelar { background: transparent; border: 2px solid rgba(255,255,255,0.1); color: var(--text-color); }
+
+        /* ----- POP-UP DE FORMATAÇÃO CIRÚRGICO ----- */
+        .format-modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 4000;
+            display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.2s ease;
+        }
+        .format-modal-overlay.open { display: flex; opacity: 1; }
+        .format-popup {
+            background: var(--secondary-bg); padding: 25px; border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 2px 2px rgba(255,255,255,0.05);
+            width: 90%; max-width: 320px; text-align: center;
+            transform: scale(0.9); transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .format-modal-overlay.open .format-popup { transform: scale(1); }
+        .format-popup h3 { margin: 0 0 20px 0; font-size: 1.1rem; color: var(--text-color); opacity: 0.9; font-weight: 500; }
+        .format-tools { display: flex; gap: 12px; justify-content: center; margin-bottom: 25px; flex-wrap: wrap; }
+        .format-btn { 
+            background: var(--item-bg); border: 1px solid rgba(255,255,255,0.1); color: var(--text-color); 
+            width: 48px; height: 48px; border-radius: 12px; font-size: 1.3rem; cursor: pointer; 
+            transition: all 0.2s; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .format-btn:hover { background: rgba(255,255,255,0.1); transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.2); }
+        .format-btn:active { transform: translateY(0) scale(0.95); }
+        .format-btn.btn-clear { color: var(--danger-color); }
+        
+        .format-actions { display: flex; gap: 15px; }
+        .btn-popup-cancelar { flex: 1; background: transparent; border: 2px solid rgba(255, 82, 82, 0.5); color: var(--danger-color); padding: 12px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+        .btn-popup-cancelar:hover { background: rgba(255, 82, 82, 0.1); border-color: var(--danger-color); }
+        .btn-popup-manter { flex: 1; background: var(--accent-color); border: none; color: #fff; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .btn-popup-manter:hover { filter: brightness(1.1); transform: translateY(-2px); }
+
+        /* ----- BOTÃO CONTEXTUAL (DIREITA) ----- */
+        #contextualFormatBtn {
+            position: fixed; right: 20px; top: 50%; transform: translateY(-50%) scale(0);
+            width: 55px; height: 55px; border-radius: 50%; background-color: #9b59b6; color: white;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4); display: flex; justify-content: center; align-items: center;
+            font-size: 1.4rem; z-index: 1500; cursor: pointer; opacity: 0; pointer-events: none;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+        }
+        #contextualFormatBtn.visible { transform: translateY(-50%) scale(1); opacity: 1; pointer-events: auto; }
+        #contextualFormatBtn:active { transform: translateY(-50%) scale(0.9); }
+
+        /* ----- BOTÃO FLUTUANTE DE AÇÕES (FAB) ----- */
         .fab-container {
             position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; align-items: center; gap: 12px; z-index: 950; 
         }
@@ -316,6 +265,7 @@
         }
         .fab-btn:hover { transform: scale(1.1); filter: brightness(1.1); }
         .fab-btn:active { transform: scale(0.95); }
+        
         .fab-container input[type="color"] {
             -webkit-appearance: none; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; padding: 0; background: transparent;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: transform 0.2s;
@@ -328,80 +278,84 @@
         #share-wrapper { position: absolute; left: -9999px; top: -9999px; }
         #share-card {
             width: 1080px; height: 1080px; background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7));
-            background-size: cover; background-position: center; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; padding: 100px; box-sizing: border-box;
+            background-size: cover; background-position: center; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 100px; box-sizing: border-box;
             color: #fff; font-family: 'Inter', sans-serif; text-align: center;
         }
         #share-verse { font-size: 3.5rem; font-style: italic; font-weight: 600; margin-bottom: 50px; line-height: 1.4; text-shadow: 2px 2px 10px rgba(0,0,0,0.6); }
         #share-ref { font-size: 2.2rem; font-weight: 700; color: #e0f2f1; background-color: rgba(76, 175, 80, 0.8); padding: 10px 30px; border-radius: 50px; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
 
-        /* ----- POST-ITS ULTRA REALISTAS E REDIMENSIONÁVEIS ----- */
+        /* ----- POST-ITS ULTRA REALISTAS E DOBRÁVEIS ----- */
         .post-it-note {
-            position: absolute;
-            width: 180px; height: 180px; min-width: 120px; min-height: 120px;
-            max-width: 500px; max-height: 500px;
+            position: absolute; width: 180px; height: 180px; min-width: 120px; min-height: 120px; max-width: 500px; max-height: 500px;
             box-shadow: 2px 2px 2px rgba(0,0,0,0.1), 5px 10px 15px rgba(0,0,0,0.2), inset 0 -15px 30px rgba(0,0,0,0.05);
-            border-bottom-right-radius: 50px 10px; z-index: 500; 
-            display: flex; flex-direction: column; transform: rotate(-1deg); 
-            transition: transform 0.1s, box-shadow 0.1s, background-color 0.3s;
+            border-bottom-right-radius: 50px 10px; z-index: 500; display: flex; flex-direction: column; transform: rotate(-1deg); 
+            transition: height 0.4s cubic-bezier(0.25, 1, 0.5, 1), transform 0.1s, box-shadow 0.3s, background-color 0.3s;
             overflow: hidden; resize: both;
         }
-        
         .post-it-note::after {
             content: ""; position: absolute; bottom: 0; right: 0; width: 35px; height: 20px;
             background: linear-gradient(135deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0) 50%), linear-gradient(to right, rgba(0,0,0,0.1), rgba(0,0,0,0));
-            box-shadow: -3px -3px 5px rgba(0,0,0,0.1); border-bottom-right-radius: 50px 10px;
-            pointer-events: none; z-index: 2;
+            box-shadow: -3px -3px 5px rgba(0,0,0,0.1); border-bottom-right-radius: 50px 10px; pointer-events: none; z-index: 2; transition: opacity 0.3s;
         }
 
-        .post-it-note:hover {
-            z-index: 501; box-shadow: 2px 2px 2px rgba(0,0,0,0.1), 7px 14px 20px rgba(0,0,0,0.25), inset 0 -15px 30px rgba(0,0,0,0.05);
+        /* Estilo Dobrado Sanfona com Vinco */
+        .post-it-note.folded {
+            height: 40px !important; min-height: 40px !important; resize: none !important; border-bottom-right-radius: 4px;
+            box-shadow: 2px 5px 10px rgba(0,0,0,0.3), inset 0 -10px 15px rgba(0,0,0,0.15); border-bottom: 2px solid rgba(0,0,0,0.1);
         }
+        .post-it-note.folded::after { opacity: 0; } 
+        .post-it-note.folded .post-it-content-wrapper { opacity: 0; pointer-events: none; transition: opacity 0.1s; }
 
-        .post-it-note.dragging {
-            opacity: 0.9; transform: scale(1.03) rotate(0deg);
-            box-shadow: 10px 20px 30px rgba(0,0,0,0.3); z-index: 502 !important; cursor: grabbing;
-        }
+        .post-it-note:hover { z-index: 501; box-shadow: 2px 2px 2px rgba(0,0,0,0.1), 7px 14px 20px rgba(0,0,0,0.25), inset 0 -15px 30px rgba(0,0,0,0.05); }
+        .post-it-note.folded:hover { box-shadow: 2px 6px 12px rgba(0,0,0,0.35); }
+
+        .post-it-note.dragging { opacity: 0.95; transform: scale(1.03) rotate(0deg); box-shadow: 10px 20px 30px rgba(0,0,0,0.3); z-index: 502 !important; cursor: grabbing; }
 
         .post-it-header {
-            width: 100%; height: 30px; background: rgba(0,0,0,0.06); cursor: grab;
-            display: flex; justify-content: flex-end; align-items: center; padding: 0 8px;
-            box-sizing: border-box; border-top-left-radius: 2px; border-top-right-radius: 2px; flex-shrink: 0; 
+            width: 100%; height: 40px; background: rgba(0,0,0,0.06); cursor: grab; display: flex; justify-content: flex-end; align-items: center; padding: 0 8px;
+            box-sizing: border-box; border-top-left-radius: 2px; border-top-right-radius: 2px; flex-shrink: 0; border-bottom: 1px solid rgba(0,0,0,0.05);
         }
         .post-it-note.dragging .post-it-header { cursor: grabbing; }
-
-        .post-it-content-wrapper {
-            flex: 1; padding: 10px 15px 30px 15px; overflow: hidden;
-            display: flex; justify-content: center; align-items: center; position: relative;
-        }
-
+        .post-it-content-wrapper { flex: 1; padding: 10px 15px 30px 15px; overflow: hidden; display: flex; justify-content: center; align-items: center; position: relative; transition: opacity 0.3s ease 0.1s; opacity: 1; }
         .post-it-content {
-            width: 100%; height: 100%; font-family: 'Kalam', cursive; font-size: 1.1rem;
-            color: rgba(0,0,0,0.8); outline: none; border: none; background: transparent;
-            resize: none; line-height: 1.3; overflow-y: auto; text-align: center;
-            text-shadow: 0px 1px 0px rgba(255,255,255,0.2); padding: 0; box-sizing: border-box;
+            width: 100%; height: 100%; font-family: 'Kalam', cursive; font-size: 1.1rem; color: rgba(0,0,0,0.8); outline: none; border: none; background: transparent;
+            resize: none; line-height: 1.3; overflow-y: auto; text-align: center; text-shadow: 0px 1px 0px rgba(255,255,255,0.2); padding: 0; box-sizing: border-box;
         }
-        
         .post-it-content::-webkit-scrollbar { width: 4px; }
         .post-it-content::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
 
-        .post-it-controls { display: flex; gap: 8px; align-items: center; z-index: 5; }
-        .post-it-btn {
-            background: none; border: none; cursor: pointer;
-            color: rgba(0,0,0,0.4); font-size: 0.9rem; padding: 2px; transition: color 0.2s, transform 0.1s;
-        }
-        .post-it-btn:hover { color: #000; transform: scale(1.1); }
-
-        .post-it-color {
-            width: 18px; height: 18px; padding: 0; border: none; border-radius: 50%;
-            cursor: pointer; background: transparent; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
-        }
+        .post-it-controls { display: flex; gap: 6px; align-items: center; z-index: 5; }
+        .post-it-btn { background: none; border: none; cursor: pointer; border-radius: 6px; color: rgba(0,0,0,0.45); font-size: 0.95rem; padding: 6px 8px; transition: all 0.2s; }
+        .post-it-btn:hover { color: #000; background: rgba(255,255,255,0.2); transform: scale(1.05); }
+        .post-it-color { width: 22px; height: 22px; padding: 0; border: none; border-radius: 50%; cursor: pointer; background: transparent; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2); transition: transform 0.2s; }
+        .post-it-color:hover { transform: scale(1.1); }
         .post-it-color::-webkit-color-swatch-wrapper { padding: 0; }
         .post-it-color::-webkit-color-swatch { border: 1px solid rgba(0,0,0,0.2); border-radius: 50%; }
 
     </style>
 </head>
 <body>
+
+    <div id="customAlert" class="custom-alert-overlay">
+        <div class="custom-alert-box">
+            <h3 id="alertTitle"><i class="fa-solid fa-circle-info" style="color: var(--accent-color);"></i> Aviso</h3>
+            <p id="alertMessage"></p>
+            <div class="actions">
+                <button class="btn-ok" onclick="closeCustomAlert()">Entendi</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="customConfirm" class="custom-alert-overlay">
+        <div class="custom-alert-box">
+            <h3 id="confirmTitle"><i class="fa-solid fa-triangle-exclamation" style="color: var(--danger-color);"></i> Atenção</h3>
+            <p id="confirmMessage"></p>
+            <div class="actions">
+                <button class="btn-cancelar" onclick="resolveConfirm(false)">Cancelar</button>
+                <button class="btn-ok" onclick="resolveConfirm(true)">Confirmar</button>
+            </div>
+        </div>
+    </div>
 
     <div id="sidebar">
         <div class="sidebar-header">
@@ -444,6 +398,26 @@
             </div>
             <button class="btn-save" onclick="saveCustomTheme()"><i class="fa-solid fa-floppy-disk"></i> Salvar Meu Padrão</button>
         </div>
+    </div>
+
+    <div id="formatPopupOverlay" class="format-modal-overlay">
+        <div class="format-popup">
+            <h3><i class="fa-solid fa-pen-nib" style="color: var(--accent-color);"></i> Estilizar Texto</h3>
+            <div class="format-tools">
+                <button class="format-btn" onclick="applyFormatCommand('bold')" title="Negrito"><i class="fa-solid fa-bold"></i></button>
+                <button class="format-btn" onclick="applyFormatCommand('underline')" title="Sublinhado"><i class="fa-solid fa-underline"></i></button>
+                <button class="format-btn" onclick="applyFormatCommand('italic')" title="Itálico"><i class="fa-solid fa-italic"></i></button>
+                <button class="format-btn btn-clear" onclick="applyFormatCommand('removeFormat')" title="Limpar Formatação"><i class="fa-solid fa-eraser"></i></button>
+            </div>
+            <div class="format-actions">
+                <button class="btn-popup-cancelar" onclick="cancelFormat()">Cancelar</button>
+                <button class="btn-popup-manter" onclick="saveFormat()">Manter</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="contextualFormatBtn" onmousedown="event.preventDefault(); openFormatMenu()" ontouchstart="event.preventDefault(); openFormatMenu()" title="Editar Estilo">
+        <i class="fa-solid fa-book"></i>
     </div>
 
     <header>
@@ -511,12 +485,12 @@
         </div>
 
         <div class="fab-container">
-            <button class="fab-btn" style="background-color: #f1c40f; color: #121212;" onclick="createNewPostIt()" title="Colar Post-it na página">
+            <button class="fab-btn" style="background-color: #f1c40f; color: #121212;" onclick="createNewPostIt()" title="Colar Post-it">
                 <i class="fa-solid fa-sticky-note"></i>
             </button>
             
             <input type="color" id="highlightColor" value="#a3e4d7" title="Cor da marcação">
-            <button class="fab-btn" onclick="highlightSelection()" title="Grifar versículo">
+            <button class="fab-btn" onmousedown="event.preventDefault(); applyColorHighlight()" ontouchstart="event.preventDefault(); applyColorHighlight()" title="Grifar texto selecionado">
                 <i class="fa-solid fa-highlighter"></i>
             </button>
         </div>
@@ -530,12 +504,34 @@
     </div>
 
     <script>
+        // --- SISTEMA DE ALERTAS ELEGANTES ---
+        let confirmCallback = null;
+
+        function customAlert(message) {
+            document.getElementById('alertMessage').innerText = message;
+            document.getElementById('customAlert').classList.add('open');
+        }
+        function closeCustomAlert() {
+            document.getElementById('customAlert').classList.remove('open');
+        }
+
+        function customConfirm(message, callback) {
+            document.getElementById('confirmMessage').innerText = message;
+            confirmCallback = callback;
+            document.getElementById('customConfirm').classList.add('open');
+        }
+        function resolveConfirm(result) {
+            document.getElementById('customConfirm').classList.remove('open');
+            if (confirmCallback) confirmCallback(result);
+            confirmCallback = null;
+        }
+
         // --- DADOS BÁSICOS ---
         const devotionals = [
-            { ref: "João 3:16", verse: "Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito, para que todo aquele que nele crê não pereça, mas tenha a vida eterna.", devo: "O amor de Deus não possui limites. Ele entregou o que tinha de mais precioso por nós. Lembre-se de que o seu valor não é medido pelas suas falhas, mas pelo sacrifício de Cristo." },
-            { ref: "Filipenses 4:13", verse: "Posso todas as coisas naquele que me fortalece.", devo: "Não importa o tamanho do desafio de hoje. Sua força não vem das suas habilidades, mas da presença constante de Deus. Confie nEle para superar." },
-            { ref: "Salmos 23:1", verse: "O Senhor é o meu pastor; nada me faltará.", devo: "A figura do pastor traz cuidado e proteção. Quando deixamos Deus guiar nossos passos, podemos descansar com a certeza de que Ele proverá o necessário." },
-            { ref: "Isaías 41:10", verse: "Não temas, porque eu sou contigo; não te assombres, porque eu sou o teu Deus; eu te fortaleço, e te ajudo, e te sustento com a destra da minha justiça.", devo: "A presença de Deus afasta o medo. Não importa o que aconteça ao seu redor, Ele é quem te sustenta. Confie na justiça e na força do Senhor." }
+            { ref: "João 3:16", verse: "Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito, para que todo aquele que nele crê não pereça, mas tenha a vida eterna.", devo: "O amor de Deus não possui limites." },
+            { ref: "Filipenses 4:13", verse: "Posso todas as coisas naquele que me fortalece.", devo: "Não importa o tamanho do desafio de hoje. Sua força vem de Deus." },
+            { ref: "Salmos 23:1", verse: "O Senhor é o meu pastor; nada me faltará.", devo: "A figura do pastor traz cuidado e proteção. Descanse nEle." },
+            { ref: "Isaías 41:10", verse: "Não temas, porque eu sou contigo...", devo: "A presença de Deus afasta o medo. Confie na justiça do Senhor." }
         ];
 
         const books = [
@@ -547,15 +543,15 @@
         let currentChapterData = null;
         let currentDevo = null; 
         let postItsData = [];
+        
+        let activeEditVerseNode = null;
+        let backupVerseHTML = '';
+        let savedSelectionRange = null;
 
         window.onload = async () => {
             initSelects();
             await scanLocalVersions(); 
-            
-            loadDevotional();
-            loadTheme();
-            updateSidebarList();
-            loadPostIts(); 
+            loadDevotional(); loadTheme(); updateSidebarList(); loadPostIts(); 
         }
 
         async function scanLocalVersions() {
@@ -564,25 +560,13 @@
                 { file: 'nvi.json', name: 'NVI' }, { file: 'acf.json', name: 'ACF' },
                 { file: 'ara.json', name: 'ARA' }, { file: 'arc.json', name: 'ARC' },
                 { file: 'nvt.json', name: 'NVT' }, { file: 'ntlh.json', name: 'NTLH' },
-                { file: 'kja.json', name: 'KJA' }, { file: 'naa.json', name: 'NAA' },
-                { file: 'nbv.json', name: 'NBV' }
+                { file: 'kja.json', name: 'KJA' }, { file: 'naa.json', name: 'NAA' }, { file: 'nbv.json', name: 'NBV' }
             ];
-
             for (const v of possibleFiles) {
-                try {
-                    let response = await fetch('./' + v.file, { method: 'HEAD' });
-                    if (response.ok) {
-                        const opt = document.createElement('option');
-                        opt.value = './' + v.file;
-                        opt.textContent = v.name;
-                        select.appendChild(opt);
-                    }
-                } catch (e) {}
+                try { let res = await fetch('./' + v.file, { method: 'HEAD' }); if (res.ok) { const opt = document.createElement('option'); opt.value = './' + v.file; opt.textContent = v.name; select.appendChild(opt); } } catch (e) {}
             }
             const savedVersion = localStorage.getItem('bibleVersion');
-            if(savedVersion && [...select.options].some(o => o.value === savedVersion)) {
-                select.value = savedVersion;
-            }
+            if(savedVersion && [...select.options].some(o => o.value === savedVersion)) select.value = savedVersion;
         }
 
         function switchView(viewName) {
@@ -596,61 +580,36 @@
                 const targetTab = document.querySelector(`.nav-tab[onclick="switchView('${viewName}')"]`);
                 if(targetTab) targetTab.classList.add('active');
             }
-
-            updatePostItsVisibility(); // Atualiza a visibilidade dos post-its para a nova aba
+            updatePostItsVisibility(); 
         }
 
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-            updateSidebarList();
-        }
-
-        function toggleSettings() {
-            const modal = document.getElementById('settingsModal');
-            modal.classList.toggle('open');
-        }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); updateSidebarList(); }
+        function toggleSettings() { document.getElementById('settingsModal').classList.toggle('open'); }
 
         function loadDevotional() {
             const today = new Date().toDateString(); 
             const savedDate = localStorage.getItem('devoDate'); 
             let savedIndex = localStorage.getItem('devoIndex'); 
-
             if (savedDate !== today || savedIndex === null) {
-                savedIndex = Math.floor(Math.random() * devotionals.length);
-                localStorage.setItem('devoDate', today);
-                localStorage.setItem('devoIndex', savedIndex);
+                savedIndex = Math.floor(Math.random() * devotionals.length); localStorage.setItem('devoDate', today); localStorage.setItem('devoIndex', savedIndex);
             }
-
             currentDevo = devotionals[parseInt(savedIndex)];
-            document.getElementById('daily-content').innerHTML = `
-                <div class="verse-of-day">"${currentDevo.verse}"</div>
-                <span class="verse-ref"><i class="fa-solid fa-bookmark"></i> ${currentDevo.ref}</span>
-                <div class="devocional-text">${currentDevo.devo}</div>
-            `;
+            document.getElementById('daily-content').innerHTML = `<div class="verse-of-day">"${currentDevo.verse}"</div><span class="verse-ref"><i class="fa-solid fa-bookmark"></i> ${currentDevo.ref}</span><div class="devocional-text">${currentDevo.devo}</div>`;
         }
 
         async function shareVerse() {
-            const btn = document.getElementById('btnShare');
-            const originalHTML = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
-            
-            document.getElementById('share-verse').textContent = `"${currentDevo.verse}"`;
-            document.getElementById('share-ref').textContent = currentDevo.ref;
-            document.getElementById('share-card').style.backgroundImage = `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url('https://picsum.photos/1080/1080?random=${Date.now()}')`;
-            
+            const btn = document.getElementById('btnShare'); const originalHTML = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
+            document.getElementById('share-verse').textContent = `"${currentDevo.verse}"`; document.getElementById('share-ref').textContent = currentDevo.ref; document.getElementById('share-card').style.backgroundImage = `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url('https://picsum.photos/1080/1080?random=${Date.now()}')`;
             const element = document.getElementById('share-card');
-            
             setTimeout(async () => {
                 try {
                     const canvas = await html2canvas(element, { useCORS: true, scale: 2 });
                     canvas.toBlob(async (blob) => {
                         const fileName = `Versiculo-${currentDevo.ref.replace(':', '-')}.jpg`;
                         const file = new File([blob], fileName, { type: 'image/jpeg' });
-                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                            try { await navigator.share({ title: 'Versículo do Dia', files: [file] }); } catch (e) { downloadFallback(blob, fileName); }
-                        } else { downloadFallback(blob, fileName); }
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ title: 'Versículo', files: [file] }); } catch (e) { downloadFallback(blob, fileName); } } else { downloadFallback(blob, fileName); }
                     }, 'image/jpeg', 0.9);
-                } catch (error) { alert("Erro ao gerar imagem."); } finally { btn.innerHTML = originalHTML; }
+                } catch (error) { customAlert("Erro ao gerar imagem."); } finally { btn.innerHTML = originalHTML; }
             }, 1000); 
         }
         function downloadFallback(blob, fileName) { const link = document.createElement('a'); link.download = fileName; link.href = URL.createObjectURL(blob); link.click(); }
@@ -663,27 +622,21 @@
 
         function applyTheme(colors) {
             const doc = document.documentElement;
-            doc.style.setProperty('--bg-color', colors.bg); doc.style.setProperty('--text-color', colors.text);
-            doc.style.setProperty('--accent-color', colors.accent); doc.style.setProperty('--secondary-bg', colors.secBg);
-            doc.style.setProperty('--item-bg', colors.itemBg);
-            document.getElementById('customBg').value = colors.bg; document.getElementById('customText').value = colors.text;
-            document.getElementById('customAccent').value = colors.accent;
+            doc.style.setProperty('--bg-color', colors.bg); doc.style.setProperty('--text-color', colors.text); doc.style.setProperty('--accent-color', colors.accent); doc.style.setProperty('--secondary-bg', colors.secBg); doc.style.setProperty('--item-bg', colors.itemBg);
+            document.getElementById('customBg').value = colors.bg; document.getElementById('customText').value = colors.text; document.getElementById('customAccent').value = colors.accent;
         }
 
         function updateActiveThemeButton(presetName) {
             document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active-theme'));
-            const activeBtn = document.getElementById(`btn-theme-${presetName}`);
-            if(activeBtn) activeBtn.classList.add('active-theme');
+            const activeBtn = document.getElementById(`btn-theme-${presetName}`); if(activeBtn) activeBtn.classList.add('active-theme');
         }
 
         function applyPreset(presetName) { applyTheme(presets[presetName]); updateActiveThemeButton(presetName); localStorage.setItem('bibleTheme', JSON.stringify(presets[presetName])); localStorage.setItem('bibleThemeName', presetName); }
 
         function saveCustomTheme() {
-            const bg = document.getElementById('customBg').value; const text = document.getElementById('customText').value;
-            const accent = document.getElementById('customAccent').value;
+            const bg = document.getElementById('customBg').value; const text = document.getElementById('customText').value; const accent = document.getElementById('customAccent').value;
             const isDark = (parseInt(bg.replace('#', ''), 16) < 0xffffff/2);
-            const secBg = isDark ? lightenColor(bg, 8) : darkenColor(bg, 4);
-            const itemBg = isDark ? lightenColor(bg, 16) : darkenColor(bg, 8);
+            const secBg = isDark ? lightenColor(bg, 8) : darkenColor(bg, 4); const itemBg = isDark ? lightenColor(bg, 16) : darkenColor(bg, 8);
             const customTheme = { bg, text, accent, secBg, itemBg };
             applyTheme(customTheme); updateActiveThemeButton('custom'); localStorage.setItem('bibleTheme', JSON.stringify(customTheme)); localStorage.setItem('bibleThemeName', 'custom'); toggleSettings();
         }
@@ -716,7 +669,7 @@
                 } else {
                     let ref = `${encodeURIComponent(book)}+${chapter}${verse ? ':'+verse : ''}`;
                     let response = await fetch(`https://bible-api.com/${ref}?translation=${version}`);
-                    if (!response.ok) throw new Error('Ñ achei.'); currentChapterData = await response.json();
+                    if (!response.ok) throw new Error('Não encontrei a referência.'); currentChapterData = await response.json();
                 }
                 renderContent();
             } catch (error) { contentDiv.innerHTML = `<div style="text-align:center;color:var(--danger-color);">${error.message}</div>`; }
@@ -726,70 +679,225 @@
             if (!currentChapterData) return;
             const contentDiv = document.getElementById('bible-content');
             let html = `<h2 style="color: var(--accent-color);">${currentChapterData.reference}</h2>`;
-            const highlights = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
+            
+            const db = JSON.parse(localStorage.getItem('bibleFormats') || '[]');
+            const version = document.getElementById('versionSelect').value;
+            const book = document.getElementById('bookSelect').value;
+            const chapter = document.getElementById('chapterSelect').value;
+
             (currentChapterData.verses || [currentChapterData]).forEach(v => {
                 let vNum = v.verse || v.number;
-                let h = highlights.find(h => h.book === document.getElementById('bookSelect').value && h.chapter == document.getElementById('chapterSelect').value && h.verse == vNum);
-                html += `<div class="verse" data-verse="${vNum}"><span class="verse-num">${vNum}</span><span class="verse-text">${h ? `<span class="highlighted-text" style="background-color:${h.color}">${v.text}</span>` : v.text}</span></div>`;
+                let saved = db.find(f => f.version === version && f.book === book && f.chapter == chapter && f.verse == vNum);
+                html += `<div class="verse" data-verse="${vNum}"><span class="verse-num">${vNum}</span><span class="verse-text">${saved ? saved.html : v.text}</span></div>`;
             });
             contentDiv.innerHTML = html;
-
-            updatePostItsVisibility(); // Atualiza se os post-its dessa página devem aparecer
+            updatePostItsVisibility(); 
         }
 
-        function highlightSelection() {
-            const sel = window.getSelection(); let text = sel.toString().trim(); let vNum = null;
-            if (sel.anchorNode) { let p = sel.anchorNode.parentNode.closest('.verse'); if (p) { vNum = p.getAttribute('data-verse'); if (!text) text = p.querySelector('.verse-text').innerText; } }
-            if(!vNum) { alert("Selecione um versículo."); return; }
-            const color = document.getElementById('highlightColor').value; const book = document.getElementById('bookSelect').value; const chapter = document.getElementById('chapterSelect').value;
+        // ==========================================
+        //  SISTEMA DE GRIFO ORIGINAL (CORES ESCURAS) E BARRA LATERAL
+        // ==========================================
+        function applyColorHighlight() {
+            const sel = window.getSelection();
+            if(sel.isCollapsed) { customAlert("Selecione uma palavra ou frase primeiro antes de clicar em grifar."); return; }
+            
+            let anchorNode = sel.anchorNode;
+            let verseParent = anchorNode.nodeType === 3 ? anchorNode.parentNode.closest('.verse-text') : anchorNode.closest('.verse-text');
+            if (!verseParent) { customAlert("A seleção deve estar dentro do texto de um versículo."); return; }
+
+            const color = document.getElementById('highlightColor').value;
+            const textSelected = sel.toString();
+
+            verseParent.contentEditable = "true";
+            document.execCommand('backColor', false, color);
+            document.execCommand('foreColor', false, '#121212'); // Força texto escuro pro contraste
+            verseParent.contentEditable = "false";
+
+            saveVerseHTML(verseParent);
+            saveToSidebar(textSelected, color, verseParent);
+            sel.removeAllRanges();
+            
+            document.getElementById('contextualFormatBtn').classList.remove('visible');
+        }
+
+        function saveVerseHTML(verseNode) {
+            const verseEl = verseNode.closest('.verse'); const vNum = verseEl.getAttribute('data-verse');
+            const version = document.getElementById('versionSelect').value; const book = document.getElementById('bookSelect').value; const chapter = document.getElementById('chapterSelect').value;
+            let db = JSON.parse(localStorage.getItem('bibleFormats') || '[]');
+            db = db.filter(f => !(f.version === version && f.book === book && f.chapter == chapter && f.verse == vNum));
+            db.push({ id: Date.now(), version, book, chapter, verse: vNum, html: verseNode.innerHTML });
+            localStorage.setItem('bibleFormats', JSON.stringify(db));
+        }
+
+        function saveToSidebar(text, color, verseNode) {
+            const verseEl = verseNode.closest('.verse'); const vNum = verseEl.getAttribute('data-verse');
+            const book = document.getElementById('bookSelect').value; const chapter = document.getElementById('chapterSelect').value;
             let h = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
-            h = h.filter(x => !(x.book === book && x.chapter == chapter && x.verse == vNum));
-            h.push({ id: Date.now(), book, chapter, verse: vNum, text: text || `V. ${vNum}`, color });
-            localStorage.setItem('bibleHighlights', JSON.stringify(h)); sel.removeAllRanges(); renderContent(); updateSidebarList();
+            h.push({ id: Date.now(), book, chapter, verse: vNum, text: text, color });
+            localStorage.setItem('bibleHighlights', JSON.stringify(h));
+            updateSidebarList();
         }
 
         function updateSidebarList() {
-            const list = document.getElementById('highlightsList'); const h = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
-            if (h.length === 0) { list.innerHTML = '<p style="text-align:center;opacity:0.5;">Vazio.</p>'; return; }
-            list.innerHTML = ''; h.slice().reverse().forEach(x => {
-                const item = document.createElement('div'); item.className = 'highlight-item'; item.style.borderLeftColor = x.color;
-                item.innerHTML = `<button class="btn-delete" onclick="deleteHighlight(${x.id})"><i class="fa-solid fa-trash-can"></i></button><span class="highlight-ref">${x.book} ${x.chapter}:${x.verse}</span>"<em>${x.text}</em>"`;
-                list.appendChild(item);
+            const listDiv = document.getElementById('highlightsList');
+            const highlights = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
+
+            if (highlights.length === 0) {
+                listDiv.innerHTML = '<p style="color: var(--text-color); opacity: 0.5; font-size: 0.9rem; text-align: center; margin-top: 30px;">Nenhum texto grifado.</p>'; return;
+            }
+            listDiv.innerHTML = '';
+            highlights.slice().reverse().forEach(h => {
+                const item = document.createElement('div');
+                item.className = 'highlight-item'; item.style.borderLeftColor = h.color;
+                item.innerHTML = `
+                    <button class="btn-delete" onclick="deleteHighlight(${h.id})" title="Excluir"><i class="fa-solid fa-trash-can"></i></button>
+                    <span class="highlight-ref">${h.book} ${h.chapter}:${h.verse}</span>
+                    "<em>${h.text}</em>"
+                `;
+                listDiv.appendChild(item);
             });
         }
-        function deleteHighlight(id) { let h = JSON.parse(localStorage.getItem('bibleHighlights') || '[]'); h = h.filter(x => x.id !== id); localStorage.setItem('bibleHighlights', JSON.stringify(h)); updateSidebarList(); if(document.getElementById('view-reader').classList.contains('active')) renderContent(); }
 
         // ==========================================
-        //  LÓGICA INTELIGENTE DOS POST-ITS
+        //  EXCLUSÃO CIRÚRGICA DE MARCAÇÕES (REMOVEDOR DE MANCHAS)
+        // ==========================================
+        function deleteHighlight(id) {
+            let highlights = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
+            const hlToDelete = highlights.find(h => h.id === id);
+            highlights = highlights.filter(h => h.id !== id);
+            localStorage.setItem('bibleHighlights', JSON.stringify(highlights));
+
+            if(hlToDelete) {
+                let db = JSON.parse(localStorage.getItem('bibleFormats') || '[]');
+                let formatObj = db.find(f => f.book === hlToDelete.book && f.chapter == hlToDelete.chapter && f.verse == hlToDelete.verse);
+                
+                if(formatObj) {
+                    let tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = formatObj.html;
+                    
+                    let styledElements = tempDiv.querySelectorAll('*[style*="background-color"]');
+                    styledElements.forEach(el => {
+                        let elText = el.textContent.trim();
+                        let hlText = hlToDelete.text.trim();
+                        
+                        // Se for a palavra certa que a pessoa excluiu...
+                        if(elText && (elText.includes(hlText) || hlText.includes(elText))) {
+                            // 1. Tira o fundo e a cor desse elemento
+                            el.style.backgroundColor = '';
+                            el.style.color = '';
+                            el.removeAttribute('color');
+                            
+                            // 2. Tira as cores forçadas de quaisquer filhos (tags <font> ou spans internos)
+                            let innerColors = el.querySelectorAll('[color], [style*="color"]');
+                            innerColors.forEach(inner => {
+                                inner.style.color = '';
+                                inner.removeAttribute('color');
+                                if (inner.getAttribute('style') === '') inner.removeAttribute('style');
+                            });
+
+                            // 3. Tira a cor do pai caso o execCommand tenha abraçado o fundo com uma tag <font>
+                            if (el.parentElement && (el.parentElement.tagName.toLowerCase() === 'font' || el.parentElement.style.color)) {
+                                el.parentElement.style.color = '';
+                                el.parentElement.removeAttribute('color');
+                                if (el.parentElement.getAttribute('style') === '') el.parentElement.removeAttribute('style');
+                            }
+
+                            if (el.getAttribute('style') === '') el.removeAttribute('style');
+                        }
+                    });
+                    
+                    formatObj.html = tempDiv.innerHTML;
+                    localStorage.setItem('bibleFormats', JSON.stringify(db));
+                }
+            }
+
+            updateSidebarList();
+            if(document.getElementById('view-reader').classList.contains('active')) renderContent();
+        }
+
+        // ==========================================
+        //  BOTÃO CONTEXTUAL & POP-UP DE ESTILO
+        // ==========================================
+        
+        document.addEventListener('selectionchange', () => {
+            const sel = window.getSelection();
+            const btn = document.getElementById('contextualFormatBtn');
+            if(!sel.isCollapsed && sel.anchorNode) {
+                const verse = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentNode.closest('.verse-text') : sel.anchorNode.closest('.verse-text');
+                if(verse) {
+                    btn.classList.add('visible');
+                    return;
+                }
+            }
+            btn.classList.remove('visible');
+        });
+
+        function openFormatMenu() {
+            const sel = window.getSelection();
+            if(sel.isCollapsed) return;
+            
+            let anchorNode = sel.anchorNode;
+            activeEditVerseNode = anchorNode.nodeType === 3 ? anchorNode.parentNode.closest('.verse-text') : anchorNode.closest('.verse-text');
+            backupVerseHTML = activeEditVerseNode.innerHTML;
+            savedSelectionRange = sel.getRangeAt(0);
+
+            document.getElementById('formatPopupOverlay').classList.add('open');
+            document.getElementById('contextualFormatBtn').classList.remove('visible');
+        }
+
+        function applyFormatCommand(cmd) {
+            if(!activeEditVerseNode) return;
+            
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(savedSelectionRange);
+
+            activeEditVerseNode.contentEditable = "true";
+            document.execCommand(cmd);
+            activeEditVerseNode.contentEditable = "false";
+
+            savedSelectionRange = sel.getRangeAt(0);
+            sel.removeAllRanges();
+        }
+
+        function saveFormat() {
+            if(activeEditVerseNode) saveVerseHTML(activeEditVerseNode);
+            closeFormatPopup();
+        }
+
+        function cancelFormat() {
+            if(activeEditVerseNode) activeEditVerseNode.innerHTML = backupVerseHTML;
+            closeFormatPopup();
+        }
+
+        function closeFormatPopup() {
+            document.getElementById('formatPopupOverlay').classList.remove('open');
+            activeEditVerseNode = null;
+        }
+
+
+        // ==========================================
+        //  LÓGICA DOS POST-ITS 
         // ==========================================
         
         function loadPostIts() {
             postItsData = JSON.parse(localStorage.getItem('biblePostIts') || '[]');
-            // Auto-limpeza: Destrói permanentemente notas que foram salvas sem nenhum texto (fantasmas)
             postItsData = postItsData.filter(p => p.text && p.text.trim() !== '');
             savePostIts();
-            
             postItsData.forEach(data => renderPostItElement(data));
             updatePostItsVisibility(); 
         }
 
-        function savePostIts() {
-            localStorage.setItem('biblePostIts', JSON.stringify(postItsData));
-        }
+        function savePostIts() { localStorage.setItem('biblePostIts', JSON.stringify(postItsData)); }
 
-        // Função responsável por gerenciar quando e onde as notas devem aparecer
         function updatePostItsVisibility() {
             const activeViewId = document.querySelector('.view-section.active').id.replace('view-', '');
             const currentVerse = document.getElementById('verseSelect').value;
-            
-            let loadedBook = null;
-            let loadedChapter = null;
+            let loadedBook = null; let loadedChapter = null;
 
-            // Extrai o livro e capítulo do texto que de fato está renderizado na tela
             if (currentChapterData && currentChapterData.reference) {
                 const refParts = currentChapterData.reference.split(' ');
-                loadedChapter = refParts.pop(); 
-                loadedBook = refParts.join(' '); 
+                loadedChapter = refParts.pop(); loadedBook = refParts.join(' '); 
             }
 
             document.querySelectorAll('.post-it-note').forEach(note => {
@@ -798,216 +906,135 @@
                 if (!data) return;
 
                 let shouldShow = false;
-
                 if (activeViewId === 'home' && data.view === 'home') {
                     shouldShow = true;
                 } else if (activeViewId === 'reader' && data.view === 'reader') {
-                    // Condição de Versículo Isolado: Se selecionado algum versículo específico, não mostra NENHUMA nota.
                     if (currentVerse === "") { 
-                        // Verifica se o livro e o capítulo da nota são exatamente os que estão abertos na tela agora
-                        if (data.book === loadedBook && data.chapter == loadedChapter) {
-                            shouldShow = true;
-                        }
+                        if (data.book === loadedBook && data.chapter == loadedChapter) shouldShow = true;
                     }
                 }
-
                 note.style.display = shouldShow ? 'flex' : 'none';
             });
         }
 
         function createNewPostIt() {
             const scrollY = window.scrollY || document.documentElement.scrollTop;
-            const startX = (window.innerWidth / 2) - 90; 
-            const startY = scrollY + (window.innerHeight / 2) - 90;
-
+            const startX = (window.innerWidth / 2) - 90; const startY = scrollY + (window.innerHeight / 2) - 90;
             const activeViewId = document.querySelector('.view-section.active').id.replace('view-', '');
             const currentVerse = document.getElementById('verseSelect').value;
 
-            let loadedBook = null;
-            let loadedChapter = null;
+            let loadedBook = null; let loadedChapter = null;
 
             if (activeViewId === 'reader') {
-                if (!currentChapterData) {
-                    alert("Carregue um capítulo primeiro antes de colar uma nota.");
-                    return;
-                }
-                if (currentVerse !== "") {
-                    alert("Não é possível colar adesivos em um versículo isolado. Selecione 'Todos' na aba de versículos.");
-                    return;
-                }
-                
-                const refParts = currentChapterData.reference.split(' ');
-                loadedChapter = refParts.pop();
-                loadedBook = refParts.join(' ');
+                if (!currentChapterData) { customAlert("Carregue um capítulo primeiro antes de colar um adesivo!"); return; }
+                if (currentVerse !== "") { customAlert("Não é possível colar adesivos em um versículo isolado. Selecione 'Todos' no filtro."); return; }
+                const refParts = currentChapterData.reference.split(' '); loadedChapter = refParts.pop(); loadedBook = refParts.join(' ');
             }
 
             const newPostIt = {
-                id: Date.now(),
-                view: activeViewId, 
-                book: loadedBook, // Trava no livro exato
-                chapter: loadedChapter, // Trava no capítulo exato
-                x: startX > 10 ? startX : 10,
-                y: startY > 10 ? startY : 10,
-                w: 180, 
-                h: 180, 
-                color: '#ffeb3b',
-                text: ''
+                id: Date.now(), view: activeViewId, book: loadedBook, chapter: loadedChapter,
+                x: startX > 10 ? startX : 10, y: startY > 10 ? startY : 10,
+                w: 180, h: 180, color: '#ffeb3b', text: '', folded: false
             };
-
-            postItsData.push(newPostIt);
-            savePostIts();
-            renderPostItElement(newPostIt);
+            postItsData.push(newPostIt); savePostIts(); renderPostItElement(newPostIt);
         }
 
         function renderPostItElement(data) {
             const postIt = document.createElement('div');
             postIt.className = 'post-it-note';
             postIt.id = `postit-${data.id}`;
-            
-            postIt.style.left = `${data.x}px`;
-            postIt.style.top = `${data.y}px`;
-            postIt.style.width = `${data.w}px`;
-            postIt.style.height = `${data.h}px`;
+            postIt.style.left = `${data.x}px`; postIt.style.top = `${data.y}px`;
+            postIt.style.width = `${data.w}px`; postIt.style.height = `${data.h}px`;
             postIt.style.backgroundColor = data.color;
+            
+            if(data.folded) postIt.classList.add('folded');
 
-            // Cabeçalho (Área de arrastar e botões)
             const header = document.createElement('div');
             header.className = 'post-it-header';
             
             const controls = document.createElement('div');
             controls.className = 'post-it-controls';
 
-            const colorInput = document.createElement('input');
-            colorInput.type = 'color';
-            colorInput.className = 'post-it-color';
-            colorInput.value = data.color;
-            colorInput.title = 'Mudar cor';
-            colorInput.addEventListener('input', (e) => {
-                data.color = e.target.value;
-                postIt.style.backgroundColor = data.color;
-                savePostIts();
-            });
-
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'post-it-btn';
-            deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
-            deleteBtn.title = 'Excluir nota';
-            deleteBtn.onclick = () => {
-                if(confirm("Deseja excluir esta nota definitiva?")){
-                    postIt.remove();
-                    postItsData = postItsData.filter(p => p.id !== data.id);
-                    savePostIts();
+            const foldBtn = document.createElement('button');
+            foldBtn.className = 'post-it-btn'; foldBtn.title = 'Dobrar / Desdobrar';
+            foldBtn.innerHTML = data.folded ? '<i class="fa-solid fa-expand"></i>' : '<i class="fa-solid fa-compress"></i>';
+            foldBtn.onclick = () => {
+                data.folded = !data.folded;
+                if(data.folded) {
+                    postIt.classList.add('folded'); foldBtn.innerHTML = '<i class="fa-solid fa-expand"></i>';
+                } else {
+                    postIt.classList.remove('folded'); foldBtn.innerHTML = '<i class="fa-solid fa-compress"></i>';
                 }
+                savePostIts();
             };
 
-            controls.appendChild(colorInput);
-            controls.appendChild(deleteBtn);
-            header.appendChild(controls);
-            postIt.appendChild(header);
+            const colorInput = document.createElement('input');
+            colorInput.type = 'color'; colorInput.className = 'post-it-color'; colorInput.value = data.color;
+            colorInput.addEventListener('input', (e) => { data.color = e.target.value; postIt.style.backgroundColor = data.color; savePostIts(); });
 
-            // Container do texto para centralização
+            const deleteBtn = document.createElement('button');
+            deleteBtn.className = 'post-it-btn'; deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+            deleteBtn.onclick = () => { 
+                customConfirm("Deseja amassar e jogar fora esta anotação?", (res) => {
+                    if(res) { postIt.remove(); postItsData = postItsData.filter(p => p.id !== data.id); savePostIts(); }
+                });
+            };
+
+            controls.appendChild(foldBtn); controls.appendChild(colorInput); controls.appendChild(deleteBtn);
+            header.appendChild(controls); postIt.appendChild(header);
+
             const contentWrapper = document.createElement('div');
             contentWrapper.className = 'post-it-content-wrapper';
 
-            // Área de texto
             const textArea = document.createElement('textarea');
-            textArea.className = 'post-it-content';
-            textArea.placeholder = 'Anote...';
-            textArea.value = data.text;
-            
-            // Auto-Save ao digitar
-            textArea.addEventListener('input', (e) => {
-                data.text = e.target.value;
-                savePostIts();
-            });
+            textArea.className = 'post-it-content'; textArea.placeholder = 'Sua anotação...'; textArea.value = data.text;
+            textArea.addEventListener('input', (e) => { data.text = e.target.value; savePostIts(); });
+            textArea.addEventListener('blur', (e) => { if (data.text.trim() === '') { postIt.remove(); postItsData = postItsData.filter(p => p.id !== data.id); savePostIts(); } });
 
-            // Lógica de Destruição: Se clicar fora da nota e ela estiver vazia, ela se auto-destrói
-            textArea.addEventListener('blur', (e) => {
-                if (data.text.trim() === '') {
-                    postIt.remove();
-                    postItsData = postItsData.filter(p => p.id !== data.id);
-                    savePostIts();
-                }
-            });
-
-            contentWrapper.appendChild(textArea);
-            postIt.appendChild(contentWrapper);
-
+            contentWrapper.appendChild(textArea); postIt.appendChild(contentWrapper);
             document.body.appendChild(postIt);
             
             makeDraggableAndResizable(postIt, data);
-
-            // Foco automático ao criar nota nova
-            if(data.text === '') {
-                textArea.focus();
-            }
+            if(data.text === '') textArea.focus();
         }
 
         function makeDraggableAndResizable(element, data) {
             const header = element.querySelector('.post-it-header');
-            let isDragging = false;
-            let startX, startY, initialX, initialY;
+            let isDragging = false; let startX, startY, initialX, initialY;
 
             function startDrag(e) {
                 if (e.target.closest('.post-it-controls')) return; 
-                
-                isDragging = true;
-                element.classList.add('dragging');
+                isDragging = true; element.classList.add('dragging');
                 const event = e.type.includes('touch') ? e.touches[0] : e;
-                startX = event.clientX;
-                startY = event.clientY;
-                initialX = element.offsetLeft;
-                initialY = element.offsetTop;
-                
-                document.addEventListener('mousemove', drag, { passive: false });
-                document.addEventListener('mouseup', stopDrag);
-                document.addEventListener('touchmove', drag, { passive: false });
-                document.addEventListener('touchend', stopDrag);
+                startX = event.clientX; startY = event.clientY;
+                initialX = element.offsetLeft; initialY = element.offsetTop;
+                document.addEventListener('mousemove', drag, { passive: false }); document.addEventListener('mouseup', stopDrag);
+                document.addEventListener('touchmove', drag, { passive: false }); document.addEventListener('touchend', stopDrag);
             }
 
             function drag(e) {
-                if (!isDragging) return;
-                if(e.cancelable) e.preventDefault(); 
-                
+                if (!isDragging) return; if(e.cancelable) e.preventDefault(); 
                 const event = e.type.includes('touch') ? e.touches[0] : e;
-                const dx = event.clientX - startX;
-                const dy = event.clientY - startY;
-                
-                element.style.left = (initialX + dx) + 'px';
-                element.style.top = (initialY + dy) + 'px';
+                element.style.left = (initialX + (event.clientX - startX)) + 'px';
+                element.style.top = (initialY + (event.clientY - startY)) + 'px';
             }
 
             function stopDrag(e) {
-                if (!isDragging) return;
-                isDragging = false;
-                element.classList.remove('dragging');
-                
-                document.removeEventListener('mousemove', drag);
-                document.removeEventListener('mouseup', stopDrag);
-                document.removeEventListener('touchmove', drag);
-                document.removeEventListener('touchend', stopDrag);
-
-                data.x = parseInt(element.style.left);
-                data.y = parseInt(element.style.top);
-                savePostIts();
+                if (!isDragging) return; isDragging = false; element.classList.remove('dragging');
+                document.removeEventListener('mousemove', drag); document.removeEventListener('mouseup', stopDrag);
+                document.removeEventListener('touchmove', drag); document.removeEventListener('touchend', stopDrag);
+                data.x = parseInt(element.style.left); data.y = parseInt(element.style.top); savePostIts();
             }
 
-            header.addEventListener('mousedown', startDrag);
-            header.addEventListener('touchstart', startDrag, { passive: false });
+            header.addEventListener('mousedown', startDrag); header.addEventListener('touchstart', startDrag, { passive: false });
 
             const resizeObserver = new ResizeObserver(entries => {
                 for (let entry of entries) {
-                    const newW = Math.round(entry.contentRect.width);
-                    const newH = Math.round(entry.contentRect.height);
-                    
-                    if(!isDragging && (newW !== data.w || newH !== data.h) && newW > 0 && newH > 0) {
-                        data.w = element.offsetWidth;
-                        data.h = element.offsetHeight;
-                        savePostIts();
+                    if(!isDragging && !data.folded && entry.contentRect.width > 0) {
+                        data.w = element.offsetWidth; data.h = element.offsetHeight; savePostIts();
                     }
                 }
             });
-
             resizeObserver.observe(element);
         }
     </script>
