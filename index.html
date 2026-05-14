@@ -43,7 +43,7 @@
             position: sticky;
             top: 0;
             z-index: 900;
-            transition: background-color 0.3s;
+            transition: background-color 0.3s, opacity 0.3s ease;
         }
 
         .top-bar {
@@ -140,6 +140,7 @@
         .controls-wrapper {
             background-color: var(--secondary-bg); border-radius: 12px; padding: 10px 15px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 20px; display: flex; flex-direction: column; gap: 15px;
+            transition: opacity 0.3s ease;
         }
 
         .reading-controls { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; align-items: center; }
@@ -157,6 +158,34 @@
         .verse-num { font-weight: 700; color: var(--accent-color); margin-right: 6px; font-size: 0.8rem; vertical-align: super; opacity: 0.8; }
         .verse-text { outline: none; transition: background 0.2s; border-radius: 4px; }
 
+        /* ----- MODO FOCO CINEMATOGRÁFICO ELEGANTE ----- */
+        body.bible-focus-mode::before {
+            content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); z-index: 6000;
+            animation: fadeInFocus 0.4s ease forwards; pointer-events: none;
+        }
+        @keyframes fadeInFocus { from { opacity: 0; } to { opacity: 1; } }
+        
+        .verse-focused {
+            transform: scale(1.08) translateY(-5px); 
+            z-index: 6001; position: relative;
+            background-color: var(--item-bg) !important;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.9), 0 0 0 2px var(--accent-color);
+            border-radius: 16px; padding: 22px; margin: 25px 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Desaparece com distrações elegantemente */
+        body.bible-focus-mode .post-it-note,
+        body.bible-focus-mode header,
+        body.bible-focus-mode .fab-container,
+        body.bible-focus-mode .controls-wrapper,
+        body.bible-focus-mode h2 {
+            opacity: 0 !important;
+            pointer-events: none !important;
+            transition: opacity 0.3s ease !important;
+        }
+
         /* ----- MENU LATERAL (MARCAÇÕES) ----- */
         #sidebar {
             position: fixed; top: 0; left: -320px; width: 320px; height: 100%;
@@ -167,9 +196,14 @@
         #sidebar.open { left: 0; }
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--item-bg); padding-bottom: 15px; margin-bottom: 20px; }
         .sidebar-header h2 { margin: 0; font-size: 1.1rem; color: var(--accent-color); }
-        .highlight-item { background-color: var(--item-bg); padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; border-left: 4px solid; position: relative; }
+        .highlight-item { 
+            background-color: var(--item-bg); padding: 15px; border-radius: 8px; margin-bottom: 15px; 
+            font-size: 0.9rem; border-left: 4px solid; position: relative; cursor: pointer; 
+            transition: transform 0.2s, box-shadow 0.2s; 
+        }
+        .highlight-item:hover { transform: translateX(5px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         .highlight-ref { font-weight: 600; color: var(--accent-color); display: block; margin-bottom: 6px; font-size: 0.85rem; }
-        .btn-delete { position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--danger-color); cursor: pointer; font-size: 1rem; opacity: 0.6; }
+        .btn-delete { position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--danger-color); cursor: pointer; font-size: 1rem; opacity: 0.6; z-index: 10;}
         .btn-delete:hover { opacity: 1; transform: scale(1.1); }
 
         /* ----- MODAL DE CONFIGURAÇÕES ----- */
@@ -193,7 +227,7 @@
         /* ----- ALERTAS E CONFIRMAÇÕES ELEGANTES ----- */
         .custom-alert-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 5000;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 7000;
             display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.2s ease;
         }
         .custom-alert-overlay.open { display: flex; opacity: 1; }
@@ -257,6 +291,7 @@
         /* ----- BOTÃO FLUTUANTE DE AÇÕES (FAB) ----- */
         .fab-container {
             position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; align-items: center; gap: 12px; z-index: 950; 
+            transition: opacity 0.3s ease;
         }
         .fab-btn {
             width: 60px; height: 60px; border-radius: 50%; background-color: var(--accent-color); color: #fff; border: none;
@@ -580,7 +615,7 @@
                 const targetTab = document.querySelector(`.nav-tab[onclick="switchView('${viewName}')"]`);
                 if(targetTab) targetTab.classList.add('active');
             }
-            updatePostItsVisibility(); 
+            renderAllPostIts(); 
         }
 
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); updateSidebarList(); }
@@ -691,12 +726,41 @@
                 html += `<div class="verse" data-verse="${vNum}"><span class="verse-num">${vNum}</span><span class="verse-text">${saved ? saved.html : v.text}</span></div>`;
             });
             contentDiv.innerHTML = html;
-            updatePostItsVisibility(); 
+            renderAllPostIts(); 
         }
 
         // ==========================================
-        //  SISTEMA DE GRIFO ORIGINAL (CORES ESCURAS) E BARRA LATERAL
+        //  SISTEMA DE NAVEGAÇÃO E FOCO CINEMATOGRÁFICO
         // ==========================================
+        async function focusHighlight(book, chapter, verse) {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('bookSelect').value = book;
+            document.getElementById('chapterSelect').value = chapter;
+            document.getElementById('verseSelect').value = ""; 
+            
+            switchView('reader');
+            await loadChapter(); 
+
+            const verseEl = document.querySelector(`.verse[data-verse="${verse}"]`);
+            if(verseEl) {
+                verseEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                
+                setTimeout(() => {
+                    document.body.classList.add('bible-focus-mode');
+                    verseEl.classList.add('verse-focused');
+                    
+                    const removeFocus = (e) => {
+                        if (!verseEl.contains(e.target)) {
+                            verseEl.classList.remove('verse-focused');
+                            document.body.classList.remove('bible-focus-mode');
+                            document.removeEventListener('click', removeFocus);
+                        }
+                    };
+                    setTimeout(() => document.addEventListener('click', removeFocus), 50);
+                }, 300); 
+            }
+        }
+
         function applyColorHighlight() {
             const sel = window.getSelection();
             if(sel.isCollapsed) { customAlert("Selecione uma palavra ou frase primeiro antes de clicar em grifar."); return; }
@@ -710,13 +774,12 @@
 
             verseParent.contentEditable = "true";
             document.execCommand('backColor', false, color);
-            document.execCommand('foreColor', false, '#121212'); // Força texto escuro pro contraste
+            document.execCommand('foreColor', false, '#121212'); 
             verseParent.contentEditable = "false";
 
             saveVerseHTML(verseParent);
             saveToSidebar(textSelected, color, verseParent);
             sel.removeAllRanges();
-            
             document.getElementById('contextualFormatBtn').classList.remove('visible');
         }
 
@@ -749,6 +812,11 @@
             highlights.slice().reverse().forEach(h => {
                 const item = document.createElement('div');
                 item.className = 'highlight-item'; item.style.borderLeftColor = h.color;
+                
+                item.onclick = (e) => {
+                    if (e.target.closest('button')) return; 
+                    focusHighlight(h.book, h.chapter, h.verse);
+                };
                 item.innerHTML = `
                     <button class="btn-delete" onclick="deleteHighlight(${h.id})" title="Excluir"><i class="fa-solid fa-trash-can"></i></button>
                     <span class="highlight-ref">${h.book} ${h.chapter}:${h.verse}</span>
@@ -758,9 +826,6 @@
             });
         }
 
-        // ==========================================
-        //  EXCLUSÃO CIRÚRGICA DE MARCAÇÕES (REMOVEDOR DE MANCHAS)
-        // ==========================================
         function deleteHighlight(id) {
             let highlights = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
             const hlToDelete = highlights.find(h => h.id === id);
@@ -780,14 +845,11 @@
                         let elText = el.textContent.trim();
                         let hlText = hlToDelete.text.trim();
                         
-                        // Se for a palavra certa que a pessoa excluiu...
                         if(elText && (elText.includes(hlText) || hlText.includes(elText))) {
-                            // 1. Tira o fundo e a cor desse elemento
                             el.style.backgroundColor = '';
                             el.style.color = '';
                             el.removeAttribute('color');
                             
-                            // 2. Tira as cores forçadas de quaisquer filhos (tags <font> ou spans internos)
                             let innerColors = el.querySelectorAll('[color], [style*="color"]');
                             innerColors.forEach(inner => {
                                 inner.style.color = '';
@@ -795,13 +857,11 @@
                                 if (inner.getAttribute('style') === '') inner.removeAttribute('style');
                             });
 
-                            // 3. Tira a cor do pai caso o execCommand tenha abraçado o fundo com uma tag <font>
                             if (el.parentElement && (el.parentElement.tagName.toLowerCase() === 'font' || el.parentElement.style.color)) {
                                 el.parentElement.style.color = '';
                                 el.parentElement.removeAttribute('color');
                                 if (el.parentElement.getAttribute('style') === '') el.parentElement.removeAttribute('style');
                             }
-
                             if (el.getAttribute('style') === '') el.removeAttribute('style');
                         }
                     });
@@ -875,22 +935,22 @@
             activeEditVerseNode = null;
         }
 
-
         // ==========================================
-        //  LÓGICA DOS POST-ITS 
+        //  LÓGICA DOS POST-ITS (ANCORAGEM PERFEITA)
         // ==========================================
         
         function loadPostIts() {
             postItsData = JSON.parse(localStorage.getItem('biblePostIts') || '[]');
             postItsData = postItsData.filter(p => p.text && p.text.trim() !== '');
             savePostIts();
-            postItsData.forEach(data => renderPostItElement(data));
-            updatePostItsVisibility(); 
+            renderAllPostIts();
         }
 
         function savePostIts() { localStorage.setItem('biblePostIts', JSON.stringify(postItsData)); }
 
-        function updatePostItsVisibility() {
+        function renderAllPostIts() {
+            document.querySelectorAll('.post-it-note').forEach(n => n.remove());
+            
             const activeViewId = document.querySelector('.view-section.active').id.replace('view-', '');
             const currentVerse = document.getElementById('verseSelect').value;
             let loadedBook = null; let loadedChapter = null;
@@ -900,46 +960,77 @@
                 loadedChapter = refParts.pop(); loadedBook = refParts.join(' '); 
             }
 
-            document.querySelectorAll('.post-it-note').forEach(note => {
-                const postItId = parseInt(note.id.replace('postit-', ''));
-                const data = postItsData.find(p => p.id === postItId);
-                if (!data) return;
+            postItsData.forEach(data => {
+                let parent = document.body;
+                let shouldRender = false;
 
-                let shouldShow = false;
-                if (activeViewId === 'home' && data.view === 'home') {
-                    shouldShow = true;
-                } else if (activeViewId === 'reader' && data.view === 'reader') {
+                if (data.view === 'home' && activeViewId === 'home') {
+                    shouldRender = true;
+                } else if (data.view === 'reader' && activeViewId === 'reader') {
                     if (currentVerse === "") { 
-                        if (data.book === loadedBook && data.chapter == loadedChapter) shouldShow = true;
+                        if (data.book === loadedBook && data.chapter == loadedChapter) {
+                            shouldRender = true;
+                            if(!data.anchorVerse) data.anchorVerse = '1';
+                            parent = document.querySelector(`.verse[data-verse="${data.anchorVerse}"]`);
+                            if(parent) {
+                                parent.style.position = 'relative';
+                            } else {
+                                shouldRender = false;
+                            }
+                        }
                     }
                 }
-                note.style.display = shouldShow ? 'flex' : 'none';
+
+                if(shouldRender && parent) renderPostItElement(data, parent);
             });
         }
 
         function createNewPostIt() {
-            const scrollY = window.scrollY || document.documentElement.scrollTop;
-            const startX = (window.innerWidth / 2) - 90; const startY = scrollY + (window.innerHeight / 2) - 90;
             const activeViewId = document.querySelector('.view-section.active').id.replace('view-', '');
-            const currentVerse = document.getElementById('verseSelect').value;
-
             let loadedBook = null; let loadedChapter = null;
+            let anchorVerse = null;
+            let x = 10, y = 10;
 
             if (activeViewId === 'reader') {
+                const currentVerse = document.getElementById('verseSelect').value;
                 if (!currentChapterData) { customAlert("Carregue um capítulo primeiro antes de colar um adesivo!"); return; }
                 if (currentVerse !== "") { customAlert("Não é possível colar adesivos em um versículo isolado. Selecione 'Todos' no filtro."); return; }
-                const refParts = currentChapterData.reference.split(' '); loadedChapter = refParts.pop(); loadedBook = refParts.join(' ');
+                
+                const refParts = currentChapterData.reference.split(' '); 
+                loadedChapter = refParts.pop(); loadedBook = refParts.join(' ');
+
+                let targetVerse = document.querySelector('.verse'); 
+                let minDiff = Infinity;
+                document.querySelectorAll('.verse').forEach(v => {
+                    const rect = v.getBoundingClientRect();
+                    const diff = Math.abs(rect.top + (rect.height/2) - (window.innerHeight / 2));
+                    if (diff < minDiff) { minDiff = diff; targetVerse = v; }
+                });
+
+                if(targetVerse) {
+                    anchorVerse = targetVerse.dataset.verse;
+                    const vRect = targetVerse.getBoundingClientRect();
+                    x = (window.innerWidth / 2) - 90 - vRect.left;
+                    y = (window.innerHeight / 2) - 90 - vRect.top;
+                    if (x < 10) x = 10;
+                    if (y < -50) y = -50; 
+                }
+            } else {
+                const scrollY = window.scrollY || document.documentElement.scrollTop;
+                x = (window.innerWidth / 2) - 90; 
+                y = scrollY + (window.innerHeight / 2) - 90;
             }
 
             const newPostIt = {
                 id: Date.now(), view: activeViewId, book: loadedBook, chapter: loadedChapter,
-                x: startX > 10 ? startX : 10, y: startY > 10 ? startY : 10,
+                anchorVerse: anchorVerse, x: x, y: y,
                 w: 180, h: 180, color: '#ffeb3b', text: '', folded: false
             };
-            postItsData.push(newPostIt); savePostIts(); renderPostItElement(newPostIt);
+            postItsData.push(newPostIt); savePostIts(); 
+            renderAllPostIts();
         }
 
-        function renderPostItElement(data) {
+        function renderPostItElement(data, parent) {
             const postIt = document.createElement('div');
             postIt.className = 'post-it-note';
             postIt.id = `postit-${data.id}`;
@@ -992,7 +1083,8 @@
             textArea.addEventListener('blur', (e) => { if (data.text.trim() === '') { postIt.remove(); postItsData = postItsData.filter(p => p.id !== data.id); savePostIts(); } });
 
             contentWrapper.appendChild(textArea); postIt.appendChild(contentWrapper);
-            document.body.appendChild(postIt);
+            
+            parent.appendChild(postIt);
             
             makeDraggableAndResizable(postIt, data);
             if(data.text === '') textArea.focus();
