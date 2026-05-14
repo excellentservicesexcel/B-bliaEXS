@@ -158,16 +158,15 @@
         .btn-read:active { transform: scale(0.95); }
         .btn-share { background-color: var(--item-bg); color: var(--text-color); border: 1px solid rgba(255,255,255,0.1); width: auto; }
 
-        .verse { margin-bottom: 12px; line-height: 1.8; font-size: 1.1rem; padding: 6px 10px; border-radius: 8px; transition: background-color 0.2s; }
+        .verse { margin-bottom: 12px; line-height: 1.8; font-size: 1.1rem; padding: 6px 10px; border-radius: 8px; transition: background-color 0.2s; outline: none; }
         .verse:hover { background-color: var(--item-bg); }
         
-        /* Proteção Absoluta para os Números dos Versículos (nunca serão formatados) */
         .verse-num { 
             font-weight: 700 !important; color: var(--accent-color) !important; margin-right: 6px; 
             font-size: 0.8rem !important; vertical-align: super; opacity: 0.8; 
             background-color: transparent !important; font-style: normal !important; text-decoration: none !important;
         }
-        .verse-text { outline: none; transition: background 0.2s; border-radius: 4px; }
+        .verse-text { transition: background 0.2s; border-radius: 4px; }
 
         /* ----- MODO FOCO CINEMATOGRÁFICO EM VIDRO ----- */
         body.bible-focus-mode::before {
@@ -205,7 +204,6 @@
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-shrink: 0;}
         .sidebar-header h2 { margin: 0; font-size: 1.1rem; color: var(--accent-color); }
         
-        /* Filtro de Livros Elegante */
         #filterHighlightsBook {
             background-color: var(--item-bg); color: var(--text-color); padding: 10px 15px; border-radius: 8px; width: 100%;
             border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; font-weight: 500; outline: none; cursor: pointer;
@@ -229,7 +227,7 @@
             font-style: italic; font-size: 0.85rem; display: inline-block; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2); line-height: 1.4;
         }
 
-        /* ----- MODAL DE CONFIGURAÇÕES ----- */
+        /* ----- MODAL DE CONFIGURAÇÕES (ORIGINAL) ----- */
         #settingsModal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 3000; backdrop-filter: blur(3px);
@@ -400,11 +398,9 @@
             <h2><i class="fa-solid fa-bookmark"></i> Minhas Marcações</h2>
             <button class="icon-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        
         <select id="filterHighlightsBook" onchange="updateSidebarList()">
             <option value="all">Todas as Marcações</option>
         </select>
-
         <div id="highlightsList"></div>
     </div>
 
@@ -425,7 +421,7 @@
             </div>
 
             <div class="theme-section">
-                <label>Cores Customizadas</label>
+                <label>Criar Novo Padrão</label>
                 <div class="color-picker-group">
                     <span>Fundo</span>
                     <input type="color" id="customBg" value="#121212">
@@ -466,7 +462,7 @@
     <header>
         <div class="top-bar">
             <button class="icon-btn" onclick="toggleSidebar()" title="Marcações"><i class="fa-solid fa-bars-staggered"></i></button>
-            <h1><i class="fa-solid fa-book-bible"></i> BÍBLIA</h1>
+            <h1><i class="fa-solid fa-book-bible"></i> MINHA BÍBLIA</h1>
             <div class="header-actions">
                 <button class="icon-btn" id="btnFullscreen" onclick="toggleFullScreen()" title="Tela Cheia"><i class="fa-solid fa-expand"></i></button>
                 <button class="icon-btn" onclick="toggleSettings()" title="Configurações"><i class="fa-solid fa-sliders"></i></button>
@@ -768,20 +764,71 @@
             }
         });
 
+        // ==========================================
+        //  A MÁGICA: BÍBLIA CONVERSA COM AS ANOTAÇÕES E REMONTA AS CORES
+        // ==========================================
         function renderContent() {
             if (!currentChapterData) return;
             const contentDiv = document.getElementById('bible-content');
             let html = `<h2 style="color: var(--accent-color);">${currentChapterData.reference}</h2>`;
             
             const db = JSON.parse(localStorage.getItem('bibleFormats') || '[]');
+            const highlightsDb = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
+            
             const version = document.getElementById('versionSelect').value;
             const book = document.getElementById('bookSelect').value;
             const chapter = document.getElementById('chapterSelect').value;
 
+            const chapterHighlights = highlightsDb.filter(h => h.book === book && h.chapter == chapter);
+
             (currentChapterData.verses || [currentChapterData]).forEach(v => {
                 let vNum = v.verse || v.number;
-                let saved = db.find(f => f.version === version && f.book === book && f.chapter == chapter && f.verse == vNum);
-                html += `<div class="verse" data-verse="${vNum}"><span class="verse-num">${vNum}</span><span class="verse-text">${saved ? saved.html : v.text}</span></div>`;
+                let verseTextHTML = v.text;
+
+                // 1. Puxa as formatações estruturais (Negrito, Itálico, Sublinhado) que estão limpas de cor
+                let savedFormat = db.find(f => f.version === version && f.book === book && f.chapter == chapter && f.verse == vNum);
+                if (savedFormat) {
+                    verseTextHTML = savedFormat.html;
+                }
+
+                // 2. Puxa AS CORES de "Minhas Anotações" dinamicamente!
+                let activeHighlights = chapterHighlights.filter(h => {
+                    let vParts = String(h.verse).split('-');
+                    let vStart = parseInt(vParts[0]);
+                    let vEnd = parseInt(vParts[1] || vParts[0]);
+                    return vNum >= vStart && vNum <= vEnd;
+                });
+
+                activeHighlights.forEach(h => {
+                    let vParts = String(h.verse).split('-');
+                    let isMultiVerse = (vParts.length > 1 && vParts[0] !== vParts[1]);
+                    
+                    let wrapStart = `<span style="background-color: ${h.color}; color: #121212; border-radius: 4px; padding: 2px;">`;
+                    let wrapEnd = `</span>`;
+
+                    if (isMultiVerse) {
+                        // Cobre o versículo inteiro se for seleção múltipla
+                        verseTextHTML = wrapStart + verseTextHTML + wrapEnd;
+                    } else {
+                        // Tenta casar o texto exato para versículo único
+                        if(h.text && h.text.length > 0) {
+                            let safeText = h.text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+                            let regex = new RegExp(`(${safeText})`, 'gi');
+                            if(regex.test(verseTextHTML)) {
+                                verseTextHTML = verseTextHTML.replace(regex, wrapStart + "$1" + wrapEnd);
+                            } else {
+                                verseTextHTML = wrapStart + verseTextHTML + wrapEnd; // Fallback
+                            }
+                        } else {
+                            verseTextHTML = wrapStart + verseTextHTML + wrapEnd; // Fallback
+                        }
+                    }
+                });
+
+                html += `<div class="verse" data-verse="${vNum}">
+                            <span class="verse-num">${vNum}</span>
+                            <span class="verse-text">${verseTextHTML}</span>
+                         </div>`;
             });
             contentDiv.innerHTML = html;
             renderAllPostIts(); 
@@ -810,7 +857,6 @@
             }
 
             if(versesToFocus.length > 0) {
-                // Rola para o grupo de versículos focar bem no meio da tela
                 versesToFocus[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
                 
                 setTimeout(() => {
@@ -831,67 +877,41 @@
         }
 
         // ==========================================
-        //  GRIFAR MÚLTIPLOS VERSÍCULOS COM PERFEIÇÃO
+        //  GRIFAR MÚLTIPLOS VERSÍCULOS BLINDADOS E SEGUROS
         // ==========================================
         function applyColorHighlight() {
             const sel = window.getSelection();
             if(sel.isCollapsed) { customAlert("Selecione uma palavra ou frase primeiro antes de clicar em grifar."); return; }
             
-            let verses = Array.from(document.querySelectorAll('.verse'));
-            let selectedVerses = verses.filter(v => sel.containsNode(v, true));
+            // Lógica Matemática de Seleção (Imune a bugs de div)
+            let startNode = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentNode : sel.anchorNode;
+            let endNode = sel.focusNode.nodeType === 3 ? sel.focusNode.parentNode : sel.focusNode;
             
-            // Fallback caso a seleção seja muito pequena e não "corte" as bordas do nó
-            if (selectedVerses.length === 0 && sel.anchorNode) {
-                let anchorVerse = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentNode.closest('.verse') : sel.anchorNode.closest('.verse');
-                if (anchorVerse) selectedVerses.push(anchorVerse);
-            }
+            let v1 = startNode.closest ? startNode.closest('.verse') : null;
+            let v2 = endNode.closest ? endNode.closest('.verse') : null;
+            
+            if(!v1 && !v2) { customAlert("A seleção deve estar dentro do texto de um versículo."); return; }
+            if(v1 && !v2) v2 = v1;
+            if(v2 && !v1) v1 = v2;
 
-            if (selectedVerses.length === 0) { customAlert("A seleção deve estar dentro do texto de um versículo."); return; }
+            let n1 = parseInt(v1.getAttribute('data-verse'));
+            let n2 = parseInt(v2.getAttribute('data-verse'));
+            
+            let vStart = Math.min(n1, n2);
+            let vEnd = Math.max(n1, n2);
+            let vRef = vStart === vEnd ? `${vStart}` : `${vStart}-${vEnd}`;
 
             const color = document.getElementById('highlightColor').value;
-            const textSelected = sel.toString();
+            const textSelected = sel.toString().trim();
 
-            // A MÁGICA: Tornamos a bíblia inteira editável por 1 milissegundo. 
-            // O navegador pinta tudo o que tá selecionado!
-            const container = document.getElementById('bible-content');
-            container.contentEditable = "true";
-            document.execCommand('backColor', false, color);
-            document.execCommand('foreColor', false, '#121212'); 
-            container.contentEditable = "false";
-
-            // Os números dos versículos não recebem cor por causa do !important no CSS,
-            // mas o execCommand pode sujar o estilo deles. Vamos limpar qualquer sujeira do número.
-            selectedVerses.forEach(v => {
-                let vNum = v.querySelector('.verse-num');
-                if(vNum) {
-                    vNum.style.backgroundColor = 'transparent';
-                    vNum.style.color = '';
-                }
-            });
-
-            // Salva individualmente cada versículo formatado
-            selectedVerses.forEach(v => saveVerseHTML(v));
-            
-            let vStart = selectedVerses[0].getAttribute('data-verse');
-            let vEnd = selectedVerses[selectedVerses.length - 1].getAttribute('data-verse');
-            let vRef = vStart === vEnd ? vStart : `${vStart}-${vEnd}`;
-
+            // Salva em "Minhas Anotações" e já recarrega a Bíblia! O renderContent faz a mágica da pintura.
             saveToSidebar(textSelected, color, vRef);
+            
             sel.removeAllRanges();
             document.getElementById('contextualFormatBtn').classList.remove('visible');
-        }
 
-        function saveVerseHTML(verseParent) {
-            const vNum = verseParent.getAttribute('data-verse');
-            const verseTextEl = verseParent.querySelector('.verse-text');
-            const version = document.getElementById('versionSelect').value; 
-            const book = document.getElementById('bookSelect').value; 
-            const chapter = document.getElementById('chapterSelect').value;
-
-            let db = JSON.parse(localStorage.getItem('bibleFormats') || '[]');
-            db = db.filter(f => !(f.version === version && f.book === book && f.chapter == chapter && f.verse == vNum));
-            db.push({ id: Date.now(), version, book, chapter, verse: vNum, html: verseTextEl.innerHTML });
-            localStorage.setItem('bibleFormats', JSON.stringify(db));
+            // Renderiza imediatamente para mostrar a cor sem recarregar a página
+            renderContent();
         }
 
         function saveToSidebar(text, color, vRef) {
@@ -904,7 +924,7 @@
         }
 
         // ==========================================
-        //  MENU LATERAL COM FILTRO DE LIVROS
+        //  MENU LATERAL COM FILTRO INTELIGENTE E EXCLUSÃO LIMPA
         // ==========================================
         function updateSidebarList() {
             const listDiv = document.getElementById('highlightsList');
@@ -912,7 +932,6 @@
             const currentFilter = filterSelect.value;
             const highlights = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
 
-            // Popula os livros dinamicamente baseado nas marcações salvas
             const uniqueBooks = [...new Set(highlights.map(h => h.book))];
             
             let optionsHTML = '<option value="all">Todas as Marcações</option>';
@@ -921,7 +940,6 @@
             });
             filterSelect.innerHTML = optionsHTML;
 
-            // Filtra o array se não for "Todas"
             let filteredHighlights = highlights;
             if (currentFilter !== 'all') {
                 filteredHighlights = highlights.filter(h => h.book === currentFilter);
@@ -934,7 +952,6 @@
             
             listDiv.innerHTML = '';
             
-            // Agrupa por Livro de forma elegante
             const grouped = filteredHighlights.reduce((acc, h) => {
                 if(!acc[h.book]) acc[h.book] = [];
                 acc[h.book].push(h);
@@ -968,56 +985,12 @@
 
         function deleteHighlight(id) {
             let highlights = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
-            const hlToDelete = highlights.find(h => h.id === id);
             highlights = highlights.filter(h => h.id !== id);
             localStorage.setItem('bibleHighlights', JSON.stringify(highlights));
 
-            if(hlToDelete) {
-                let db = JSON.parse(localStorage.getItem('bibleFormats') || '[]');
-                
-                // Mapeia caso seja um range de versículos (Ex: 1-3)
-                let vParts = String(hlToDelete.verse).split('-');
-                let vStart = parseInt(vParts[0]);
-                let vEnd = parseInt(vParts[1] || vParts[0]);
-                
-                for (let vNum = vStart; vNum <= vEnd; vNum++) {
-                    let formatObj = db.find(f => f.book === hlToDelete.book && f.chapter == hlToDelete.chapter && f.verse == vNum);
-                    if(formatObj) {
-                        let tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = formatObj.html;
-                        
-                        let styledElements = tempDiv.querySelectorAll('*[style*="background-color"]');
-                        styledElements.forEach(el => {
-                            let elText = el.textContent.trim();
-                            let hlText = hlToDelete.text.trim();
-                            
-                            if(elText && (elText.includes(hlText) || hlText.includes(elText))) {
-                                el.style.backgroundColor = '';
-                                el.style.color = '';
-                                el.removeAttribute('color');
-                                
-                                let innerColors = el.querySelectorAll('[color], [style*="color"]');
-                                innerColors.forEach(inner => {
-                                    inner.style.color = '';
-                                    inner.removeAttribute('color');
-                                    if (inner.getAttribute('style') === '') inner.removeAttribute('style');
-                                });
-
-                                if (el.parentElement && (el.parentElement.tagName.toLowerCase() === 'font' || el.parentElement.style.color)) {
-                                    el.parentElement.style.color = '';
-                                    el.parentElement.removeAttribute('color');
-                                    if (el.parentElement.getAttribute('style') === '') el.parentElement.removeAttribute('style');
-                                }
-                                if (el.getAttribute('style') === '') el.removeAttribute('style');
-                            }
-                        });
-                        formatObj.html = tempDiv.innerHTML;
-                    }
-                }
-                localStorage.setItem('bibleFormats', JSON.stringify(db));
-            }
-
             updateSidebarList();
+            
+            // Apenas re-renderiza. Como a cor vinha de "Minhas Anotações", o texto volta ao normal automaticamente!
             if(document.getElementById('view-reader').classList.contains('active')) renderContent();
         }
 
@@ -1049,12 +1022,26 @@
             const sel = window.getSelection();
             if(sel.isCollapsed) return;
             
-            let verses = Array.from(document.querySelectorAll('.verse'));
-            let selectedVerses = verses.filter(v => sel.containsNode(v, true));
+            let startNode = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentNode : sel.anchorNode;
+            let endNode = sel.focusNode.nodeType === 3 ? sel.focusNode.parentNode : sel.focusNode;
+            
+            let v1 = startNode.closest ? startNode.closest('.verse') : null;
+            let v2 = endNode.closest ? endNode.closest('.verse') : null;
+            
+            if(!v1 && !v2) return;
+            if(v1 && !v2) v2 = v1;
+            if(v2 && !v1) v1 = v2;
 
-            if(selectedVerses.length === 0 && sel.anchorNode) {
-                 let anchorVerse = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentNode.closest('.verse') : sel.anchorNode.closest('.verse');
-                 if(anchorVerse) selectedVerses.push(anchorVerse);
+            let n1 = parseInt(v1.getAttribute('data-verse'));
+            let n2 = parseInt(v2.getAttribute('data-verse'));
+            
+            let vStart = Math.min(n1, n2);
+            let vEnd = Math.max(n1, n2);
+
+            let selectedVerses = [];
+            for(let i=vStart; i<=vEnd; i++){
+                let el = document.querySelector(`.verse[data-verse="${i}"]`);
+                if(el) selectedVerses.push(el);
             }
 
             activeEditVerseNodes = selectedVerses;
@@ -1079,14 +1066,34 @@
             document.execCommand(cmd);
             container.contentEditable = "false";
 
+            // Limpa sugeira nos números e salva as Formatações Estruturais
+            activeEditVerseNodes.forEach(v => {
+                let vNum = v.querySelector('.verse-num');
+                if(vNum) {
+                    vNum.style.fontWeight = ''; vNum.style.fontStyle = ''; vNum.style.textDecoration = '';
+                }
+                saveFormatHTML(v.querySelector('.verse-text'));
+            });
+
             savedSelectionRange = sel.getRangeAt(0);
             sel.removeAllRanges();
+            renderContent(); // Atualiza a tela misturando formato + anotações
+        }
+
+        function saveFormatHTML(verseTextEl) {
+            const verseEl = verseTextEl.closest('.verse');
+            const vNum = verseEl.getAttribute('data-verse');
+            const version = document.getElementById('versionSelect').value; 
+            const book = document.getElementById('bookSelect').value; 
+            const chapter = document.getElementById('chapterSelect').value;
+
+            let db = JSON.parse(localStorage.getItem('bibleFormats') || '[]');
+            db = db.filter(f => !(f.version === version && f.book === book && f.chapter == chapter && f.verse == vNum));
+            db.push({ id: Date.now(), version, book, chapter, verse: vNum, html: verseTextEl.innerHTML });
+            localStorage.setItem('bibleFormats', JSON.stringify(db));
         }
 
         function saveFormat() {
-            if(activeEditVerseNodes.length > 0) {
-                activeEditVerseNodes.forEach(v => saveVerseHTML(v));
-            }
             closeFormatPopup();
         }
 
@@ -1094,8 +1101,10 @@
             if(activeEditVerseNodes.length > 0) {
                 activeEditVerseNodes.forEach((v, idx) => {
                     v.querySelector('.verse-text').innerHTML = backupVerseHTML[idx];
+                    saveFormatHTML(v.querySelector('.verse-text'));
                 });
             }
+            renderContent();
             closeFormatPopup();
         }
 
