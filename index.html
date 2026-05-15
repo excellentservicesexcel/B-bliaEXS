@@ -407,52 +407,7 @@
 </head>
 <body>
 
-    <script>
-        // Função para formatar JSON de Harpa complexa
-        function normalizeHymns(rawHinos) {
-            let normalized = [];
-            if (Array.isArray(rawHinos)) {
-                rawHinos.forEach((h, index) => {
-                    let number = h.id || h.numero || h.number || (index + 1);
-                    let title = h.title || h.titulo || h.name || h.nome || h.hino || `Hino ${number}`;
-                    title = String(title).replace(/^\d+\s*-\s*/, '');
-                    let lyrics = h.lyrics || h.letra || h.texto || h.text || h.content || '';
-                    if(typeof h === 'string') { lyrics = h; }
-                    normalized.push({ id: number, title: title, lyrics: String(lyrics) });
-                });
-            } else if (typeof rawHinos === 'object' && rawHinos !== null) {
-                for (let key in rawHinos) {
-                    if (key === "-1" || key.toLowerCase() === "metadata" || key.toLowerCase() === "info") continue;
-                    let h = rawHinos[key];
-                    let number = key;
-                    let title = h.hino || h.titulo || h.title || h.name || `Hino ${number}`;
-                    title = String(title).replace(/^\d+\s*-\s*/, '');
-                    
-                    let lyrics = "";
-                    if (h.verses) {
-                        for (let vKey in h.verses) {
-                            lyrics += `${vKey}. ${h.verses[vKey]}\n\n`;
-                            if (vKey === "1" && h.coro) {
-                                lyrics += `Refrão:\n${h.coro}\n\n`;
-                            }
-                        }
-                        if(!h.verses["1"] && h.coro) {
-                             lyrics += `Refrão:\n${h.coro}\n\n`;
-                        }
-                    } else {
-                         lyrics = h.lyrics || h.letra || h.texto || h.text || h.content || '';
-                    }
-                    
-                    lyrics = String(lyrics).replace(/<br\s*\/?>/gi, '\n');
-                    normalized.push({ id: number, title: title, lyrics: lyrics.trim() });
-                }
-                normalized.sort((a, b) => parseInt(a.id) - parseInt(b.id));
-            }
-            return normalized;
-        }
-
-        window.speechUtterances = [];
-    </script>
+    <script>window.speechUtterances = [];</script>
 
     <audio id="bgAudioPlayer" loop></audio>
     <div id="ytPlayerContainer" style="position: absolute; top: -9999px; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none;"></div>
@@ -806,7 +761,7 @@
         window.onload = async () => {
             initSelects(); await scanLocalVersions(); 
             loadDevotional(); loadTheme(); updateSidebarList(); loadPostIts(); 
-            initReadingPlan(); 
+            initReadingPlan(); initHarpa();
         }
 
         async function scanLocalVersions() {
@@ -889,10 +844,6 @@
 
             const targetTab = document.querySelector(`.nav-tab[onclick="switchView('${viewName}')"]`);
             if(targetTab) targetTab.classList.add('active');
-            
-            if(viewName === 'harpa' && Object.keys(harpaDataCache).length === 0) {
-                initHarpa();
-            }
             
             renderAllPostIts(); 
         }
@@ -1329,9 +1280,7 @@
                     window.speechUtterances.push(utterance);
                     window.speechSynthesis.speak(utterance);
                 });
-            } else { 
-                customAlert("Seu navegador não suporta leitura por voz."); 
-            }
+            } else { customAlert("Seu navegador não suporta leitura por voz."); }
         }
 
         // ==========================================
@@ -1446,7 +1395,6 @@
             contentDiv.innerHTML = html;
             renderAllPostIts(); 
 
-            // INJEÇÃO DA LEGENDA APÓS RENDERIZAR
             if (isTranslationActive) {
                 const btn = document.getElementById('btnTranslateToggle');
                 btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>...';
@@ -1550,7 +1498,6 @@
             }
         }
 
-        // LIMPEZA CIRÚRGICA DE MARCAÇÕES (O ASPIRADOR DE CORES)
         function deleteHighlight(id) {
             let highlights = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
             const hlToDelete = highlights.find(h => h.id === id);
@@ -1590,7 +1537,6 @@
             }
 
             updateSidebarList();
-            
             if(document.getElementById('view-reader').classList.contains('active')) renderContent();
         }
 
@@ -1729,6 +1675,222 @@
             header.addEventListener('mousedown', startDrag); header.addEventListener('touchstart', startDrag, { passive: false });
             const resizeObserver = new ResizeObserver(entries => { for (let entry of entries) { if(!isDragging && !data.folded && entry.contentRect.width > 0) { data.w = element.offsetWidth; data.h = element.offsetHeight; savePostIts(); } } });
             resizeObserver.observe(element);
+        }
+        
+        // ==========================================
+        //  INICIALIZAÇÃO HARPA CRISTÃ E CCB (LISTA E GRID)
+        // ==========================================
+        let harpaDataCache = {};
+        let currentHarpaVersion = 'crista';
+        let currentHarpaViewMode = 'grid'; 
+        const harpaVersions = {
+            'crista': { name: 'Harpa Cristã', file: 'harpa_crista.json', count: 640 },
+            'ccb': { name: 'Hinário CCB', file: 'hinario_ccb.json', count: 480 }
+        };
+
+        function initHarpa() {
+            renderHarpaView();
+        }
+
+        function toggleHarpaViewMode() {
+            currentHarpaViewMode = currentHarpaViewMode === 'grid' ? 'list' : 'grid';
+            const btn = document.getElementById('btnHarpaViewMode');
+            if(currentHarpaViewMode === 'grid') {
+                btn.innerHTML = '<i class="fa-solid fa-list-ul"></i>';
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-border-all"></i>';
+            }
+            renderHarpaView();
+        }
+
+        function changeHarpaVersion(val) {
+            currentHarpaVersion = val;
+            renderHarpaView();
+        }
+
+        function renderHarpaView() {
+            document.getElementById('harpa-hymn-container').style.display = 'none';
+            document.getElementById('btnBackHarpa').style.display = 'none';
+            
+            document.getElementById('btnHarpaViewMode').style.display = 'block';
+
+            if (currentHarpaViewMode === 'grid') {
+                document.getElementById('harpa-list-container').style.display = 'none';
+                renderHarpaGrid();
+            } else {
+                document.getElementById('harpa-grid-container').style.display = 'none';
+                renderHarpaList();
+            }
+        }
+
+        function renderHarpaGrid() {
+            const grid = document.getElementById('harpaGrid');
+            const count = harpaVersions[currentHarpaVersion].count;
+            let html = '';
+            for(let i=1; i<=count; i++) {
+                html += `<div class="harpa-square" onclick="loadHymn(${i})">${i}</div>`;
+            }
+            grid.innerHTML = html;
+            document.getElementById('harpa-grid-container').style.display = 'block';
+        }
+
+        async function renderHarpaList() {
+            const listContainer = document.getElementById('harpa-list-container');
+            listContainer.style.display = 'block';
+            listContainer.innerHTML = '<div style="text-align: center; margin-top: 50px;"><i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: var(--accent-color)"></i></div>';
+
+            const versionInfo = harpaVersions[currentHarpaVersion];
+            let hinos = harpaDataCache[currentHarpaVersion];
+            let parseError = false;
+            
+            if (!hinos) {
+                try {
+                    let res = await fetch('./' + versionInfo.file);
+                    if (res.ok) {
+                        let rawData = await res.json();
+                        hinos = normalizeHymns(rawData);
+                        harpaDataCache[currentHarpaVersion] = hinos;
+                    }
+                } catch(e) {
+                    parseError = true;
+                    console.error("Erro ao carregar o JSON da harpa:", e);
+                }
+            }
+
+            if (parseError || !hinos) {
+                listContainer.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--text-color); opacity: 0.8;">Arquivo de Hinos não encontrado ou inválido no seu sistema.<br>Certifique-se de que os arquivos 'harpa_crista.json' e 'hinario_ccb.json' estão disponíveis.</div>`;
+                return;
+            }
+
+            let html = '';
+            hinos.forEach((h, index) => {
+                let number = h.id || h.numero || h.number || (index + 1);
+                let title = h.title || h.titulo || h.name || h.nome || `Hino ${number}`;
+                let lyrics = h.lyrics || h.letra || h.texto || h.text || h.content || '';
+                
+                if (typeof lyrics !== 'string') lyrics = String(lyrics || 'Letra indisponível.');
+                
+                let formattedLyrics = lyrics.replace(/(?:^|\n)(Refrão|Coro|Coro:|Refrão:)([\s\S]*?)(?=\n\n|$)/gi, function(match) {
+                    return `\n<strong>${match.trim()}</strong>\n\n`;
+                });
+
+                html += `
+                <div class="harpa-list-item">
+                    <div class="harpa-list-header" onclick="toggleHarpaAccordion(${number})">
+                        <span>${number} - ${title}</span>
+                        <i id="harpa-icon-${number}" class="fa-solid fa-chevron-down"></i>
+                    </div>
+                    <div id="harpa-content-${number}" class="harpa-list-content">
+                        <div class="harpa-hymn-lyrics" style="margin-top: 15px; margin-bottom: 5px;">${formattedLyrics.trim()}</div>
+                    </div>
+                </div>`;
+            });
+            listContainer.innerHTML = html;
+        }
+
+        function toggleHarpaAccordion(number) {
+            const allContents = document.querySelectorAll('.harpa-list-content');
+            const allIcons = document.querySelectorAll('.harpa-list-header i');
+            const targetContent = document.getElementById(`harpa-content-${number}`);
+            const targetIcon = document.getElementById(`harpa-icon-${number}`);
+
+            allContents.forEach(content => {
+                if (content !== targetContent && content.classList.contains('open')) {
+                    content.classList.remove('open');
+                }
+            });
+            allIcons.forEach(icon => {
+                if (icon !== targetIcon && icon.classList.contains('fa-chevron-up')) {
+                    icon.classList.remove('fa-chevron-up');
+                    icon.classList.add('fa-chevron-down');
+                }
+            });
+
+            if (targetContent.classList.contains('open')) {
+                targetContent.classList.remove('open');
+                targetIcon.classList.remove('fa-chevron-up');
+                targetIcon.classList.add('fa-chevron-down');
+            } else {
+                targetContent.classList.add('open');
+                targetIcon.classList.remove('fa-chevron-down');
+                targetIcon.classList.add('fa-chevron-up');
+                
+                setTimeout(() => {
+                    targetContent.parentElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 300);
+            }
+        }
+
+        async function loadHymn(number) {
+            document.getElementById('harpa-grid-container').style.display = 'none';
+            document.getElementById('btnHarpaViewMode').style.display = 'none'; 
+            
+            const hymnContainer = document.getElementById('harpa-hymn-container');
+            hymnContainer.style.display = 'block';
+            document.getElementById('btnBackHarpa').style.display = 'flex';
+            
+            hymnContainer.innerHTML = '<div style="text-align: center; margin-top: 50px;"><i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: var(--accent-color)"></i></div>';
+
+            const versionInfo = harpaVersions[currentHarpaVersion];
+            let hinos = harpaDataCache[currentHarpaVersion];
+            let parseError = false;
+            
+            if (!hinos) {
+                try {
+                    let res = await fetch('./' + versionInfo.file);
+                    if (res.ok) {
+                        let rawData = await res.json();
+                        hinos = normalizeHymns(rawData);
+                        harpaDataCache[currentHarpaVersion] = hinos;
+                    }
+                } catch(e) {
+                    parseError = true;
+                    console.error("Erro ao carregar/parsear o JSON da harpa:", e);
+                }
+            }
+
+            let title = `Hino ${number}`;
+            let lyrics = `(Arquivo de Hinos não encontrado no seu sistema)\n\nPara visualizar a letra real, certifique-se de que os arquivos 'harpa_crista.json' e 'hinario_ccb.json' estão disponíveis no seu servidor.`;
+
+            if (parseError) {
+                lyrics = `Erro ao ler o arquivo '${versionInfo.file}'. O arquivo existe, mas o formato JSON parece estar inválido ou corrompido.`;
+            } else if (hinos) {
+                let hinoEncontrado = hinos.find(h => h.id == number || h.numero == number || h.number == number);
+                
+                if (!hinoEncontrado && Array.isArray(hinos) && hinos.length >= number) {
+                    hinoEncontrado = hinos[number - 1];
+                }
+
+                if(hinoEncontrado) {
+                    let hinoTitle = hinoEncontrado.title || hinoEncontrado.titulo || hinoEncontrado.name || hinoEncontrado.nome || '';
+                    title = hinoTitle ? `${number} - ${hinoTitle}` : `Hino ${number}`;
+                    
+                    lyrics = hinoEncontrado.lyrics || hinoEncontrado.letra || hinoEncontrado.texto || hinoEncontrado.text || hinoEncontrado.content || '';
+                    if(!lyrics && typeof hinoEncontrado === 'string') {
+                        lyrics = hinoEncontrado; 
+                    }
+                } else {
+                    lyrics = `Hino ${number} não encontrado dentro do arquivo JSON.`;
+                }
+            }
+
+            if (typeof lyrics !== 'string') {
+                lyrics = String(lyrics || 'Letra indisponível.');
+            }
+
+            let formattedLyrics = lyrics.replace(/(?:^|\n)(Refrão|Coro|Coro:|Refrão:)([\s\S]*?)(?=\n\n|$)/gi, function(match) {
+                return `\n<strong>${match.trim()}</strong>\n\n`;
+            });
+
+            hymnContainer.innerHTML = `
+                <div class="harpa-hymn-title">${title}</div>
+                <div class="harpa-hymn-lyrics">${formattedLyrics.trim()}</div>
+            `;
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+
+        function backToHarpaGrid() {
+            renderHarpaView(); 
         }
     </script>
 </body>
