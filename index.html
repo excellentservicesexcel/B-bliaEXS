@@ -357,6 +357,11 @@
         #contextualFormatBtn.visible { transform: translateY(-50%) scale(1); opacity: 1; pointer-events: auto; }
         #contextualFormatBtn:active { transform: translateY(-50%) scale(0.9); }
 
+        /* ----- BOTÃO CONTEXTUAL DE TRADUÇÃO (DIREITA) ----- */
+        #contextualTranslateBtn { position: fixed; right: 20px; top: calc(50% + 70px); transform: translateY(-50%) scale(0); width: 55px; height: 55px; border-radius: 50%; background-color: #00bcd4; color: white; box-shadow: 0 8px 25px rgba(0,0,0,0.4); display: flex; justify-content: center; align-items: center; font-size: 1.4rem; z-index: 1500; cursor: pointer; opacity: 0; pointer-events: none; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s; }
+        #contextualTranslateBtn.visible { transform: translateY(-50%) scale(1); opacity: 1; pointer-events: auto; }
+        #contextualTranslateBtn:active { transform: translateY(-50%) scale(0.9); }
+
         /* ----- BOTÃO FLUTUANTE DE AÇÕES (FAB) ----- */
         .fab-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; align-items: center; gap: 12px; z-index: 950; transition: opacity 0.3s ease; }
         .fab-btn { width: 60px; height: 60px; border-radius: 50%; background-color: var(--accent-color); color: #fff; border: none; box-shadow: 0 6px 15px rgba(0,0,0,0.3); font-size: 1.5rem; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: transform 0.2s, filter 0.2s, background-color 0.3s; }
@@ -496,6 +501,7 @@
             <h3><i class="fa-solid fa-language" style="color: var(--accent-color);"></i> Ativar Legenda</h3>
             <p>Escolha o idioma para traduzir o texto:</p>
             <select id="translateLangSelect" class="prompt-input" style="cursor: pointer; margin-bottom: 15px;">
+                <option value="pt">Português (Brasil)</option>
                 <option value="en">Inglês (English)</option>
                 <option value="es">Espanhol (Español)</option>
                 <option value="fr">Francês (Français)</option>
@@ -519,6 +525,39 @@
             <div class="actions" style="margin-top: 20px;">
                 <button class="btn-cancelar" onclick="closeTranslatePopup()">Cancelar</button>
                 <button class="btn-ok" onclick="confirmTranslation()">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="selectionTranslateOverlay" class="custom-alert-overlay">
+        <div class="custom-alert-box" style="max-width: 350px;">
+            <h3><i class="fa-solid fa-language" style="color: var(--accent-color);"></i> Traduzir Seleção</h3>
+            <p>Escolha o idioma para traduzir o texto selecionado:</p>
+            <select id="selTranslateLangSelect" class="prompt-input" style="cursor: pointer; margin-bottom: 20px;">
+                <option value="pt">Português (Brasil)</option>
+                <option value="en">Inglês (English)</option>
+                <option value="es">Espanhol (Español)</option>
+                <option value="fr">Francês (Français)</option>
+                <option value="it">Italiano (Italiano)</option>
+                <option value="de">Alemão (Deutsch)</option>
+                <option value="he">Hebraico (עברית)</option>
+                <option value="el">Grego (Ελληνικά)</option>
+                <option value="la">Latim (Latina)</option>
+                <option value="ja">Japonês (日本語)</option>
+            </select>
+            <div class="actions">
+                <button class="btn-cancelar" onclick="closeSelectionTranslatePopup()">Cancelar</button>
+                <button class="btn-ok" onclick="execSelectionTranslation()">Traduzir</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="translationResultOverlay" class="custom-alert-overlay">
+        <div class="custom-alert-box" style="max-width: 400px; width: 90%;">
+            <h3><i class="fa-solid fa-check-double" style="color: var(--accent-color);"></i> Tradução</h3>
+            <p id="translationResultText" style="text-align: left; font-size: 1.05rem; line-height: 1.6; background: var(--item-bg); padding: 15px; border-radius: 10px; border-left: 4px solid var(--accent-color); margin-bottom: 25px; user-select: text;"></p>
+            <div class="actions" style="justify-content: center;">
+                <button class="btn-ok" style="width: 100%;" onclick="closeTranslationResult()">Fechar</button>
             </div>
         </div>
     </div>
@@ -578,6 +617,10 @@
 
     <div id="contextualFormatBtn" onmousedown="event.preventDefault(); openFormatMenu()" ontouchstart="event.preventDefault(); openFormatMenu()" title="Editar Estilo">
         <i class="fa-solid fa-book"></i>
+    </div>
+
+    <div id="contextualTranslateBtn" onmousedown="event.preventDefault(); openSelectionTranslatePopup()" ontouchstart="event.preventDefault(); openSelectionTranslatePopup()" title="Traduzir Seleção">
+        <i class="fa-solid fa-magnifying-glass"></i>
     </div>
 
     <header>
@@ -1310,6 +1353,9 @@
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel(); clearAllTtsHighlights();
                 
+                // Pré-carrega vozes se necessário (ajuda no mobile)
+                window.speechSynthesis.getVoices();
+                
                 const chunks = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [text];
                 window.speechUtterances = [];
                 let globalCharOffset = 0;
@@ -1321,7 +1367,39 @@
                     utterance.charOffset = globalCharOffset;
                     globalCharOffset += chunk.length;
 
+                    // Tentar forçar voz local para melhor suporte a 'onboundary' no celular
+                    const voices = window.speechSynthesis.getVoices();
+                    let localVoice = voices.find(v => v.lang.startsWith(lang) && v.localService) || voices.find(v => v.lang.startsWith(lang));
+                    if(localVoice) utterance.voice = localVoice;
+
+                    utterance.onstart = function() {
+                        // Fallback cirúrgico para celulares: Simula o karaokê se o onboundary nativo falhar
+                        let spans = Array.from(element.querySelectorAll('span[id^="tts-word-"]'));
+                        let chunkSpans = spans.filter(s => {
+                            let wIdx = parseInt(s.id.replace('tts-word-', ''));
+                            return wIdx >= utterance.charOffset && wIdx < (utterance.charOffset + chunk.length);
+                        });
+
+                        utterance._fallbackTimer = setTimeout(() => {
+                            if(!utterance._boundaryFired && chunkSpans.length > 0) {
+                                let totalTime = (chunk.length / 15) * (1000 / currentTtsSpeed); // estimativa de tempo
+                                let timePerWord = totalTime / chunkSpans.length;
+                                chunkSpans.forEach((span, idx) => {
+                                    setTimeout(() => {
+                                        clearAllTtsHighlights();
+                                        span.style.backgroundColor = 'var(--accent-color)';
+                                        span.style.color = '#fff';
+                                        span.style.padding = '0 4px';
+                                        span.style.borderRadius = '4px';
+                                        span.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
+                                    }, idx * timePerWord);
+                                });
+                            }
+                        }, 250); // Aguarda 250ms para ver se o onboundary nativo dispara
+                    };
+
                     utterance.onboundary = function(event) {
+                        utterance._boundaryFired = true; // Impede que o fallback acima rode
                         if (event.name === 'word') {
                             clearAllTtsHighlights();
                             let absoluteIndex = utterance.charOffset + event.charIndex;
@@ -1622,18 +1700,82 @@
         }
 
         // ==========================================
-        //  BOTÃO CONTEXTUAL & POP-UP DE ESTILO 
+        //  BOTÃO CONTEXTUAL & POP-UP DE ESTILO / TRADUÇÃO
         // ==========================================
+        let selectedTranslationText = "";
+
         document.addEventListener('selectionchange', () => {
-            const sel = window.getSelection(); const btn = document.getElementById('contextualFormatBtn');
+            const sel = window.getSelection(); 
+            const formatBtn = document.getElementById('contextualFormatBtn');
+            const translateBtn = document.getElementById('contextualTranslateBtn');
+            
             if(!sel.isCollapsed && sel.rangeCount > 0) {
-                let verses = Array.from(document.querySelectorAll('.verse')); let hasVerse = verses.some(v => sel.containsNode(v, true));
-                if(!hasVerse && sel.anchorNode) { let v = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentNode.closest('.verse') : sel.anchorNode.closest('.verse'); if(v) hasVerse = true; }
-                if(hasVerse) { btn.classList.add('visible'); return; }
+                let anchor = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentNode : sel.anchorNode;
+                
+                // Prioridade 1: Verifica se selecionou algo na legenda para traduzir
+                let inTranslation = anchor.closest('.verse-translation');
+                if(inTranslation) {
+                    selectedTranslationText = sel.toString().trim();
+                    if(selectedTranslationText.length > 0) {
+                        translateBtn.classList.add('visible');
+                        formatBtn.classList.remove('visible');
+                        return;
+                    }
+                }
+
+                // Prioridade 2: Verifica seleção normal da Bíblia (código original de formatação)
+                let verses = Array.from(document.querySelectorAll('.verse')); 
+                let hasVerse = verses.some(v => sel.containsNode(v, true));
+                if(!hasVerse && anchor) { let v = anchor.closest('.verse'); if(v) hasVerse = true; }
+                if(hasVerse) { 
+                    formatBtn.classList.add('visible'); 
+                    translateBtn.classList.remove('visible');
+                    return; 
+                }
             }
-            btn.classList.remove('visible');
+            formatBtn.classList.remove('visible');
+            translateBtn.classList.remove('visible');
         });
 
+        // Funções da Tradução Contextual
+        function openSelectionTranslatePopup() {
+            if(!selectedTranslationText) return;
+            document.getElementById('selectionTranslateOverlay').classList.add('open');
+            document.getElementById('contextualTranslateBtn').classList.remove('visible');
+        }
+
+        function closeSelectionTranslatePopup() {
+            document.getElementById('selectionTranslateOverlay').classList.remove('open');
+        }
+
+        async function execSelectionTranslation() {
+            if(!selectedTranslationText) return;
+            const targetLang = document.getElementById('selTranslateLangSelect').value;
+            closeSelectionTranslatePopup();
+            
+            // Show loading
+            document.getElementById('translationResultText').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Buscando tradução...';
+            document.getElementById('translationResultOverlay').classList.add('open');
+
+            try {
+                const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(selectedTranslationText)}`;
+                const response = await fetch(url); 
+                const data = await response.json();
+                let fullTranslation = "";
+                data[0].forEach(part => { if(part[0]) fullTranslation += part[0]; });
+                
+                document.getElementById('translationResultText').innerText = fullTranslation;
+            } catch (e) {
+                document.getElementById('translationResultText').innerHTML = '<span style="color: var(--danger-color);">Erro ao traduzir. Verifique a conexão com a internet.</span>';
+            }
+        }
+
+        function closeTranslationResult() {
+            document.getElementById('translationResultOverlay').classList.remove('open');
+            window.getSelection().removeAllRanges();
+        }
+
+        // Funções de Formatação (Mantido original)
         function openFormatMenu() {
             const sel = window.getSelection(); if(sel.isCollapsed) return;
             let startNode = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentNode : sel.anchorNode; let endNode = sel.focusNode.nodeType === 3 ? sel.focusNode.parentNode : sel.focusNode;
