@@ -266,7 +266,7 @@
         .preset-btn.active-theme { background-color: var(--accent-color); color: #ffffff; box-shadow: inset 0 3px 6px rgba(0,0,0,0.3); transform: scale(0.96); }
         .btn-save { width: 100%; background: var(--accent-color); color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; gap: 8px; }
 
-        /* ----- ALERTAS E CONFIRMAÇÕES ELEGANTES ----- */
+        /* ----- ALERTAS, CONFIRMAÇÕES E PROMPTS ELEGANTES ----- */
         .custom-alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 7000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.2s ease; }
         .custom-alert-overlay.open { display: flex; opacity: 1; }
         .custom-alert-box { background: var(--secondary-bg); padding: 25px 30px; border-radius: 20px; text-align: center; max-width: 300px; width: 90%; box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 2px 5px rgba(255,255,255,0.05); transform: scale(0.9); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -281,7 +281,7 @@
         
         .prompt-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: var(--item-bg); color: var(--text-color); margin-bottom: 20px; box-sizing: border-box; outline: none; font-family: 'Inter', sans-serif; }
 
-        /* ----- CONTROLE DE VELOCIDADE (SLIDER) ----- */
+        /* ----- CONTROLE DE VELOCIDADE E VOLUME (SLIDERS) ----- */
         .speed-slider { -webkit-appearance: none; width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 5px; outline: none; margin-bottom: 15px; }
         .speed-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent-color); cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3); transition: transform 0.1s; }
         .speed-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
@@ -348,7 +348,7 @@
         .post-it-color::-webkit-color-swatch-wrapper { padding: 0; }
         .post-it-color::-webkit-color-swatch { border: 1px solid rgba(0,0,0,0.2); border-radius: 50%; }
 
-        /* ----- LEGENDA DE TRADUÇÃO CIRÚRGICA ----- */
+        /* ----- LEGENDA DE TRADUÇÃO CIRÚRGICA E TTS ----- */
         .verse-translation {
             display: block; font-size: 0.85rem; color: var(--text-color); opacity: 0.6; margin-top: 6px; 
             font-style: italic; padding-left: 10px; border-left: 2px solid var(--accent-color); line-height: 1.4;
@@ -412,11 +412,11 @@
             </select>
             
             <p style="margin-bottom: 10px; font-size: 0.9rem; text-align: left; opacity: 0.8;">
-                <i class="fa-solid fa-gauge-high" style="color: var(--accent-color); margin-right: 5px;"></i>Velocidade da Voz: <strong id="speedValueLabel">1x</strong>
+                <i class="fa-solid fa-gauge-high" style="color: var(--accent-color); margin-right: 5px;"></i>Velocidade da Voz: <strong id="speedValueLabel">1.0x</strong>
             </p>
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
                 <i class="fa-solid fa-turtle" style="opacity: 0.5; font-size: 0.8rem;"></i>
-                <input type="range" id="ttsSpeedSlider" min="0.3" max="3" step="0.1" value="1" class="speed-slider" oninput="document.getElementById('speedValueLabel').innerText = parseFloat(this.value).toFixed(1) + 'x'">
+                <input type="range" id="ttsSpeedSlider" min="0.1" max="3" step="0.1" value="1" class="speed-slider" oninput="document.getElementById('speedValueLabel').innerText = parseFloat(this.value).toFixed(1) + 'x'">
                 <i class="fa-solid fa-rabbit" style="opacity: 0.5; font-size: 0.8rem;"></i>
             </div>
 
@@ -867,7 +867,7 @@
         });
 
         // ==========================================
-        //  SISTEMA DE MÚSICA AMBIENTE
+        //  SISTEMA DE MÚSICA AMBIENTE COM VOLUME GLOBAL
         // ==========================================
         const musicPlayer = document.getElementById('bgAudioPlayer');
         const musicOverlay = document.getElementById('musicPopupOverlay');
@@ -875,6 +875,7 @@
 
         let ytPlayer = null;
         let currentAudioMode = 'none'; 
+        let globalMusicVolume = 100; // Começa em 100%
 
         function getYoutubeId(url) {
             const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
@@ -939,13 +940,18 @@
 
                 if (ytPlayer && ytPlayer.loadVideoById) {
                     ytPlayer.loadVideoById({videoId: ytId});
+                    ytPlayer.setVolume(globalMusicVolume);
                     finalizeStartMusic();
                 } else {
                     ytPlayer = new YT.Player('ytPlayerContainer', {
                         height: '1', width: '1', videoId: ytId,
                         playerVars: { 'autoplay': 1, 'controls': 0, 'loop': 1, 'playlist': ytId, 'playsinline': 1 },
                         events: {
-                            'onReady': function(event) { event.target.playVideo(); finalizeStartMusic(); },
+                            'onReady': function(event) { 
+                                event.target.setVolume(globalMusicVolume);
+                                event.target.playVideo(); 
+                                finalizeStartMusic(); 
+                            },
                             'onStateChange': function(event) { if (event.data === YT.PlayerState.ENDED) event.target.playVideo(); }
                         }
                     });
@@ -955,6 +961,7 @@
                 if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo(); 
 
                 musicPlayer.src = url;
+                musicPlayer.volume = globalMusicVolume / 100;
                 musicPlayer.play().then(() => { finalizeStartMusic(); }).catch(e => {
                     customAlert("Não foi possível reproduzir este áudio. Verifique se o arquivo ou link é válido.");
                     musicPlayer.src = ''; currentAudioMode = 'none';
@@ -980,6 +987,12 @@
 
             musicContent.innerHTML = `
                 <h3><i class="fa-solid fa-compact-disc ${isPlaying ? 'fa-spin' : ''}" style="color: var(--accent-color); animation-duration: 3s;"></i> Reprodutor</h3>
+                
+                <div style="margin: 15px 0;">
+                    <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 5px; text-align: left;"><i class="fa-solid fa-volume-high"></i> Volume: <span id="volLabel">${globalMusicVolume}%</span></p>
+                    <input type="range" min="0" max="100" value="${globalMusicVolume}" class="speed-slider" oninput="changeMusicVolume(this.value)">
+                </div>
+
                 <div class="format-tools" style="margin: 20px 0;">
                     <button class="format-btn" onclick="togglePlayPauseMusic()" title="Play/Pause">
                         <i class="fa-solid ${isPlaying ? 'fa-pause' : 'fa-play'}"></i>
@@ -993,6 +1006,16 @@
                 </div>
                 <button class="btn-cancelar" style="width: 100%; border:none; opacity:0.6;" onclick="closeMusicPopup()">Ocultar Controles</button>
             `;
+        }
+
+        function changeMusicVolume(val) {
+            globalMusicVolume = val;
+            document.getElementById('volLabel').innerText = val + '%';
+            if (currentAudioMode === 'youtube' && ytPlayer && ytPlayer.setVolume) {
+                ytPlayer.setVolume(val);
+            } else if (musicPlayer) {
+                musicPlayer.volume = val / 100;
+            }
         }
 
         function togglePlayPauseMusic() {
@@ -1022,7 +1045,7 @@
         }
 
         // ==========================================
-        //  SISTEMA DE LEGENDA E TTS (VOZ COM CONTROLE DE VELOCIDADE)
+        //  SISTEMA DE LEGENDA E TTS (COM HIGHLIGHT POR PALAVRA E 0.1x)
         // ==========================================
         let isTranslationActive = false;
         let currentTranslationLang = 'en';
@@ -1099,8 +1122,15 @@
                         if(!verseEl.querySelector('.verse-translation')) {
                             const transDiv = document.createElement('div');
                             transDiv.className = 'verse-translation'; transDiv.title = "Ouvir Tradução";
+                            
+                            // Guardamos o texto original livre de HTML para resetar após a leitura
+                            transDiv.dataset.originalText = translatedTexts[idx];
                             transDiv.innerHTML = `<i class="fa-solid fa-volume-low" style="margin-right: 6px; opacity:0.8;"></i> ${translatedTexts[idx]}`;
-                            transDiv.onclick = (e) => { e.stopPropagation(); readTextAloud(translatedTexts[idx], currentTranslationLang); };
+                            
+                            transDiv.onclick = (e) => { 
+                                e.stopPropagation(); 
+                                readTextAloud(translatedTexts[idx], currentTranslationLang, transDiv); 
+                            };
                             verseEl.appendChild(transDiv);
                         }
                     }
@@ -1108,13 +1138,49 @@
             }
         }
 
-        function readTextAloud(text, lang) {
+        // Remove a iluminação de todas as legendas lidas anteriormente
+        function clearAllTtsHighlights() {
+            document.querySelectorAll('.verse-translation').forEach(el => {
+                if (el.dataset.originalText) {
+                    el.innerHTML = `<i class="fa-solid fa-volume-low" style="margin-right: 6px; opacity:0.8;"></i> ${el.dataset.originalText}`;
+                }
+            });
+        }
+
+        function readTextAloud(text, lang, element) {
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel(); 
+                clearAllTtsHighlights();
+
                 const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = lang; utterance.rate = currentTtsSpeed; 
+                utterance.lang = lang; 
+                utterance.rate = currentTtsSpeed; 
+
+                // Evento que acende a palavra atual (Karaokê)
+                utterance.onboundary = function(event) {
+                    if (event.name === 'word') {
+                        const charIndex = event.charIndex;
+                        const match = text.substring(charIndex).match(/^[^\s]+/);
+                        const wordLength = match ? match[0].length : 0;
+                        
+                        if (wordLength > 0) {
+                            const before = text.substring(0, charIndex);
+                            const word = text.substring(charIndex, charIndex + wordLength);
+                            const after = text.substring(charIndex + wordLength);
+                            
+                            element.innerHTML = `<i class="fa-solid fa-volume-low" style="margin-right: 6px; opacity:0.8;"></i> ${before}<span style="background-color: var(--accent-color); color: #fff; padding: 0 4px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${word}</span>${after}`;
+                        }
+                    }
+                };
+
+                // Limpa o destaque quando o áudio acaba ou dá erro
+                utterance.onend = function() { clearAllTtsHighlights(); };
+                utterance.onerror = function() { clearAllTtsHighlights(); };
+
                 window.speechSynthesis.speak(utterance);
-            } else { customAlert("Seu navegador não suporta leitura por voz."); }
+            } else { 
+                customAlert("Seu navegador não suporta leitura por voz."); 
+            }
         }
 
         // ==========================================
@@ -1228,7 +1294,6 @@
             contentDiv.innerHTML = html;
             renderAllPostIts(); 
 
-            // INJEÇÃO DA LEGENDA APÓS RENDERIZAR
             if (isTranslationActive) {
                 const btn = document.getElementById('btnTranslateToggle');
                 btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>...';
