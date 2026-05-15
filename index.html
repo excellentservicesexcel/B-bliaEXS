@@ -203,7 +203,7 @@
         .plan-progress-container {
             background-color: var(--secondary-bg); border-radius: 12px; padding: 20px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 25px; 
-            position: sticky; top: 110px; z-index: 800; /* Ajuste cirúrgico do Top para fixar certinho sob o cabeçalho */
+            position: sticky; top: 110px; z-index: 800; 
         }
         .plan-progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-weight: 600; color: var(--text-color); }
         .plan-progress-bar-bg { width: 100%; height: 12px; background-color: var(--item-bg); border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
@@ -264,7 +264,7 @@
         .preset-btn.active-theme { background-color: var(--accent-color); color: #ffffff; box-shadow: inset 0 3px 6px rgba(0,0,0,0.3); transform: scale(0.96); }
         .btn-save { width: 100%; background: var(--accent-color); color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; gap: 8px; }
 
-        /* ----- ALERTAS E CONFIRMAÇÕES ELEGANTES ----- */
+        /* ----- ALERTAS, CONFIRMAÇÕES E PROMPTS ELEGANTES ----- */
         .custom-alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 7000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.2s ease; }
         .custom-alert-overlay.open { display: flex; opacity: 1; }
         .custom-alert-box { background: var(--secondary-bg); padding: 25px 30px; border-radius: 20px; text-align: center; max-width: 300px; width: 90%; box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 2px 5px rgba(255,255,255,0.05); transform: scale(0.9); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -276,6 +276,8 @@
         .custom-alert-box .btn-ok { background: var(--accent-color); color: #fff; }
         .custom-alert-box .btn-ok:active { transform: scale(0.95); }
         .custom-alert-box .btn-cancelar { background: transparent; border: 2px solid rgba(255,255,255,0.1); color: var(--text-color); }
+        
+        .prompt-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: var(--item-bg); color: var(--text-color); margin-bottom: 20px; box-sizing: border-box; outline: none; font-family: 'Inter', sans-serif; }
 
         /* ----- POP-UP DE FORMATAÇÃO CIRÚRGICO ----- */
         .format-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 4000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.2s ease; }
@@ -360,6 +362,18 @@
             <div class="actions">
                 <button class="btn-cancelar" onclick="resolveConfirm(false)">Cancelar</button>
                 <button class="btn-ok" onclick="resolveConfirm(true)">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="customPromptOverlay" class="custom-alert-overlay">
+        <div class="custom-alert-box">
+            <h3 id="promptTitle"><i class="fa-solid fa-file-code" style="color: var(--accent-color);"></i> Adicionar JSON</h3>
+            <p id="promptMessage"></p>
+            <input type="text" id="promptInput" class="prompt-input" placeholder="Ex: minha-biblia.json">
+            <div class="actions">
+                <button class="btn-cancelar" onclick="resolvePrompt(null)">Cancelar</button>
+                <button class="btn-ok" onclick="resolvePrompt(document.getElementById('promptInput').value)">Adicionar</button>
             </div>
         </div>
     </div>
@@ -534,12 +548,27 @@
             }
         }
 
-        // --- SISTEMA DE ALERTAS ---
+        // --- SISTEMA DE ALERTAS E PROMPTS ---
         let confirmCallback = null;
+        let promptCallback = null;
+
         function customAlert(message) { document.getElementById('alertMessage').innerText = message; document.getElementById('customAlert').classList.add('open'); }
         function closeCustomAlert() { document.getElementById('customAlert').classList.remove('open'); }
         function customConfirm(message, callback) { document.getElementById('confirmMessage').innerText = message; confirmCallback = callback; document.getElementById('customConfirm').classList.add('open'); }
         function resolveConfirm(result) { document.getElementById('customConfirm').classList.remove('open'); if (confirmCallback) confirmCallback(result); confirmCallback = null; }
+        
+        function customPromptMsg(message, callback) {
+            document.getElementById('promptMessage').innerText = message;
+            document.getElementById('promptInput').value = '';
+            promptCallback = callback;
+            document.getElementById('customPromptOverlay').classList.add('open');
+            setTimeout(() => document.getElementById('promptInput').focus(), 100);
+        }
+        function resolvePrompt(result) {
+            document.getElementById('customPromptOverlay').classList.remove('open');
+            if (promptCallback) promptCallback(result);
+            promptCallback = null;
+        }
 
         function toggleFullScreen() {
             const btn = document.getElementById('btnFullscreen');
@@ -599,14 +628,66 @@
             const possibleFiles = [
                 { file: 'nvi.json', name: 'NVI' }, { file: 'acf.json', name: 'ACF' }, { file: 'ara.json', name: 'ARA' }, 
                 { file: 'arc.json', name: 'ARC' }, { file: 'nvt.json', name: 'NVT' }, { file: 'ntlh.json', name: 'NTLH' },
-                { file: 'kja.json', name: 'KJA' }, { file: 'naa.json', name: 'NAA' }, { file: 'nbv.json', name: 'NBV' }
+                { file: 'kja.json', name: 'KJA' }, { file: 'naa.json', name: 'NAA' }, { file: 'nbv.json', name: 'NBV' },
+                { file: 'tb.json', name: 'TB' }, { file: 'jfaa.json', name: 'JFAA' }, { file: 'as21.json', name: 'AS21' },
+                { file: 'msg.json', name: 'A Mensagem' }, { file: 'viva.json', name: 'Viva' }
             ];
+
+            const customRadars = JSON.parse(localStorage.getItem('customBibleRadars') || '[]');
+            customRadars.forEach(file => {
+                if(!possibleFiles.find(p => p.file === file)) {
+                    possibleFiles.push({ file: file, name: file.replace('.json', '').toUpperCase() });
+                }
+            });
+
             for (const v of possibleFiles) {
                 try { let res = await fetch('./' + v.file, { method: 'HEAD' }); if (res.ok) { const opt = document.createElement('option'); opt.value = './' + v.file; opt.textContent = v.name; select.appendChild(opt); } } catch (e) {}
             }
+            
+            const addOpt = document.createElement('option');
+            addOpt.value = 'add_custom';
+            addOpt.textContent = '➕ Adicionar arquivo .json...';
+            addOpt.style.color = 'var(--accent-color)';
+            addOpt.style.fontWeight = 'bold';
+            select.appendChild(addOpt);
+
             const savedVersion = localStorage.getItem('bibleVersion');
             if(savedVersion && [...select.options].some(o => o.value === savedVersion)) select.value = savedVersion;
         }
+
+        document.getElementById('versionSelect').addEventListener('change', function(e) {
+            if(e.target.value === 'add_custom') {
+                customPromptMsg("Digite o nome exato do arquivo no Github (ex: biblia-rara.json):", async (filename) => {
+                    if(filename && filename.trim() !== '') {
+                        let cleanName = filename.trim();
+                        if(!cleanName.toLowerCase().endsWith('.json')) cleanName += '.json';
+                        
+                        try {
+                            let res = await fetch('./' + cleanName, { method: 'HEAD' });
+                            if(res.ok) {
+                                let customRadars = JSON.parse(localStorage.getItem('customBibleRadars') || '[]');
+                                if(!customRadars.includes(cleanName)) { customRadars.push(cleanName); localStorage.setItem('customBibleRadars', JSON.stringify(customRadars)); }
+                                
+                                const opt = document.createElement('option');
+                                opt.value = './' + cleanName; opt.textContent = cleanName.replace('.json', '').toUpperCase();
+                                e.target.insertBefore(opt, e.target.lastElementChild);
+                                e.target.value = opt.value;
+                                localStorage.setItem('bibleVersion', opt.value);
+                                customAlert("Versão adicionada com sucesso!");
+                            } else {
+                                customAlert("Arquivo não encontrado. Verifique se o nome está exato e se foi enviado ao Github.");
+                                e.target.value = 'almeida';
+                            }
+                        } catch(err) { customAlert("Erro ao buscar o arquivo."); e.target.value = 'almeida'; }
+                    } else {
+                        const savedVersion = localStorage.getItem('bibleVersion');
+                        e.target.value = (savedVersion && savedVersion !== 'add_custom') ? savedVersion : 'almeida';
+                    }
+                });
+            } else {
+                localStorage.setItem('bibleVersion', e.target.value);
+            }
+        });
 
         function switchView(viewName) {
             const views = ['home', 'reader', 'plan'];
@@ -748,11 +829,9 @@
             const isRead = savedPlan.includes(chapterId);
 
             if(isRead) {
-                // Desmarcar apenas
                 savedPlan = savedPlan.filter(id => id !== chapterId);
                 btnElement.classList.remove('read');
             } else {
-                // Marcar e Pular pra leitura cirurgicamente
                 savedPlan.push(chapterId);
                 btnElement.classList.add('read');
                 
@@ -762,7 +841,7 @@
 
                 document.getElementById('bookSelect').value = bookName;
                 document.getElementById('chapterSelect').value = chapterNum;
-                document.getElementById('verseSelect').value = ""; // Todos
+                document.getElementById('verseSelect').value = ""; 
                 
                 switchView('reader'); 
                 loadChapter();        
@@ -879,6 +958,7 @@
             const color = document.getElementById('highlightColor').value;
             const textSelected = sel.toString().trim();
 
+            // Ao invés de tentar pintar o DOM problemático do navegador, enviamos pro Banco e mandamos a Bíblia reconstruir as cores sozinha!
             saveToSidebar(textSelected, color, vRef);
             sel.removeAllRanges(); document.getElementById('contextualFormatBtn').classList.remove('visible');
             renderContent();
@@ -967,12 +1047,18 @@
 
         function applyFormatCommand(cmd) {
             if(activeEditVerseNodes.length === 0) return;
+            
             const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(savedSelectionRange);
             
+            // Edita a caixa inteira como um bloco de arte
             const container = document.getElementById('bible-content');
             container.contentEditable = "true"; document.execCommand(cmd); container.contentEditable = "false";
             
-            activeEditVerseNodes.forEach(v => { let vNum = v.querySelector('.verse-num'); if(vNum) { vNum.style.fontWeight = ''; vNum.style.fontStyle = ''; vNum.style.textDecoration = ''; } saveFormatHTML(v.querySelector('.verse-text')); });
+            activeEditVerseNodes.forEach(v => { 
+                let vNum = v.querySelector('.verse-num'); 
+                if(vNum) { vNum.style.fontWeight = ''; vNum.style.fontStyle = ''; vNum.style.textDecoration = ''; } 
+                saveFormatHTML(v.querySelector('.verse-text')); 
+            });
             savedSelectionRange = sel.getRangeAt(0); sel.removeAllRanges(); renderContent(); 
         }
 
