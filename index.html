@@ -21,7 +21,7 @@
             --highlight-default: #ffeb3b;
         }
 
-        body {
+        html, body {
             margin: 0;
             padding: 0;
             background-color: var(--bg-color);
@@ -923,9 +923,14 @@
                             canvas.toBlob(async (blob) => {
                                 const fileName = `Devocional-${currentDevo.ref.replace(':', '-')}.jpg`;
                                 const file = new File([blob], fileName, { type: 'image/jpeg' });
-                                try { await navigator.share({ title: 'Versículo do Dia', files: [file] }); } 
-                                catch (e) { 
-                                    if (e.name !== 'AbortError') downloadFallback(blob, fileName); 
+                                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                                    try { 
+                                        await navigator.share({ title: 'Versículo do Dia', files: [file] }); 
+                                    } catch (e) { 
+                                        if (e.name !== 'AbortError') downloadFallback(blob, fileName); 
+                                    }
+                                } else {
+                                    downloadFallback(blob, fileName);
                                 }
                             }, 'image/jpeg', 0.9);
                         } catch (error) { customAlert("Erro ao preparar a imagem para compartilhamento."); } finally { btn.innerHTML = originalHTML; }
