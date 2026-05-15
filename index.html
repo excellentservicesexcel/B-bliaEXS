@@ -21,7 +21,7 @@
             --highlight-default: #ffeb3b;
         }
 
-        html, body {
+        body {
             margin: 0;
             padding: 0;
             background-color: var(--bg-color);
@@ -910,10 +910,26 @@
         async function shareVerse() {
             try {
                 if (navigator.share) {
-                    await navigator.share({
-                        title: 'Versículo do Dia',
-                        text: `${currentDevo.verse} - ${currentDevo.ref}`
-                    });
+                    const btn = document.getElementById('btnShare'); const originalHTML = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Preparando...';
+                    document.getElementById('share-verse').textContent = `"${currentDevo.verse}"`; 
+                    document.getElementById('share-ref').textContent = currentDevo.ref; 
+                    document.getElementById('share-devo').innerHTML = `<strong>Reflexão:</strong> ${currentDevo.devo}`;
+                    document.getElementById('share-card').style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url('https://picsum.photos/1080/1350?random=${Date.now()}')`;
+                    
+                    const element = document.getElementById('share-card');
+                    setTimeout(async () => {
+                        try {
+                            const canvas = await html2canvas(element, { useCORS: true, scale: 2 });
+                            canvas.toBlob(async (blob) => {
+                                const fileName = `Devocional-${currentDevo.ref.replace(':', '-')}.jpg`;
+                                const file = new File([blob], fileName, { type: 'image/jpeg' });
+                                try { await navigator.share({ title: 'Versículo do Dia', files: [file] }); } 
+                                catch (e) { 
+                                    if (e.name !== 'AbortError') downloadFallback(blob, fileName); 
+                                }
+                            }, 'image/jpeg', 0.9);
+                        } catch (error) { customAlert("Erro ao preparar a imagem para compartilhamento."); } finally { btn.innerHTML = originalHTML; }
+                    }, 500); 
                 } else {
                     const btn = document.getElementById('btnShare'); const originalHTML = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
                     document.getElementById('share-verse').textContent = `"${currentDevo.verse}"`; 
@@ -925,31 +941,11 @@
                     setTimeout(async () => {
                         try {
                             const canvas = await html2canvas(element, { useCORS: true, scale: 2 });
-                            canvas.toBlob((blob) => {
-                                downloadFallback(blob, `Devocional-${currentDevo.ref.replace(':', '-')}.jpg`);
-                            }, 'image/jpeg', 0.9);
+                            canvas.toBlob((blob) => { downloadFallback(blob, `Devocional-${currentDevo.ref.replace(':', '-')}.jpg`); }, 'image/jpeg', 0.9);
                         } catch (error) { customAlert("Erro ao gerar imagem."); } finally { btn.innerHTML = originalHTML; }
-                    }, 1000); 
+                    }, 500);
                 }
-            } catch (e) {
-                if (e.name !== 'AbortError') {
-                    const btn = document.getElementById('btnShare'); const originalHTML = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
-                    document.getElementById('share-verse').textContent = `"${currentDevo.verse}"`; 
-                    document.getElementById('share-ref').textContent = currentDevo.ref; 
-                    document.getElementById('share-devo').innerHTML = `<strong>Reflexão:</strong> ${currentDevo.devo}`;
-                    document.getElementById('share-card').style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url('https://picsum.photos/1080/1350?random=${Date.now()}')`;
-                    
-                    const element = document.getElementById('share-card');
-                    setTimeout(async () => {
-                        try {
-                            const canvas = await html2canvas(element, { useCORS: true, scale: 2 });
-                            canvas.toBlob((blob) => {
-                                downloadFallback(blob, `Devocional-${currentDevo.ref.replace(':', '-')}.jpg`);
-                            }, 'image/jpeg', 0.9);
-                        } catch (error) { customAlert("Erro ao gerar imagem."); } finally { btn.innerHTML = originalHTML; }
-                    }, 1000);
-                }
-            }
+            } catch (e) { customAlert("Erro de sistema."); }
         }
         function downloadFallback(blob, fileName) { const link = document.createElement('a'); link.download = fileName; link.href = URL.createObjectURL(blob); link.click(); }
 
@@ -1192,7 +1188,7 @@
         }
 
         // ==========================================
-        //  SISTEMA DE LEGENDA E TTS 
+        //  SISTEMA DE LEGENDA E TTS (KARAOKÊ CIRÚRGICO)
         // ==========================================
         let isTranslationActive = false;
         let currentTranslationLang = 'en';
