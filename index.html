@@ -365,9 +365,9 @@
         .fab-container input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
         .fab-container input[type="color"]::-webkit-color-swatch { border: 2px solid var(--secondary-bg); border-radius: 50%; }
 
-        /* ----- ESTILOS OCULTOS PARA GERAR IMAGEM ----- */
+        /* ----- ESTILOS OCULTOS PARA GERAR IMAGEM (AJUSTADO PARA 4:5 - INSTAGRAM) ----- */
         #share-wrapper { position: absolute; left: -9999px; top: -9999px; }
-        #share-card { width: 1080px; height: 1080px; background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)); background-size: cover; background-position: center; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 80px; box-sizing: border-box; color: #fff; font-family: 'Inter', sans-serif; text-align: center; }
+        #share-card { width: 1080px; height: 1350px; background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)); background-size: cover; background-position: center; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 80px; box-sizing: border-box; color: #fff; font-family: 'Inter', sans-serif; text-align: center; }
         #share-verse { font-size: 2.8rem; font-style: italic; font-weight: 600; margin-bottom: 30px; line-height: 1.4; text-shadow: 2px 2px 10px rgba(0,0,0,0.6); }
         #share-ref { font-size: 2rem; font-weight: 700; color: #e0f2f1; background-color: rgba(76, 175, 80, 0.8); padding: 10px 30px; border-radius: 50px; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); margin-bottom: 40px; }
         #share-devo { font-size: 1.5rem; line-height: 1.6; opacity: 0.9; text-align: center; border-top: 2px solid rgba(255,255,255,0.2); padding-top: 40px; width: 90%; }
@@ -765,12 +765,12 @@
         }
         document.addEventListener('fullscreenchange', () => { const btn = document.getElementById('btnFullscreen'); if (!document.fullscreenElement) btn.innerHTML = '<i class="fa-solid fa-expand"></i>'; else btn.innerHTML = '<i class="fa-solid fa-compress"></i>'; });
 
-        // --- DADOS BÁSICOS ---
+        // --- DADOS BÁSICOS E DEVOCIONAIS APROFUNDADOS ---
         const devotionals = [
-            { ref: "João 3:16", verse: "Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito, para que todo aquele que nele crê não pereça, mas tenha a vida eterna.", devo: "O amor de Deus não possui limites e ultrapassa qualquer fronteira que possamos imaginar." },
-            { ref: "Filipenses 4:13", verse: "Posso todas as coisas naquele que me fortalece.", devo: "Não importa o tamanho do desafio de hoje. Sua força vem de Deus, confie nEle." },
-            { ref: "Salmos 23:1", verse: "O Senhor é o meu pastor; nada me faltará.", devo: "A figura do pastor traz cuidado e proteção. Descanse nEle e não tema o dia de amanhã." },
-            { ref: "Isaías 41:10", verse: "Não temas, porque eu sou contigo...", devo: "A presença de Deus afasta o medo. Confie na justiça e na providence do Senhor todos os dias." }
+            { ref: "João 3:16", verse: "Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito, para que todo aquele que nele crê não pereça, mas tenha a vida eterna.", devo: "O amor de Deus não é um sentimento passivo, mas uma ação de sacrifício absoluto. Ele entregou o que tinha de mais precioso para resgatar a humanidade perdida. Quando compreendemos a profundidade dessa entrega, percebemos que não há limite para a graça divina. Nossa resposta a esse amor deve ser uma fé ativa, vivendo cada dia na certeza de que nosso destino final não é a morte, mas a eternidade gloriosa ao lado do Criador." },
+            { ref: "Filipenses 4:13", verse: "Posso todas as coisas em Cristo que me fortalece.", devo: "Muitas vezes, interpretamos este versículo como uma garantia de sucesso material, mas o apóstolo Paulo o escreveu de dentro de uma prisão. A verdadeira mensagem é sobre resiliência e contentamento. Em Cristo, temos a força necessária para suportar a escassez ou a abundância, a dor ou a alegria. A sua força não nos blinda dos problemas, mas nos dá a capacidade sobrenatural de atravessar qualquer tempestade sem perdermos a paz de espírito e a nossa fé." },
+            { ref: "Salmos 23:1-2", verse: "O Senhor é o meu pastor, nada me faltará. Deitar-me faz em verdes pastos, guia-me mansamente a águas tranquilas.", devo: "A figura do pastor no antigo oriente médio não era apenas de um guia, mas de um provedor e protetor que dava a vida por suas ovelhas. Dizer 'nada me faltará' é um atestado de total dependência e confiança na provisão divina. Deus sabe exatamente quando precisamos avançar e quando precisamos descansar em 'verdes pastos'. Nos momentos de exaustão da vida moderna, permita que Ele conduza sua alma de volta às águas de refrigério." },
+            { ref: "Isaías 41:10", verse: "Não temas, porque eu sou contigo; não te assombres, porque eu sou teu Deus; eu te fortaleço, e te ajudo, e te sustento com a destra da minha justiça.", devo: "O medo é uma das paralisias mais profundas da alma humana. Mas Deus não nos pede simplesmente para 'não ter medo'; Ele nos dá um motivo concreto: a Sua presença. O Deus do universo promete ser o nosso sustento pessoal. Quando a ansiedade tentar dominar seus pensamentos, lembre-se de que a 'destra da Sua justiça' está estendida para te segurar. Você não está lutando sozinho; a própria força do Criador é a sua garantia de vitória." }
         ];
 
         const bibleStructureChronological = [
@@ -890,7 +890,6 @@
             const targetTab = document.querySelector(`.nav-tab[onclick="switchView('${viewName}')"]`);
             if(targetTab) targetTab.classList.add('active');
             
-            // Inicia Harpa apenas quando a view Harpa for ativada (se ainda não iniciada)
             if(viewName === 'harpa' && Object.keys(harpaDataCache).length === 0) {
                 initHarpa();
             }
@@ -913,7 +912,7 @@
             document.getElementById('share-verse').textContent = `"${currentDevo.verse}"`; 
             document.getElementById('share-ref').textContent = currentDevo.ref; 
             document.getElementById('share-devo').innerHTML = `<strong>Reflexão:</strong> ${currentDevo.devo}`;
-            document.getElementById('share-card').style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url('https://picsum.photos/1080/1080?random=${Date.now()}')`;
+            document.getElementById('share-card').style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url('https://picsum.photos/1080/1350?random=${Date.now()}')`;
             
             const element = document.getElementById('share-card');
             setTimeout(async () => {
@@ -1421,7 +1420,6 @@
                     return vNum >= vStart && vNum <= vEnd;
                 });
 
-                // Remonta a cor dos highlights limpos
                 activeHighlights.forEach(h => {
                     let vParts = String(h.verse).split('-');
                     let isMultiVerse = (vParts.length > 1 && vParts[0] !== vParts[1]);
@@ -1555,8 +1553,42 @@
         // LIMPEZA CIRÚRGICA DE MARCAÇÕES (O ASPIRADOR DE CORES)
         function deleteHighlight(id) {
             let highlights = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
+            const hlToDelete = highlights.find(h => h.id === id);
             highlights = highlights.filter(h => h.id !== id);
             localStorage.setItem('bibleHighlights', JSON.stringify(highlights));
+
+            if(hlToDelete) {
+                let db = JSON.parse(localStorage.getItem('bibleFormats') || '[]');
+                let vParts = String(hlToDelete.verse).split('-');
+                let vStart = parseInt(vParts[0]); let vEnd = parseInt(vParts[1] || vParts[0]);
+                
+                for (let vNum = vStart; vNum <= vEnd; vNum++) {
+                    let formatObj = db.find(f => f.book === hlToDelete.book && f.chapter == hlToDelete.chapter && f.verse == vNum);
+                    if(formatObj) {
+                        let tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = formatObj.html;
+                        
+                        let allEls = tempDiv.querySelectorAll('*');
+                        let targetText = hlToDelete.text.replace(/\s+/g, '').toLowerCase();
+                        
+                        allEls.forEach(el => {
+                            if (el.style && (el.style.backgroundColor || el.style.background)) {
+                                let elText = el.textContent.replace(/\s+/g, '').toLowerCase();
+                                if(elText && (targetText.includes(elText) || elText.includes(targetText))) {
+                                    el.style.backgroundColor = '';
+                                    el.style.background = '';
+                                    el.style.color = '';
+                                    el.removeAttribute('color');
+                                    if (el.getAttribute('style') === '') el.removeAttribute('style');
+                                }
+                            }
+                        });
+                        formatObj.html = tempDiv.innerHTML;
+                    }
+                }
+                localStorage.setItem('bibleFormats', JSON.stringify(db));
+            }
+
             updateSidebarList();
             
             if(document.getElementById('view-reader').classList.contains('active')) renderContent();
@@ -1697,222 +1729,6 @@
             header.addEventListener('mousedown', startDrag); header.addEventListener('touchstart', startDrag, { passive: false });
             const resizeObserver = new ResizeObserver(entries => { for (let entry of entries) { if(!isDragging && !data.folded && entry.contentRect.width > 0) { data.w = element.offsetWidth; data.h = element.offsetHeight; savePostIts(); } } });
             resizeObserver.observe(element);
-        }
-        
-        // ==========================================
-        //  INICIALIZAÇÃO HARPA CRISTÃ E CCB (MOCK)
-        // ==========================================
-        let harpaDataCache = {};
-        let currentHarpaVersion = 'crista';
-        let currentHarpaViewMode = 'grid'; 
-        const harpaVersions = {
-            'crista': { name: 'Harpa Cristã', file: 'harpa_crista.json', count: 640 },
-            'ccb': { name: 'Hinário CCB', file: 'hinario_ccb.json', count: 480 }
-        };
-
-        function initHarpa() {
-            renderHarpaView();
-        }
-
-        function toggleHarpaViewMode() {
-            currentHarpaViewMode = currentHarpaViewMode === 'grid' ? 'list' : 'grid';
-            const btn = document.getElementById('btnHarpaViewMode');
-            if(currentHarpaViewMode === 'grid') {
-                btn.innerHTML = '<i class="fa-solid fa-list-ul"></i>';
-            } else {
-                btn.innerHTML = '<i class="fa-solid fa-border-all"></i>';
-            }
-            renderHarpaView();
-        }
-
-        function changeHarpaVersion(val) {
-            currentHarpaVersion = val;
-            renderHarpaView();
-        }
-
-        function renderHarpaView() {
-            document.getElementById('harpa-hymn-container').style.display = 'none';
-            document.getElementById('btnBackHarpa').style.display = 'none';
-            
-            document.getElementById('btnHarpaViewMode').style.display = 'block';
-
-            if (currentHarpaViewMode === 'grid') {
-                document.getElementById('harpa-list-container').style.display = 'none';
-                renderHarpaGrid();
-            } else {
-                document.getElementById('harpa-grid-container').style.display = 'none';
-                renderHarpaList();
-            }
-        }
-
-        function renderHarpaGrid() {
-            const grid = document.getElementById('harpaGrid');
-            const count = harpaVersions[currentHarpaVersion].count;
-            let html = '';
-            for(let i=1; i<=count; i++) {
-                html += `<div class="harpa-square" onclick="loadHymn(${i})">${i}</div>`;
-            }
-            grid.innerHTML = html;
-            document.getElementById('harpa-grid-container').style.display = 'block';
-        }
-
-        async function renderHarpaList() {
-            const listContainer = document.getElementById('harpa-list-container');
-            listContainer.style.display = 'block';
-            listContainer.innerHTML = '<div style="text-align: center; margin-top: 50px;"><i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: var(--accent-color)"></i></div>';
-
-            const versionInfo = harpaVersions[currentHarpaVersion];
-            let hinos = harpaDataCache[currentHarpaVersion];
-            let parseError = false;
-            
-            if (!hinos) {
-                try {
-                    let res = await fetch('./' + versionInfo.file);
-                    if (res.ok) {
-                        let rawData = await res.json();
-                        hinos = normalizeHymns(rawData);
-                        harpaDataCache[currentHarpaVersion] = hinos;
-                    }
-                } catch(e) {
-                    parseError = true;
-                    console.error("Erro ao carregar o JSON da harpa:", e);
-                }
-            }
-
-            if (parseError || !hinos) {
-                listContainer.innerHTML = `<div style="text-align:center; padding: 20px; color: var(--text-color); opacity: 0.8;">Arquivo de Hinos não encontrado ou inválido no seu sistema.<br>Certifique-se de que os arquivos 'harpa_crista.json' e 'hinario_ccb.json' estão disponíveis.</div>`;
-                return;
-            }
-
-            let html = '';
-            hinos.forEach((h, index) => {
-                let number = h.id || h.numero || h.number || (index + 1);
-                let title = h.title || h.titulo || h.name || h.nome || `Hino ${number}`;
-                let lyrics = h.lyrics || h.letra || h.texto || h.text || h.content || '';
-                
-                if (typeof lyrics !== 'string') lyrics = String(lyrics || 'Letra indisponível.');
-                
-                let formattedLyrics = lyrics.replace(/(?:^|\n)(Refrão|Coro|Coro:|Refrão:)([\s\S]*?)(?=\n\n|$)/gi, function(match) {
-                    return `\n<strong>${match.trim()}</strong>\n\n`;
-                });
-
-                html += `
-                <div class="harpa-list-item">
-                    <div class="harpa-list-header" onclick="toggleHarpaAccordion(${number})">
-                        <span>${number} - ${title}</span>
-                        <i id="harpa-icon-${number}" class="fa-solid fa-chevron-down"></i>
-                    </div>
-                    <div id="harpa-content-${number}" class="harpa-list-content">
-                        <div class="harpa-list-lyrics">${formattedLyrics.trim()}</div>
-                    </div>
-                </div>`;
-            });
-            listContainer.innerHTML = html;
-        }
-
-        function toggleHarpaAccordion(number) {
-            const allContents = document.querySelectorAll('.harpa-list-content');
-            const allIcons = document.querySelectorAll('.harpa-list-header i');
-            const targetContent = document.getElementById(`harpa-content-${number}`);
-            const targetIcon = document.getElementById(`harpa-icon-${number}`);
-
-            allContents.forEach(content => {
-                if (content !== targetContent && content.classList.contains('open')) {
-                    content.classList.remove('open');
-                }
-            });
-            allIcons.forEach(icon => {
-                if (icon !== targetIcon && icon.classList.contains('fa-chevron-up')) {
-                    icon.classList.remove('fa-chevron-up');
-                    icon.classList.add('fa-chevron-down');
-                }
-            });
-
-            if (targetContent.classList.contains('open')) {
-                targetContent.classList.remove('open');
-                targetIcon.classList.remove('fa-chevron-up');
-                targetIcon.classList.add('fa-chevron-down');
-            } else {
-                targetContent.classList.add('open');
-                targetIcon.classList.remove('fa-chevron-down');
-                targetIcon.classList.add('fa-chevron-up');
-                
-                setTimeout(() => {
-                    targetContent.parentElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 300);
-            }
-        }
-
-        async function loadHymn(number) {
-            document.getElementById('harpa-grid-container').style.display = 'none';
-            document.getElementById('btnHarpaViewMode').style.display = 'none'; 
-            
-            const hymnContainer = document.getElementById('harpa-hymn-container');
-            hymnContainer.style.display = 'block';
-            document.getElementById('btnBackHarpa').style.display = 'flex';
-            
-            hymnContainer.innerHTML = '<div style="text-align: center; margin-top: 50px;"><i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: var(--accent-color)"></i></div>';
-
-            const versionInfo = harpaVersions[currentHarpaVersion];
-            let hinos = harpaDataCache[currentHarpaVersion];
-            let parseError = false;
-            
-            if (!hinos) {
-                try {
-                    let res = await fetch('./' + versionInfo.file);
-                    if (res.ok) {
-                        let rawData = await res.json();
-                        hinos = normalizeHymns(rawData);
-                        harpaDataCache[currentHarpaVersion] = hinos;
-                    }
-                } catch(e) {
-                    parseError = true;
-                    console.error("Erro ao carregar/parsear o JSON da harpa:", e);
-                }
-            }
-
-            let title = `Hino ${number}`;
-            let lyrics = `(Arquivo de Hinos não encontrado no seu sistema)\n\nPara visualizar a letra real, certifique-se de que os arquivos 'harpa_crista.json' e 'hinario_ccb.json' estão disponíveis no seu servidor.`;
-
-            if (parseError) {
-                lyrics = `Erro ao ler o arquivo '${versionInfo.file}'. O arquivo existe, mas o formato JSON parece estar inválido ou corrompido.`;
-            } else if (hinos) {
-                let hinoEncontrado = hinos.find(h => h.id == number || h.numero == number || h.number == number);
-                
-                if (!hinoEncontrado && Array.isArray(hinos) && hinos.length >= number) {
-                    hinoEncontrado = hinos[number - 1];
-                }
-
-                if(hinoEncontrado) {
-                    let hinoTitle = hinoEncontrado.title || hinoEncontrado.titulo || hinoEncontrado.name || hinoEncontrado.nome || '';
-                    title = hinoTitle ? `${number} - ${hinoTitle}` : `Hino ${number}`;
-                    
-                    lyrics = hinoEncontrado.lyrics || hinoEncontrado.letra || hinoEncontrado.texto || hinoEncontrado.text || hinoEncontrado.content || '';
-                    if(!lyrics && typeof hinoEncontrado === 'string') {
-                        lyrics = hinoEncontrado; 
-                    }
-                } else {
-                    lyrics = `Hino ${number} não encontrado dentro do arquivo JSON.`;
-                }
-            }
-
-            if (typeof lyrics !== 'string') {
-                lyrics = String(lyrics || 'Letra indisponível.');
-            }
-
-            let formattedLyrics = lyrics.replace(/(?:^|\n)(Refrão|Coro|Coro:|Refrão:)([\s\S]*?)(?=\n\n|$)/gi, function(match) {
-                return `\n<strong>${match.trim()}</strong>\n\n`;
-            });
-
-            hymnContainer.innerHTML = `
-                <div class="harpa-hymn-title">${title}</div>
-                <div class="harpa-hymn-lyrics">${formattedLyrics.trim()}</div>
-            `;
-            window.scrollTo({top: 0, behavior: 'smooth'});
-        }
-
-        function backToHarpaGrid() {
-            renderHarpaView(); 
         }
     </script>
 </body>
