@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
     <style>
         /* Sistema de Cores e Temas dinâmicos */
         :root {
@@ -281,15 +282,8 @@
         .prompt-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: var(--item-bg); color: var(--text-color); margin-bottom: 20px; box-sizing: border-box; outline: none; font-family: 'Inter', sans-serif; }
 
         /* ----- CONTROLE DE VELOCIDADE (SLIDER) ----- */
-        .speed-slider {
-            -webkit-appearance: none; width: 100%; height: 6px; background: rgba(255,255,255,0.1);
-            border-radius: 5px; outline: none; margin-bottom: 15px;
-        }
-        .speed-slider::-webkit-slider-thumb {
-            -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%;
-            background: var(--accent-color); cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            transition: transform 0.1s;
-        }
+        .speed-slider { -webkit-appearance: none; width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 5px; outline: none; margin-bottom: 15px; }
+        .speed-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent-color); cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3); transition: transform 0.1s; }
         .speed-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
 
         /* ----- POP-UP DE FORMATAÇÃO CIRÚRGICO ----- */
@@ -367,6 +361,7 @@
 <body>
 
     <audio id="bgAudioPlayer" loop></audio>
+    <div id="ytPlayerContainer" style="position: absolute; top: -9999px; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none;"></div>
     <input type="file" id="localAudioInput" accept="audio/*" style="display:none;" onchange="handleLocalAudio(event)">
 
     <div id="customAlert" class="custom-alert-overlay">
@@ -630,7 +625,7 @@
             document.getElementById('promptMessage').innerText = message;
             const input = document.getElementById('promptInput');
             input.value = '';
-            input.placeholder = isMusic ? "Cole o link do áudio mp3..." : "Ex: minha-biblia.json";
+            input.placeholder = isMusic ? "Cole o link do áudio mp3 ou Youtube..." : "Ex: minha-biblia.json";
             
             promptCallback = callback;
             popup.classList.add('open');
@@ -878,8 +873,21 @@
         const musicOverlay = document.getElementById('musicPopupOverlay');
         const musicContent = document.getElementById('musicPopupContent');
 
+        let ytPlayer = null;
+        let currentAudioMode = 'none'; 
+
+        function getYoutubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
         function toggleMusicPopup() {
-            if (!musicPlayer.src || musicPlayer.src === window.location.href) {
+            let hasActiveMusic = false;
+            if (currentAudioMode === 'youtube' && ytPlayer) hasActiveMusic = true;
+            else if (currentAudioMode === 'html5' && musicPlayer.src && musicPlayer.src !== window.location.href) hasActiveMusic = true;
+
+            if (!hasActiveMusic) {
                 renderMusicSelection();
             } else {
                 renderMusicControls();
@@ -897,7 +905,7 @@
                 <p>Escolha de onde quer adicionar sua música:</p>
                 <div class="actions" style="flex-direction: column; gap: 10px;">
                     <button class="btn-ok" onclick="document.getElementById('localAudioInput').click()">Arquivo do Celular</button>
-                    <button class="btn-cancelar" style="border: 1px solid var(--accent-color); color: var(--text-color);" onclick="renderMusicLinkInput()">Link da Internet</button>
+                    <button class="btn-cancelar" style="border: 1px solid var(--accent-color); color: var(--text-color);" onclick="renderMusicLinkInput()">Link da Internet (Youtube/MP3)</button>
                 </div>
                 <button class="btn-cancelar" style="margin-top: 15px; width: 100%; border:none; opacity:0.6;" onclick="closeMusicPopup()">Fechar</button>
             `;
@@ -905,9 +913,9 @@
 
         function renderMusicLinkInput() {
             closeMusicPopup();
-            customPromptMsg("Cole o link direto do áudio aqui (mp3, wav, etc):", (url) => {
+            customPromptMsg("Cole o link (YouTube ou áudio direto):", (url) => {
                 if (url && url.trim() !== '') {
-                    startMusic(url);
+                    startMusic(url.trim());
                 } else {
                     toggleMusicPopup();
                 }
@@ -923,21 +931,53 @@
         }
 
         function startMusic(url) {
-            musicPlayer.src = url;
-            musicPlayer.play()
-                .then(() => {
-                    document.getElementById('musicIconHeader').classList.add('fa-beat-fade');
-                    toggleMusicPopup(); // Abre direto na tela de controles
-                })
-                .catch(e => {
+            const ytId = getYoutubeId(url);
+
+            if (ytId) {
+                currentAudioMode = 'youtube';
+                musicPlayer.pause(); 
+
+                if (ytPlayer && ytPlayer.loadVideoById) {
+                    ytPlayer.loadVideoById({videoId: ytId});
+                    finalizeStartMusic();
+                } else {
+                    ytPlayer = new YT.Player('ytPlayerContainer', {
+                        height: '1', width: '1', videoId: ytId,
+                        playerVars: { 'autoplay': 1, 'controls': 0, 'loop': 1, 'playlist': ytId, 'playsinline': 1 },
+                        events: {
+                            'onReady': function(event) { event.target.playVideo(); finalizeStartMusic(); },
+                            'onStateChange': function(event) { if (event.data === YT.PlayerState.ENDED) event.target.playVideo(); }
+                        }
+                    });
+                }
+            } else {
+                currentAudioMode = 'html5';
+                if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo(); 
+
+                musicPlayer.src = url;
+                musicPlayer.play().then(() => { finalizeStartMusic(); }).catch(e => {
                     customAlert("Não foi possível reproduzir este áudio. Verifique se o arquivo ou link é válido.");
-                    musicPlayer.src = '';
+                    musicPlayer.src = ''; currentAudioMode = 'none';
                 });
+            }
+        }
+
+        function finalizeStartMusic() {
+            document.getElementById('musicIconHeader').classList.add('fa-beat-fade');
+            toggleMusicPopup(); 
         }
 
         function renderMusicControls() {
-            const isPlaying = !musicPlayer.paused;
-            const isMuted = musicPlayer.muted;
+            let isPlaying = false; let isMuted = false;
+
+            if (currentAudioMode === 'youtube' && ytPlayer && ytPlayer.getPlayerState) {
+                const state = ytPlayer.getPlayerState();
+                isPlaying = (state === 1 || state === 3); 
+                isMuted = ytPlayer.isMuted();
+            } else {
+                isPlaying = !musicPlayer.paused; isMuted = musicPlayer.muted;
+            }
+
             musicContent.innerHTML = `
                 <h3><i class="fa-solid fa-compact-disc ${isPlaying ? 'fa-spin' : ''}" style="color: var(--accent-color); animation-duration: 3s;"></i> Reprodutor</h3>
                 <div class="format-tools" style="margin: 20px 0;">
@@ -956,25 +996,28 @@
         }
 
         function togglePlayPauseMusic() {
-            if (musicPlayer.paused) {
-                musicPlayer.play();
-                document.getElementById('musicIconHeader').classList.add('fa-beat-fade');
+            if (currentAudioMode === 'youtube' && ytPlayer && ytPlayer.getPlayerState) {
+                const state = ytPlayer.getPlayerState();
+                if (state === 1) { ytPlayer.pauseVideo(); document.getElementById('musicIconHeader').classList.remove('fa-beat-fade'); } 
+                else { ytPlayer.playVideo(); document.getElementById('musicIconHeader').classList.add('fa-beat-fade'); }
             } else {
-                musicPlayer.pause();
-                document.getElementById('musicIconHeader').classList.remove('fa-beat-fade');
+                if (musicPlayer.paused) { musicPlayer.play(); document.getElementById('musicIconHeader').classList.add('fa-beat-fade'); } 
+                else { musicPlayer.pause(); document.getElementById('musicIconHeader').classList.remove('fa-beat-fade'); }
             }
-            renderMusicControls();
+            setTimeout(renderMusicControls, 200); 
         }
 
         function toggleMuteMusic() {
-            musicPlayer.muted = !musicPlayer.muted;
+            if (currentAudioMode === 'youtube' && ytPlayer) {
+                if (ytPlayer.isMuted()) ytPlayer.unMute(); else ytPlayer.mute();
+            } else { musicPlayer.muted = !musicPlayer.muted; }
             renderMusicControls();
         }
 
         function changeMusic() {
-            musicPlayer.pause();
-            musicPlayer.src = '';
-            document.getElementById('musicIconHeader').classList.remove('fa-beat-fade');
+            if (currentAudioMode === 'youtube' && ytPlayer) { ytPlayer.pauseVideo(); ytPlayer.stopVideo(); } 
+            else { musicPlayer.pause(); musicPlayer.src = ''; }
+            currentAudioMode = 'none'; document.getElementById('musicIconHeader').classList.remove('fa-beat-fade');
             renderMusicSelection();
         }
 
@@ -983,7 +1026,7 @@
         // ==========================================
         let isTranslationActive = false;
         let currentTranslationLang = 'en';
-        let currentTtsSpeed = 1; // Variável global de velocidade (1x é o padrão)
+        let currentTtsSpeed = 1; 
         let translatedVersesCache = {};
 
         function toggleTranslation() {
@@ -1000,13 +1043,10 @@
             }
         }
 
-        function closeTranslatePopup() {
-            document.getElementById('translatePopupOverlay').classList.remove('open');
-        }
+        function closeTranslatePopup() { document.getElementById('translatePopupOverlay').classList.remove('open'); }
 
         async function confirmTranslation() {
             currentTranslationLang = document.getElementById('translateLangSelect').value;
-            // Resgata o valor selecionado na barra de slider
             currentTtsSpeed = parseFloat(document.getElementById('ttsSpeedSlider').value);
             closeTranslatePopup();
             
@@ -1018,18 +1058,14 @@
             
             await applyTranslationToCurrentChapter();
             
-            if(isTranslationActive) {
-                btn.innerHTML = '<i class="fa-solid fa-language"></i> Legenda Ativa';
-            }
+            if(isTranslationActive) btn.innerHTML = '<i class="fa-solid fa-language"></i> Legenda Ativa';
         }
 
         async function applyTranslationToCurrentChapter() {
             if (!currentChapterData || !currentChapterData.verses || !isTranslationActive) return;
             
-            const book = document.getElementById('bookSelect').value; 
-            const chapter = document.getElementById('chapterSelect').value;
+            const book = document.getElementById('bookSelect').value; const chapter = document.getElementById('chapterSelect').value;
             const cacheKey = `${book}-${chapter}-${currentTranslationLang}`;
-
             let translatedTexts = [];
 
             if (translatedVersesCache[cacheKey]) {
@@ -1037,34 +1073,19 @@
             } else {
                 try {
                     const originalTexts = currentChapterData.verses.map(v => v.text);
-                    
                     let chunks = [];
-                    for(let i = 0; i < originalTexts.length; i += 10) {
-                        chunks.push(originalTexts.slice(i, i + 10).join('\n\n'));
-                    }
+                    for(let i = 0; i < originalTexts.length; i += 10) { chunks.push(originalTexts.slice(i, i + 10).join('\n\n')); }
 
                     for(let chunk of chunks) {
                         const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=pt&tl=${currentTranslationLang}&dt=t&q=${encodeURIComponent(chunk)}`;
-                        const response = await fetch(url);
-                        const data = await response.json();
-                        
+                        const response = await fetch(url); const data = await response.json();
                         let fullTranslatedChunk = "";
-                        data[0].forEach(part => { 
-                            if(part[0]) fullTranslatedChunk += part[0]; 
-                        });
-                        
+                        data[0].forEach(part => { if(part[0]) fullTranslatedChunk += part[0]; });
                         let splitChunk = fullTranslatedChunk.split(/\n\s*\n/).map(t => t.trim());
                         translatedTexts = translatedTexts.concat(splitChunk);
                     }
-
-                    if(translatedTexts.length >= originalTexts.length) {
-                        translatedVersesCache[cacheKey] = translatedTexts;
-                    }
-                } catch (e) {
-                    customAlert("Não foi possível carregar a tradução. Verifique sua conexão.");
-                    toggleTranslation(); 
-                    return;
-                }
+                    if(translatedTexts.length >= originalTexts.length) translatedVersesCache[cacheKey] = translatedTexts;
+                } catch (e) { customAlert("Não foi possível carregar a tradução. Verifique sua conexão."); toggleTranslation(); return; }
             }
 
             if (isTranslationActive) {
@@ -1077,15 +1098,9 @@
                     if (idx !== -1 && translatedTexts[idx] && translatedTexts[idx].trim() !== '') {
                         if(!verseEl.querySelector('.verse-translation')) {
                             const transDiv = document.createElement('div');
-                            transDiv.className = 'verse-translation';
-                            transDiv.title = "Ouvir Tradução";
+                            transDiv.className = 'verse-translation'; transDiv.title = "Ouvir Tradução";
                             transDiv.innerHTML = `<i class="fa-solid fa-volume-low" style="margin-right: 6px; opacity:0.8;"></i> ${translatedTexts[idx]}`;
-                            
-                            transDiv.onclick = (e) => {
-                                e.stopPropagation(); 
-                                readTextAloud(translatedTexts[idx], currentTranslationLang);
-                            };
-
+                            transDiv.onclick = (e) => { e.stopPropagation(); readTextAloud(translatedTexts[idx], currentTranslationLang); };
                             verseEl.appendChild(transDiv);
                         }
                     }
@@ -1097,12 +1112,9 @@
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel(); 
                 const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = lang; 
-                utterance.rate = currentTtsSpeed; // Aplica a velocidade selecionada
+                utterance.lang = lang; utterance.rate = currentTtsSpeed; 
                 window.speechSynthesis.speak(utterance);
-            } else {
-                customAlert("Seu navegador não suporta leitura por voz.");
-            }
+            } else { customAlert("Seu navegador não suporta leitura por voz."); }
         }
 
         // ==========================================
