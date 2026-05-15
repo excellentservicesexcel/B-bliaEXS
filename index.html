@@ -646,7 +646,7 @@
             
             const addOpt = document.createElement('option');
             addOpt.value = 'add_custom';
-            addOpt.textContent = '➕ Adicionar arquivo .json...';
+            addOpt.textContent = 'Adicionar...';
             addOpt.style.color = 'var(--accent-color)';
             addOpt.style.fontWeight = 'bold';
             select.appendChild(addOpt);
@@ -657,7 +657,7 @@
 
         document.getElementById('versionSelect').addEventListener('change', function(e) {
             if(e.target.value === 'add_custom') {
-                customPromptMsg("Digite o nome exato do arquivo no Github (ex: biblia-rara.json):", async (filename) => {
+                customPromptMsg("Digite o nome exato da versão, verificaremos sua disponibilidade:", async (filename) => {
                     if(filename && filename.trim() !== '') {
                         let cleanName = filename.trim();
                         if(!cleanName.toLowerCase().endsWith('.json')) cleanName += '.json';
@@ -675,10 +675,10 @@
                                 localStorage.setItem('bibleVersion', opt.value);
                                 customAlert("Versão adicionada com sucesso!");
                             } else {
-                                customAlert("Arquivo não encontrado. Verifique se o nome está exato e se foi enviado ao Github.");
+                                customAlert("Versão não encontrada.");
                                 e.target.value = 'almeida';
                             }
-                        } catch(err) { customAlert("Erro ao buscar o arquivo."); e.target.value = 'almeida'; }
+                        } catch(err) { customAlert("Erro ao buscar a versão."); e.target.value = 'almeida'; }
                     } else {
                         const savedVersion = localStorage.getItem('bibleVersion');
                         e.target.value = (savedVersion && savedVersion !== 'add_custom') ? savedVersion : 'almeida';
