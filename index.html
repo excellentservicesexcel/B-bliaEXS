@@ -202,7 +202,8 @@
         /* ----- TELA DE PLANO DE LEITURA ----- */
         .plan-progress-container {
             background-color: var(--secondary-bg); border-radius: 12px; padding: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 25px; position: sticky; top: 75px; z-index: 800;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 25px; 
+            position: sticky; top: 110px; z-index: 800; /* Ajuste cirúrgico do Top para fixar certinho sob o cabeçalho */
         }
         .plan-progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-weight: 600; color: var(--text-color); }
         .plan-progress-bar-bg { width: 100%; height: 12px; background-color: var(--item-bg); border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
@@ -308,7 +309,7 @@
         .fab-container input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
         .fab-container input[type="color"]::-webkit-color-swatch { border: 2px solid var(--secondary-bg); border-radius: 50%; }
 
-        /* ----- ESTILOS OCULTOS PARA GERAR IMAGEM (ATUALIZADO COM DEVOCIONAL) ----- */
+        /* ----- ESTILOS OCULTOS PARA GERAR IMAGEM ----- */
         #share-wrapper { position: absolute; left: -9999px; top: -9999px; }
         #share-card {
             width: 1080px; height: 1080px; background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)); background-size: cover; background-position: center; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 80px; box-sizing: border-box; color: #fff; font-family: 'Inter', sans-serif; text-align: center;
@@ -495,8 +496,7 @@
                 <div class="plan-progress-bar-fill" id="planProgressBar"></div>
             </div>
         </div>
-        <div id="readingPlanContent">
-            </div>
+        <div id="readingPlanContent"></div>
     </main>
 
     <div id="share-wrapper">
@@ -509,45 +509,28 @@
 
     <script>
         // --- SISTEMA DE GESTOS (SWIPE APP-DRAWER) ---
-        let touchStartX = 0;
-        let touchEndX = 0;
-        let touchStartY = 0;
-        let touchEndY = 0;
-
+        let touchStartX = 0; let touchEndX = 0; let touchStartY = 0; let touchEndY = 0;
         document.addEventListener('touchstart', e => {
-            // Ignora se estiver tocando em post-its ou se estiver com texto selecionado
             if (e.target.closest('.post-it-note') || !window.getSelection().isCollapsed) return;
-            touchStartX = e.changedTouches[0].screenX;
-            touchStartY = e.changedTouches[0].screenY;
+            touchStartX = e.changedTouches[0].screenX; touchStartY = e.changedTouches[0].screenY;
         }, {passive: true});
 
         document.addEventListener('touchend', e => {
             if (e.target.closest('.post-it-note') || !window.getSelection().isCollapsed) return;
-            touchEndX = e.changedTouches[0].screenX;
-            touchEndY = e.changedTouches[0].screenY;
-            handleSwipe();
+            touchEndX = e.changedTouches[0].screenX; touchEndY = e.changedTouches[0].screenY; handleSwipe();
         }, {passive: true});
 
         function handleSwipe() {
-            const diffX = touchEndX - touchStartX;
-            const diffY = touchEndY - touchStartY;
-
-            // Thresholds: deve ser um arrasto claro horizontal (mais de 60px) e com pouca variação vertical
+            const diffX = touchEndX - touchStartX; const diffY = touchEndY - touchStartY;
             if (Math.abs(diffX) > 60 && Math.abs(diffY) < 50) {
                 const views = ['home', 'reader', 'plan'];
                 const currentActive = document.querySelector('.view-section.active');
                 if(!currentActive) return;
-                
                 const currentView = currentActive.id.replace('view-', '');
                 const currentIndex = views.indexOf(currentView);
 
-                if (diffX < 0) {
-                    // Arrasto pra esquerda -> Próxima aba
-                    if (currentIndex < views.length - 1) switchView(views[currentIndex + 1]);
-                } else {
-                    // Arrasto pra direita -> Aba anterior
-                    if (currentIndex > 0) switchView(views[currentIndex - 1]);
-                }
+                if (diffX < 0) { if (currentIndex < views.length - 1) switchView(views[currentIndex + 1]); } 
+                else { if (currentIndex > 0) switchView(views[currentIndex - 1]); }
             }
         }
 
@@ -563,15 +546,9 @@
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => customAlert(`Erro: ${err.message}`));
                 btn.innerHTML = '<i class="fa-solid fa-compress"></i>';
-            } else {
-                if (document.exitFullscreen) { document.exitFullscreen(); btn.innerHTML = '<i class="fa-solid fa-expand"></i>'; }
-            }
+            } else { if (document.exitFullscreen) { document.exitFullscreen(); btn.innerHTML = '<i class="fa-solid fa-expand"></i>'; } }
         }
-        document.addEventListener('fullscreenchange', () => {
-            const btn = document.getElementById('btnFullscreen');
-            if (!document.fullscreenElement) btn.innerHTML = '<i class="fa-solid fa-expand"></i>';
-            else btn.innerHTML = '<i class="fa-solid fa-compress"></i>';
-        });
+        document.addEventListener('fullscreenchange', () => { const btn = document.getElementById('btnFullscreen'); if (!document.fullscreenElement) btn.innerHTML = '<i class="fa-solid fa-expand"></i>'; else btn.innerHTML = '<i class="fa-solid fa-compress"></i>'; });
 
         // --- DADOS BÁSICOS ---
         const devotionals = [
@@ -581,7 +558,6 @@
             { ref: "Isaías 41:10", verse: "Não temas, porque eu sou contigo...", devo: "A presença de Deus afasta o medo. Confie na justiça e na providência do Senhor todos os dias." }
         ];
 
-        // Estrutura Cronológica Simplificada da Bíblia (Ordem dos Livros + Qtd Capítulos)
         const bibleStructureChronological = [
             { name: "Gênesis", chapters: 50 }, { name: "Jó", chapters: 42 }, { name: "Êxodo", chapters: 40 },
             { name: "Levítico", chapters: 27 }, { name: "Números", chapters: 36 }, { name: "Deuteronômio", chapters: 34 },
@@ -607,7 +583,6 @@
             { name: "Judas", chapters: 1 }, { name: "Apocalipse", chapters: 22 }
         ];
 
-        // Ordem Padrão para os Selects de Leitura
         const booksStandard = ["Gênesis", "Êxodo", "Levítico", "Números", "Deuteronômio", "Josué", "Juízes", "Rute", "1 Samuel", "2 Samuel", "1 Reis", "2 Reis", "1 Crônicas", "2 Crônicas", "Esdras", "Neemias", "Ester", "Jó", "Salmos", "Provérbios", "Eclesiastes", "Cânticos", "Isaías", "Jeremias", "Lamentações", "Ezequiel", "Daniel", "Oséias", "Joel", "Amós", "Obadias", "Jonas", "Miquéias", "Naum", "Habacuque", "Sofonias", "Ageu", "Zacarias", "Malaquias", "Mateus", "Marcos", "Lucas", "João", "Atos", "Romanos", "1 Coríntios", "2 Coríntios", "Gálatas", "Efésios", "Filipenses", "Colossenses", "1 Tessalonicenses", "2 Tessalonicenses", "1 Timóteo", "2 Timóteo", "Tito", "Filemom", "Hebreus", "Tiago", "1 Pedro", "2 Pedro", "1 João", "2 João", "3 João", "Judas", "Apocalipse"];
 
         let currentChapterData = null; let currentDevo = null; let postItsData = [];
@@ -616,7 +591,7 @@
         window.onload = async () => {
             initSelects(); await scanLocalVersions(); 
             loadDevotional(); loadTheme(); updateSidebarList(); loadPostIts(); 
-            initReadingPlan(); // Inicia o plano de leitura
+            initReadingPlan(); 
         }
 
         async function scanLocalVersions() {
@@ -637,31 +612,16 @@
             const views = ['home', 'reader', 'plan'];
             const currentActive = document.querySelector('.view-section.active');
             let currentViewName = currentActive ? currentActive.id.replace('view-', '') : 'home';
+            let currentIndex = views.indexOf(currentViewName); let newIndex = views.indexOf(viewName);
             
-            let currentIndex = views.indexOf(currentViewName);
-            let newIndex = views.indexOf(viewName);
-            
-            // Remove classes ativas e de animação anteriores
-            document.querySelectorAll('.view-section').forEach(el => {
-                el.classList.remove('active', 'slide-right', 'slide-left', 'fade-in');
-            });
+            document.querySelectorAll('.view-section').forEach(el => { el.classList.remove('active', 'slide-right', 'slide-left', 'fade-in'); });
             document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
             
-            const newView = document.getElementById(`view-${viewName}`);
-            newView.classList.add('active');
-            
-            // Aplica a animação correta dependendo da direção do index
-            if (newIndex > currentIndex) {
-                newView.classList.add('slide-right');
-            } else if (newIndex < currentIndex) {
-                newView.classList.add('slide-left');
-            } else {
-                newView.classList.add('fade-in');
-            }
+            const newView = document.getElementById(`view-${viewName}`); newView.classList.add('active');
+            if (newIndex > currentIndex) { newView.classList.add('slide-right'); } else if (newIndex < currentIndex) { newView.classList.add('slide-left'); } else { newView.classList.add('fade-in'); }
 
             const targetTab = document.querySelector(`.nav-tab[onclick="switchView('${viewName}')"]`);
             if(targetTab) targetTab.classList.add('active');
-
             renderAllPostIts(); 
         }
 
@@ -759,33 +719,26 @@
         });
 
         // ==========================================
-        //  SISTEMA DE PLANO DE LEITURA
+        //  SISTEMA DE PLANO DE LEITURA 
         // ==========================================
         function initReadingPlan() {
             const planContent = document.getElementById('readingPlanContent');
             const savedPlan = JSON.parse(localStorage.getItem('bibleReadingPlan') || '[]');
-            let totalChapters = 0;
-            let readCount = 0;
-            let html = '';
+            let totalChapters = 0; let readCount = 0; let html = '';
 
             bibleStructureChronological.forEach(bookData => {
                 totalChapters += bookData.chapters;
                 html += `<div class="plan-book-group">
                             <h3 class="plan-book-title"><i class="fa-solid fa-book-bible"></i> ${bookData.name}</h3>
                             <div class="plan-chapters-grid">`;
-                
                 for(let i = 1; i <= bookData.chapters; i++) {
                     const chapterId = `${bookData.name}-${i}`;
                     const isRead = savedPlan.includes(chapterId);
                     if(isRead) readCount++;
-                    
                     html += `<button class="chapter-square ${isRead ? 'read' : ''}" onclick="togglePlanChapter('${chapterId}', this)">${i}</button>`;
                 }
-                
-                html += `   </div>
-                         </div>`;
+                html += `   </div></div>`;
             });
-
             planContent.innerHTML = html;
             updateProgress(readCount, totalChapters);
         }
@@ -795,20 +748,28 @@
             const isRead = savedPlan.includes(chapterId);
 
             if(isRead) {
-                // Desmarcar
+                // Desmarcar apenas
                 savedPlan = savedPlan.filter(id => id !== chapterId);
                 btnElement.classList.remove('read');
             } else {
-                // Marcar como lido
+                // Marcar e Pular pra leitura cirurgicamente
                 savedPlan.push(chapterId);
                 btnElement.classList.add('read');
+                
+                const lastDashIndex = chapterId.lastIndexOf('-');
+                const bookName = chapterId.substring(0, lastDashIndex);
+                const chapterNum = chapterId.substring(lastDashIndex + 1);
+
+                document.getElementById('bookSelect').value = bookName;
+                document.getElementById('chapterSelect').value = chapterNum;
+                document.getElementById('verseSelect').value = ""; // Todos
+                
+                switchView('reader'); 
+                loadChapter();        
             }
 
             localStorage.setItem('bibleReadingPlan', JSON.stringify(savedPlan));
-            
-            // Calcula o novo progresso
-            let totalChapters = 0;
-            bibleStructureChronological.forEach(b => totalChapters += b.chapters);
+            let totalChapters = 0; bibleStructureChronological.forEach(b => totalChapters += b.chapters);
             updateProgress(savedPlan.length, totalChapters);
         }
 
