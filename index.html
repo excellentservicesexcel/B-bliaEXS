@@ -481,9 +481,9 @@
 
     <div id="customPromptOverlay" class="custom-alert-overlay">
         <div class="custom-alert-box">
-            <h3 id="promptTitle"><i class="fa-solid fa-file-code" style="color: var(--accent-color);"></i> Adicionar JSON</h3>
+            <h3 id="promptTitle"><i class="fa-solid fa-file-code" style="color: var(--accent-color);"></i> Adicionar</h3>
             <p id="promptMessage"></p>
-            <input type="text" id="promptInput" class="prompt-input" placeholder="Ex: minha-biblia.json">
+            <input type="text" id="promptInput" class="prompt-input" placeholder="Ex: ntlh">
             <div class="actions">
                 <button class="btn-cancelar" onclick="resolvePrompt(null)">Cancelar</button>
                 <button class="btn-ok" onclick="resolvePrompt(document.getElementById('promptInput').value)">Adicionar</button>
@@ -741,12 +741,12 @@
             const popup = document.getElementById('customPromptOverlay');
             document.getElementById('promptTitle').innerHTML = isMusic 
                 ? '<i class="fa-solid fa-link" style="color: var(--accent-color);"></i> Adicionar Som' 
-                : '<i class="fa-solid fa-file-code" style="color: var(--accent-color);"></i> Adicionar JSON';
+                : '<i class="fa-solid fa-file-code" style="color: var(--accent-color);"></i> Adicionar';
             
             document.getElementById('promptMessage').innerText = message;
             const input = document.getElementById('promptInput');
             input.value = '';
-            input.placeholder = isMusic ? "Cole o link do áudio mp3 ou Youtube..." : "Ex: minha-biblia.json";
+            input.placeholder = isMusic ? "Cole o link do áudio mp3 ou Youtube..." : "Ex: ntlh";
             
             promptCallback = callback;
             popup.classList.add('open');
@@ -834,7 +834,7 @@
             
             const addOpt = document.createElement('option');
             addOpt.value = 'add_custom';
-            addOpt.textContent = '➕ Adicionar arquivo .json...';
+            addOpt.textContent = 'Adicionar...';
             addOpt.style.color = 'var(--accent-color)';
             addOpt.style.fontWeight = 'bold';
             select.appendChild(addOpt);
@@ -845,7 +845,7 @@
 
         document.getElementById('versionSelect').addEventListener('change', function(e) {
             if(e.target.value === 'add_custom') {
-                customPromptMsg("Digite o nome exato do arquivo no Github (ex: biblia-rara.json):", async (filename) => {
+                customPromptMsg("Digite o nome exato da versão em letra minuscula:", async (filename) => {
                     if(filename && filename.trim() !== '') {
                         let cleanName = filename.trim();
                         if(!cleanName.toLowerCase().endsWith('.json')) cleanName += '.json';
@@ -863,7 +863,7 @@
                                 localStorage.setItem('bibleVersion', opt.value);
                                 customAlert("Versão adicionada com sucesso!");
                             } else {
-                                customAlert("Arquivo não encontrado. Verifique se o nome está exato e se foi enviado ao Github.");
+                                customAlert("Arquivo não encontrado. Verifique se o nome está correto.");
                                 e.target.value = 'almeida';
                             }
                         } catch(err) { customAlert("Erro ao buscar o arquivo."); e.target.value = 'almeida'; }
