@@ -185,6 +185,7 @@
             background: rgba(0,0,0,0.65); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 6000;
             animation: fadeInFocus 0.4s ease forwards; pointer-events: none;
         }
+        @keyframes fadeInFocus { from { opacity: 0; } to { opacity: 1; } }
         
         .verse-focused {
             transform: scale(1.04) translateY(-3px); z-index: 6001; position: relative;
@@ -264,7 +265,7 @@
         .preset-btn.active-theme { background-color: var(--accent-color); color: #ffffff; box-shadow: inset 0 3px 6px rgba(0,0,0,0.3); transform: scale(0.96); }
         .btn-save { width: 100%; background: var(--accent-color); color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; gap: 8px; }
 
-        /* ----- ALERTAS, CONFIRMAÇÕES E PROMPTS ELEGANTES ----- */
+        /* ----- ALERTAS E CONFIRMAÇÕES ELEGANTES ----- */
         .custom-alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 7000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.2s ease; }
         .custom-alert-overlay.open { display: flex; opacity: 1; }
         .custom-alert-box { background: var(--secondary-bg); padding: 25px 30px; border-radius: 20px; text-align: center; max-width: 300px; width: 90%; box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 2px 5px rgba(255,255,255,0.05); transform: scale(0.9); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -313,9 +314,7 @@
 
         /* ----- ESTILOS OCULTOS PARA GERAR IMAGEM ----- */
         #share-wrapper { position: absolute; left: -9999px; top: -9999px; }
-        #share-card {
-            width: 1080px; height: 1080px; background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)); background-size: cover; background-position: center; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 80px; box-sizing: border-box; color: #fff; font-family: 'Inter', sans-serif; text-align: center;
-        }
+        #share-card { width: 1080px; height: 1080px; background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)); background-size: cover; background-position: center; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 80px; box-sizing: border-box; color: #fff; font-family: 'Inter', sans-serif; text-align: center; }
         #share-verse { font-size: 2.8rem; font-style: italic; font-weight: 600; margin-bottom: 30px; line-height: 1.4; text-shadow: 2px 2px 10px rgba(0,0,0,0.6); }
         #share-ref { font-size: 2rem; font-weight: 700; color: #e0f2f1; background-color: rgba(76, 175, 80, 0.8); padding: 10px 30px; border-radius: 50px; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); margin-bottom: 40px; }
         #share-devo { font-size: 1.5rem; line-height: 1.6; opacity: 0.9; text-align: center; border-top: 2px solid rgba(255,255,255,0.2); padding-top: 40px; width: 90%; }
@@ -343,9 +342,20 @@
         .post-it-color::-webkit-color-swatch-wrapper { padding: 0; }
         .post-it-color::-webkit-color-swatch { border: 1px solid rgba(0,0,0,0.2); border-radius: 50%; }
 
+        /* ----- LEGENDA DE TRADUÇÃO CIRÚRGICA ----- */
+        .verse-translation {
+            display: block; font-size: 0.85rem; color: var(--text-color); opacity: 0.6; margin-top: 6px; 
+            font-style: italic; padding-left: 10px; border-left: 2px solid var(--accent-color); line-height: 1.4;
+            cursor: pointer; transition: opacity 0.2s;
+        }
+        .verse-translation:hover { opacity: 1; }
+
     </style>
 </head>
 <body>
+
+    <audio id="bgAudioPlayer" loop></audio>
+    <input type="file" id="localAudioInput" accept="audio/*" style="display:none;" onchange="handleLocalAudio(event)">
 
     <div id="customAlert" class="custom-alert-overlay">
         <div class="custom-alert-box">
@@ -376,6 +386,33 @@
                 <button class="btn-ok" onclick="resolvePrompt(document.getElementById('promptInput').value)">Adicionar</button>
             </div>
         </div>
+    </div>
+
+    <div id="translatePopupOverlay" class="custom-alert-overlay">
+        <div class="custom-alert-box" style="max-width: 350px;">
+            <h3><i class="fa-solid fa-language" style="color: var(--accent-color);"></i> Ativar Legenda</h3>
+            <p>Escolha o idioma para traduzir o texto:</p>
+            <select id="translateLangSelect" class="prompt-input" style="cursor: pointer;">
+                <option value="en">Inglês (English)</option>
+                <option value="es">Espanhol (Español)</option>
+                <option value="fr">Francês (Français)</option>
+                <option value="it">Italiano (Italiano)</option>
+                <option value="de">Alemão (Deutsch)</option>
+                <option value="he">Hebraico (עברית)</option>
+                <option value="el">Grego (Ελληνικά)</option>
+                <option value="la">Latim (Latina)</option>
+                <option value="ja">Japonês (日本語)</option>
+            </select>
+            <div class="actions">
+                <button class="btn-cancelar" onclick="closeTranslatePopup()">Cancelar</button>
+                <button class="btn-ok" onclick="confirmTranslation()">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="musicPopupOverlay" class="custom-alert-overlay">
+        <div class="custom-alert-box" id="musicPopupContent" style="max-width: 350px;">
+            </div>
     </div>
 
     <div id="sidebar">
@@ -436,6 +473,7 @@
             <button class="icon-btn" onclick="toggleSidebar()" title="Marcações"><i class="fa-solid fa-bars-staggered"></i></button>
             <h1><i class="fa-solid fa-book-bible"></i> MINHA BÍBLIA</h1>
             <div class="header-actions">
+                <button class="icon-btn" onclick="toggleMusicPopup()" title="Som Ambiente"><i id="musicIconHeader" class="fa-solid fa-music"></i></button>
                 <button class="icon-btn" id="btnFullscreen" onclick="toggleFullScreen()" title="Tela Cheia"><i class="fa-solid fa-expand"></i></button>
                 <button class="icon-btn" onclick="toggleSettings()" title="Configurações"><i class="fa-solid fa-sliders"></i></button>
             </div>
@@ -479,7 +517,11 @@
                     <i class="fa-solid fa-list-ol"></i><select id="verseSelect"><option value="">Todos</option></select>
                 </div>
             </div>
-            <button class="btn-read" onclick="loadChapter()"><i class="fa-solid fa-magnifying-glass"></i> Carregar Capítulo</button>
+            
+            <div style="display: flex; gap: 10px; width: 100%;">
+                <button class="btn-read" onclick="loadChapter()" style="flex: 2;"><i class="fa-solid fa-magnifying-glass"></i> Carregar Capítulo</button>
+                <button id="btnTranslateToggle" class="btn-read" onclick="toggleTranslation()" style="flex: 1; background-color: var(--item-bg); color: var(--text-color); border: 1px solid rgba(255,255,255,0.05);"><i class="fa-solid fa-language"></i> Legenda</button>
+            </div>
         </div>
 
         <div id="bible-content">
@@ -557,12 +599,20 @@
         function customConfirm(message, callback) { document.getElementById('confirmMessage').innerText = message; confirmCallback = callback; document.getElementById('customConfirm').classList.add('open'); }
         function resolveConfirm(result) { document.getElementById('customConfirm').classList.remove('open'); if (confirmCallback) confirmCallback(result); confirmCallback = null; }
         
-        function customPromptMsg(message, callback) {
+        function customPromptMsg(message, callback, isMusic = false) {
+            const popup = document.getElementById('customPromptOverlay');
+            document.getElementById('promptTitle').innerHTML = isMusic 
+                ? '<i class="fa-solid fa-link" style="color: var(--accent-color);"></i> Adicionar Som' 
+                : '<i class="fa-solid fa-file-code" style="color: var(--accent-color);"></i> Adicionar JSON';
+            
             document.getElementById('promptMessage').innerText = message;
-            document.getElementById('promptInput').value = '';
+            const input = document.getElementById('promptInput');
+            input.value = '';
+            input.placeholder = isMusic ? "Cole o link do áudio mp3..." : "Ex: minha-biblia.json";
+            
             promptCallback = callback;
-            document.getElementById('customPromptOverlay').classList.add('open');
-            setTimeout(() => document.getElementById('promptInput').focus(), 100);
+            popup.classList.add('open');
+            setTimeout(() => input.focus(), 100);
         }
         function resolvePrompt(result) {
             document.getElementById('customPromptOverlay').classList.remove('open');
@@ -646,7 +696,7 @@
             
             const addOpt = document.createElement('option');
             addOpt.value = 'add_custom';
-            addOpt.textContent = 'Adicionar...';
+            addOpt.textContent = '➕ Adicionar arquivo .json...';
             addOpt.style.color = 'var(--accent-color)';
             addOpt.style.fontWeight = 'bold';
             select.appendChild(addOpt);
@@ -657,7 +707,7 @@
 
         document.getElementById('versionSelect').addEventListener('change', function(e) {
             if(e.target.value === 'add_custom') {
-                customPromptMsg("Digite o nome exato da versão, verificaremos sua disponibilidade:", async (filename) => {
+                customPromptMsg("Digite o nome exato do arquivo no Github (ex: biblia-rara.json):", async (filename) => {
                     if(filename && filename.trim() !== '') {
                         let cleanName = filename.trim();
                         if(!cleanName.toLowerCase().endsWith('.json')) cleanName += '.json';
@@ -675,15 +725,15 @@
                                 localStorage.setItem('bibleVersion', opt.value);
                                 customAlert("Versão adicionada com sucesso!");
                             } else {
-                                customAlert("Versão não encontrada.");
+                                customAlert("Arquivo não encontrado. Verifique se o nome está exato e se foi enviado ao Github.");
                                 e.target.value = 'almeida';
                             }
-                        } catch(err) { customAlert("Erro ao buscar a versão."); e.target.value = 'almeida'; }
+                        } catch(err) { customAlert("Erro ao buscar o arquivo."); e.target.value = 'almeida'; }
                     } else {
                         const savedVersion = localStorage.getItem('bibleVersion');
                         e.target.value = (savedVersion && savedVersion !== 'add_custom') ? savedVersion : 'almeida';
                     }
-                });
+                }, false);
             } else {
                 localStorage.setItem('bibleVersion', e.target.value);
             }
@@ -800,6 +850,238 @@
         });
 
         // ==========================================
+        //  SISTEMA DE MÚSICA AMBIENTE
+        // ==========================================
+        const musicPlayer = document.getElementById('bgAudioPlayer');
+        const musicOverlay = document.getElementById('musicPopupOverlay');
+        const musicContent = document.getElementById('musicPopupContent');
+
+        function toggleMusicPopup() {
+            if (!musicPlayer.src || musicPlayer.src === window.location.href) {
+                renderMusicSelection();
+            } else {
+                renderMusicControls();
+            }
+            musicOverlay.classList.add('open');
+        }
+
+        function closeMusicPopup() {
+            musicOverlay.classList.remove('open');
+        }
+
+        function renderMusicSelection() {
+            musicContent.innerHTML = `
+                <h3><i class="fa-solid fa-music" style="color: var(--accent-color);"></i> Som Ambiente</h3>
+                <p>Escolha de onde quer adicionar sua música:</p>
+                <div class="actions" style="flex-direction: column; gap: 10px;">
+                    <button class="btn-ok" onclick="document.getElementById('localAudioInput').click()">Arquivo do Celular</button>
+                    <button class="btn-cancelar" style="border: 1px solid var(--accent-color); color: var(--text-color);" onclick="renderMusicLinkInput()">Link da Internet</button>
+                </div>
+                <button class="btn-cancelar" style="margin-top: 15px; width: 100%; border:none; opacity:0.6;" onclick="closeMusicPopup()">Fechar</button>
+            `;
+        }
+
+        function renderMusicLinkInput() {
+            closeMusicPopup();
+            customPromptMsg("Cole o link direto do áudio aqui (mp3, wav, etc):", (url) => {
+                if (url && url.trim() !== '') {
+                    startMusic(url);
+                } else {
+                    toggleMusicPopup();
+                }
+            }, true);
+        }
+
+        function handleLocalAudio(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const url = URL.createObjectURL(file);
+                startMusic(url);
+            }
+        }
+
+        function startMusic(url) {
+            musicPlayer.src = url;
+            musicPlayer.play()
+                .then(() => {
+                    document.getElementById('musicIconHeader').classList.add('fa-beat-fade');
+                    toggleMusicPopup(); // Abre direto na tela de controles
+                })
+                .catch(e => {
+                    customAlert("Não foi possível reproduzir este áudio. Verifique se o link ou arquivo é válido.");
+                    musicPlayer.src = '';
+                });
+        }
+
+        function renderMusicControls() {
+            const isPlaying = !musicPlayer.paused;
+            const isMuted = musicPlayer.muted;
+            musicContent.innerHTML = `
+                <h3><i class="fa-solid fa-compact-disc ${isPlaying ? 'fa-spin' : ''}" style="color: var(--accent-color); animation-duration: 3s;"></i> Reprodutor</h3>
+                <div class="format-tools" style="margin: 20px 0;">
+                    <button class="format-btn" onclick="togglePlayPauseMusic()" title="Play/Pause">
+                        <i class="fa-solid ${isPlaying ? 'fa-pause' : 'fa-play'}"></i>
+                    </button>
+                    <button class="format-btn" onclick="toggleMuteMusic()" title="Mutar/Desmutar">
+                        <i class="fa-solid ${isMuted ? 'fa-volume-xmark' : 'fa-volume-high'}"></i>
+                    </button>
+                    <button class="format-btn btn-clear" onclick="changeMusic()" title="Trocar Música">
+                        <i class="fa-solid fa-rotate"></i>
+                    </button>
+                </div>
+                <button class="btn-cancelar" style="width: 100%; border:none; opacity:0.6;" onclick="closeMusicPopup()">Ocultar Controles</button>
+            `;
+        }
+
+        function togglePlayPauseMusic() {
+            if (musicPlayer.paused) {
+                musicPlayer.play();
+                document.getElementById('musicIconHeader').classList.add('fa-beat-fade');
+            } else {
+                musicPlayer.pause();
+                document.getElementById('musicIconHeader').classList.remove('fa-beat-fade');
+            }
+            renderMusicControls();
+        }
+
+        function toggleMuteMusic() {
+            musicPlayer.muted = !musicPlayer.muted;
+            renderMusicControls();
+        }
+
+        function changeMusic() {
+            musicPlayer.pause();
+            musicPlayer.src = '';
+            document.getElementById('musicIconHeader').classList.remove('fa-beat-fade');
+            renderMusicSelection();
+        }
+
+        // ==========================================
+        //  SISTEMA DE LEGENDA (TRADUÇÃO EM TEMPO REAL) E TTS
+        // ==========================================
+        let isTranslationActive = false;
+        let currentTranslationLang = 'en';
+        let translatedVersesCache = {};
+
+        function toggleTranslation() {
+            if (isTranslationActive) {
+                isTranslationActive = false;
+                const btn = document.getElementById('btnTranslateToggle');
+                btn.style.backgroundColor = 'var(--item-bg)';
+                btn.style.color = 'var(--text-color)';
+                btn.innerHTML = '<i class="fa-solid fa-language"></i> Legenda';
+                document.querySelectorAll('.verse-translation').forEach(el => el.remove());
+                window.speechSynthesis.cancel(); // Para leitura se fechar legenda
+            } else {
+                document.getElementById('translatePopupOverlay').classList.add('open');
+            }
+        }
+
+        function closeTranslatePopup() {
+            document.getElementById('translatePopupOverlay').classList.remove('open');
+        }
+
+        async function confirmTranslation() {
+            currentTranslationLang = document.getElementById('translateLangSelect').value;
+            closeTranslatePopup();
+            
+            isTranslationActive = true;
+            const btn = document.getElementById('btnTranslateToggle');
+            btn.style.backgroundColor = 'var(--accent-color)';
+            btn.style.color = '#fff';
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Traduzindo...';
+            
+            await applyTranslationToCurrentChapter();
+            
+            if(isTranslationActive) {
+                btn.innerHTML = '<i class="fa-solid fa-language"></i> Legenda Ativa';
+            }
+        }
+
+        async function applyTranslationToCurrentChapter() {
+            if (!currentChapterData || !currentChapterData.verses || !isTranslationActive) return;
+            
+            const book = document.getElementById('bookSelect').value; 
+            const chapter = document.getElementById('chapterSelect').value;
+            const cacheKey = `${book}-${chapter}-${currentTranslationLang}`;
+
+            let translatedTexts = [];
+
+            if (translatedVersesCache[cacheKey]) {
+                translatedTexts = translatedVersesCache[cacheKey];
+            } else {
+                try {
+                    const originalTexts = currentChapterData.verses.map(v => v.text);
+                    
+                    let chunks = [];
+                    for(let i = 0; i < originalTexts.length; i += 10) {
+                        chunks.push(originalTexts.slice(i, i + 10).join('\n\n'));
+                    }
+
+                    for(let chunk of chunks) {
+                        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=pt&tl=${currentTranslationLang}&dt=t&q=${encodeURIComponent(chunk)}`;
+                        const response = await fetch(url);
+                        const data = await response.json();
+                        
+                        let fullTranslatedChunk = "";
+                        data[0].forEach(part => { 
+                            if(part[0]) fullTranslatedChunk += part[0]; 
+                        });
+                        
+                        let splitChunk = fullTranslatedChunk.split(/\n\s*\n/).map(t => t.trim());
+                        translatedTexts = translatedTexts.concat(splitChunk);
+                    }
+
+                    if(translatedTexts.length >= originalTexts.length) {
+                        translatedVersesCache[cacheKey] = translatedTexts;
+                    }
+                } catch (e) {
+                    customAlert("Não foi possível carregar a tradução. Verifique sua conexão.");
+                    toggleTranslation(); 
+                    return;
+                }
+            }
+
+            if (isTranslationActive) {
+                document.querySelectorAll('.verse-translation').forEach(el => el.remove());
+                const verseElements = document.querySelectorAll('.verse');
+                verseElements.forEach((verseEl) => {
+                    const vNum = verseEl.getAttribute('data-verse');
+                    const idx = currentChapterData.verses.findIndex(v => (v.verse || v.number) == vNum);
+                    
+                    if (idx !== -1 && translatedTexts[idx] && translatedTexts[idx].trim() !== '') {
+                        if(!verseEl.querySelector('.verse-translation')) {
+                            const transDiv = document.createElement('div');
+                            transDiv.className = 'verse-translation';
+                            transDiv.title = "Ouvir Tradução";
+                            // Adicionado o ícone de áudio e a ação de falar (TTS)
+                            transDiv.innerHTML = `<i class="fa-solid fa-volume-low" style="margin-right: 6px; opacity:0.8;"></i> ${translatedTexts[idx]}`;
+                            
+                            transDiv.onclick = (e) => {
+                                e.stopPropagation(); // Evita que clique na legenda foque o versículo inteiro
+                                readTextAloud(translatedTexts[idx], currentTranslationLang);
+                            };
+
+                            verseEl.appendChild(transDiv);
+                        }
+                    }
+                });
+            }
+        }
+
+        // Função responsável por ler o texto
+        function readTextAloud(text, lang) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Interrompe áudio anterior se houver
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = lang; // Usa a própria sigla da tradução para a voz (en, es, fr, etc)
+                window.speechSynthesis.speak(utterance);
+            } else {
+                customAlert("Seu navegador não suporta leitura por voz.");
+            }
+        }
+
+        // ==========================================
         //  SISTEMA DE PLANO DE LEITURA 
         // ==========================================
         function initReadingPlan() {
@@ -909,6 +1191,15 @@
             });
             contentDiv.innerHTML = html;
             renderAllPostIts(); 
+
+            // INJEÇÃO DA LEGENDA APÓS RENDERIZAR
+            if (isTranslationActive) {
+                const btn = document.getElementById('btnTranslateToggle');
+                btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>...';
+                applyTranslationToCurrentChapter().then(() => {
+                    if (isTranslationActive) btn.innerHTML = '<i class="fa-solid fa-language"></i> Legenda Ativa';
+                });
+            }
         }
 
         async function focusHighlight(book, chapter, verseRef) {
@@ -958,7 +1249,6 @@
             const color = document.getElementById('highlightColor').value;
             const textSelected = sel.toString().trim();
 
-            // Ao invés de tentar pintar o DOM problemático do navegador, enviamos pro Banco e mandamos a Bíblia reconstruir as cores sozinha!
             saveToSidebar(textSelected, color, vRef);
             sel.removeAllRanges(); document.getElementById('contextualFormatBtn').classList.remove('visible');
             renderContent();
@@ -1047,18 +1337,12 @@
 
         function applyFormatCommand(cmd) {
             if(activeEditVerseNodes.length === 0) return;
-            
             const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(savedSelectionRange);
             
-            // Edita a caixa inteira como um bloco de arte
             const container = document.getElementById('bible-content');
             container.contentEditable = "true"; document.execCommand(cmd); container.contentEditable = "false";
             
-            activeEditVerseNodes.forEach(v => { 
-                let vNum = v.querySelector('.verse-num'); 
-                if(vNum) { vNum.style.fontWeight = ''; vNum.style.fontStyle = ''; vNum.style.textDecoration = ''; } 
-                saveFormatHTML(v.querySelector('.verse-text')); 
-            });
+            activeEditVerseNodes.forEach(v => { let vNum = v.querySelector('.verse-num'); if(vNum) { vNum.style.fontWeight = ''; vNum.style.fontStyle = ''; vNum.style.textDecoration = ''; } saveFormatHTML(v.querySelector('.verse-text')); });
             savedSelectionRange = sel.getRangeAt(0); sel.removeAllRanges(); renderContent(); 
         }
 
