@@ -85,9 +85,12 @@
         .nav-tabs {
             display: flex;
             justify-content: center;
-            gap: 25px;
+            gap: 20px;
             padding-bottom: 12px;
+            overflow-x: auto;
+            white-space: nowrap;
         }
+        .nav-tabs::-webkit-scrollbar { display: none; }
 
         .nav-tab {
             background: none;
@@ -227,6 +230,32 @@
             background-color: var(--accent-color); color: #fff; border-color: var(--accent-color);
             box-shadow: 0 4px 10px rgba(0,0,0,0.25), inset 0 -2px 5px rgba(0,0,0,0.1);
         }
+
+        /* ----- TELA HARPA (NOVOS ESTILOS) ----- */
+        .harpa-grid { 
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 15px; margin-top: 10px; 
+        }
+        .harpa-square {
+            aspect-ratio: 1; display: flex; justify-content: center; align-items: center;
+            font-size: 1.1rem; font-weight: 600; color: var(--text-color); cursor: pointer;
+            background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1); border-top: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .harpa-square:hover { 
+            transform: translateY(-3px); background: rgba(255, 255, 255, 0.1); 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4), 0 0 0 1px var(--accent-color); color: #fff; 
+        }
+        .harpa-square:active { transform: scale(0.95); }
+        
+        .harpa-hymn-title { 
+            color: var(--accent-color); font-size: 1.5rem; margin-bottom: 20px; text-align: center; 
+            border-bottom: 1px solid var(--item-bg); padding-bottom: 10px; font-weight: 700;
+        }
+        .harpa-hymn-lyrics { 
+            font-size: 1.1rem; line-height: 1.8; text-align: center; white-space: pre-wrap; margin-bottom: 30px; 
+        }
+        .harpa-hymn-lyrics strong { color: var(--accent-color); font-size: 1.15rem; }
 
         /* ----- MENU LATERAL (MARCAÇÕES) ----- */
         #sidebar {
@@ -501,6 +530,7 @@
             <button class="nav-tab active" onclick="switchView('home')">Início</button>
             <button class="nav-tab" onclick="switchView('reader')">Leitura</button>
             <button class="nav-tab" onclick="switchView('plan')">Plano</button>
+            <button class="nav-tab" onclick="switchView('harpa')">Harpa</button>
         </div>
     </header>
 
@@ -574,6 +604,27 @@
         <div id="readingPlanContent"></div>
     </main>
 
+    <main id="view-harpa" class="view-section">
+        <div class="controls-wrapper" style="flex-direction: row; justify-content: space-between; align-items: center;">
+            <div class="control-group" style="flex: 2;">
+                <i class="fa-solid fa-music"></i>
+                <select id="harpaVersionSelect" onchange="changeHarpaVersion(this.value)">
+                    <option value="crista">Harpa Cristã</option>
+                    <option value="ccb">Hinário CCB</option>
+                </select>
+            </div>
+            <button id="btnBackHarpa" class="btn-read" onclick="backToHarpaGrid()" style="display: none; flex: 1; background-color: var(--item-bg); color: var(--text-color); border: 1px solid rgba(255,255,255,0.05);">
+                <i class="fa-solid fa-arrow-left"></i> Voltar
+            </button>
+        </div>
+
+        <div id="harpa-grid-container">
+            <div class="harpa-grid" id="harpaGrid"></div>
+        </div>
+
+        <div id="harpa-hymn-container" style="display: none;"></div>
+    </main>
+
     <div id="share-wrapper">
         <div id="share-card">
             <div id="share-verse"></div>
@@ -598,7 +649,7 @@
         function handleSwipe() {
             const diffX = touchEndX - touchStartX; const diffY = touchEndY - touchStartY;
             if (Math.abs(diffX) > 60 && Math.abs(diffY) < 50) {
-                const views = ['home', 'reader', 'plan'];
+                const views = ['home', 'reader', 'plan', 'harpa'];
                 const currentActive = document.querySelector('.view-section.active');
                 if(!currentActive) return;
                 const currentView = currentActive.id.replace('view-', '');
@@ -653,7 +704,7 @@
             { ref: "João 3:16", verse: "Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito, para que todo aquele que nele crê não pereça, mas tenha a vida eterna.", devo: "O amor de Deus não possui limites e ultrapassa qualquer fronteira que possamos imaginar." },
             { ref: "Filipenses 4:13", verse: "Posso todas as coisas naquele que me fortalece.", devo: "Não importa o tamanho do desafio de hoje. Sua força vem de Deus, confie nEle." },
             { ref: "Salmos 23:1", verse: "O Senhor é o meu pastor; nada me faltará.", devo: "A figura do pastor traz cuidado e proteção. Descanse nEle e não tema o dia de amanhã." },
-            { ref: "Isaías 41:10", verse: "Não temas, porque eu sou contigo...", devo: "A presença de Deus afasta o medo. Confie na justiça e na providência do Senhor todos os dias." }
+            { ref: "Isaías 41:10", verse: "Não temas, porque eu sou contigo...", devo: "A presença de Deus afasta o medo. Confie na justiça e na providence do Senhor todos os dias." }
         ];
 
         const bibleStructureChronological = [
@@ -689,7 +740,7 @@
         window.onload = async () => {
             initSelects(); await scanLocalVersions(); 
             loadDevotional(); loadTheme(); updateSidebarList(); loadPostIts(); 
-            initReadingPlan(); 
+            initReadingPlan(); initHarpa();
         }
 
         async function scanLocalVersions() {
@@ -759,7 +810,7 @@
         });
 
         function switchView(viewName) {
-            const views = ['home', 'reader', 'plan'];
+            const views = ['home', 'reader', 'plan', 'harpa'];
             const currentActive = document.querySelector('.view-section.active');
             let currentViewName = currentActive ? currentActive.id.replace('view-', '') : 'home';
             let currentIndex = views.indexOf(currentViewName); let newIndex = views.indexOf(viewName);
@@ -1123,7 +1174,6 @@
                             const transDiv = document.createElement('div');
                             transDiv.className = 'verse-translation'; transDiv.title = "Ouvir Tradução";
                             
-                            // Blindagem do HTML para o Karaokê (fatiando palavra por palavra)
                             const words = translatedTexts[idx].split(/(\s+)/);
                             let cleanHtml = `<i class="fa-solid fa-volume-low" style="margin-right: 6px; opacity:0.8;"></i> `;
                             let charIndexTracker = 0;
@@ -1159,14 +1209,11 @@
 
         function readTextAloud(text, lang, element) {
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); 
-                clearAllTtsHighlights();
-
+                window.speechSynthesis.cancel(); clearAllTtsHighlights();
                 const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = lang; 
-                utterance.rate = currentTtsSpeed; 
+                utterance.lang = lang; utterance.rate = currentTtsSpeed; 
                 
-                window.speechUtterances = [utterance]; // Previne Garbage Collector
+                window.speechUtterances = [utterance]; 
 
                 utterance.onboundary = function(event) {
                     if (event.name === 'word') {
@@ -1175,7 +1222,6 @@
                         let closestWordId = null;
                         let minDiff = Infinity;
                         
-                        // Encontra a palavra exata ou mais próxima matematicamente
                         element.querySelectorAll('span[id^="tts-word-"]').forEach(s => {
                             let wIdx = parseInt(s.id.replace('tts-word-', ''));
                             if (wIdx <= event.charIndex && (event.charIndex - wIdx) < minDiff) {
@@ -1201,9 +1247,7 @@
                 utterance.onerror = function() { clearAllTtsHighlights(); window.speechUtterances = []; };
 
                 window.speechSynthesis.speak(utterance);
-            } else { 
-                customAlert("Seu navegador não suporta leitura por voz."); 
-            }
+            } else { customAlert("Seu navegador não suporta leitura por voz."); }
         }
 
         // ==========================================
@@ -1317,7 +1361,6 @@
             contentDiv.innerHTML = html;
             renderAllPostIts(); 
 
-            // INJEÇÃO DA LEGENDA APÓS RENDERIZAR
             if (isTranslationActive) {
                 const btn = document.getElementById('btnTranslateToggle');
                 btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>...';
@@ -1421,45 +1464,10 @@
             }
         }
 
-        // LIMPEZA CIRÚRGICA DE MARCAÇÕES
         function deleteHighlight(id) {
             let highlights = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
-            const hlToDelete = highlights.find(h => h.id === id);
             highlights = highlights.filter(h => h.id !== id);
             localStorage.setItem('bibleHighlights', JSON.stringify(highlights));
-
-            if(hlToDelete) {
-                let db = JSON.parse(localStorage.getItem('bibleFormats') || '[]');
-                let vParts = String(hlToDelete.verse).split('-');
-                let vStart = parseInt(vParts[0]); let vEnd = parseInt(vParts[1] || vParts[0]);
-                
-                for (let vNum = vStart; vNum <= vEnd; vNum++) {
-                    let formatObj = db.find(f => f.book === hlToDelete.book && f.chapter == hlToDelete.chapter && f.verse == vNum);
-                    if(formatObj) {
-                        let tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = formatObj.html;
-                        
-                        let allEls = tempDiv.querySelectorAll('*');
-                        let targetText = hlToDelete.text.replace(/\s+/g, '').toLowerCase();
-                        
-                        allEls.forEach(el => {
-                            if (el.style && (el.style.backgroundColor || el.style.background)) {
-                                let elText = el.textContent.replace(/\s+/g, '').toLowerCase();
-                                if(elText && (targetText.includes(elText) || elText.includes(targetText))) {
-                                    el.style.backgroundColor = '';
-                                    el.style.background = '';
-                                    el.style.color = '';
-                                    el.removeAttribute('color');
-                                    if (el.getAttribute('style') === '') el.removeAttribute('style');
-                                }
-                            }
-                        });
-                        formatObj.html = tempDiv.innerHTML;
-                    }
-                }
-                localStorage.setItem('bibleFormats', JSON.stringify(db));
-            }
-
             updateSidebarList();
             if(document.getElementById('view-reader').classList.contains('active')) renderContent();
         }
@@ -1495,7 +1503,6 @@
             document.getElementById('formatPopupOverlay').classList.add('open'); document.getElementById('contextualFormatBtn').classList.remove('visible');
         }
 
-        // ESTILIZAÇÃO BLINDADA (NEGRITO, ITALICO...)
         function applyFormatCommand(cmd) {
             if(activeEditVerseNodes.length === 0) return;
             const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(savedSelectionRange);
@@ -1599,6 +1606,87 @@
             header.addEventListener('mousedown', startDrag); header.addEventListener('touchstart', startDrag, { passive: false });
             const resizeObserver = new ResizeObserver(entries => { for (let entry of entries) { if(!isDragging && !data.folded && entry.contentRect.width > 0) { data.w = element.offsetWidth; data.h = element.offsetHeight; savePostIts(); } } });
             resizeObserver.observe(element);
+        }
+        
+        // ==========================================
+        //  INICIALIZAÇÃO HARPA CRISTÃ E CCB (MOCK)
+        // ==========================================
+        let harpaDataCache = {};
+        let currentHarpaVersion = 'crista';
+        const harpaVersions = {
+            'crista': { name: 'Harpa Cristã', file: 'harpa_crista.json', count: 640 },
+            'ccb': { name: 'Hinário CCB', file: 'hinario_ccb.json', count: 480 }
+        };
+
+        function initHarpa() {
+            renderHarpaGrid();
+        }
+
+        function renderHarpaGrid() {
+            const grid = document.getElementById('harpaGrid');
+            const count = harpaVersions[currentHarpaVersion].count;
+            let html = '';
+            for(let i=1; i<=count; i++) {
+                html += `<div class="harpa-square" onclick="loadHymn(${i})">${i}</div>`;
+            }
+            grid.innerHTML = html;
+            document.getElementById('harpa-grid-container').style.display = 'block';
+            document.getElementById('harpa-hymn-container').style.display = 'none';
+            document.getElementById('btnBackHarpa').style.display = 'none';
+        }
+
+        function changeHarpaVersion(val) {
+            currentHarpaVersion = val;
+            renderHarpaGrid();
+        }
+
+        async function loadHymn(number) {
+            document.getElementById('harpa-grid-container').style.display = 'none';
+            const hymnContainer = document.getElementById('harpa-hymn-container');
+            hymnContainer.style.display = 'block';
+            document.getElementById('btnBackHarpa').style.display = 'flex';
+            
+            hymnContainer.innerHTML = '<div style="text-align: center; margin-top: 50px;"><i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: var(--accent-color)"></i></div>';
+
+            const versionInfo = harpaVersions[currentHarpaVersion];
+            let hinos = harpaDataCache[currentHarpaVersion];
+            
+            if (!hinos) {
+                try {
+                    let res = await fetch('./' + versionInfo.file);
+                    if (res.ok) {
+                        hinos = await res.json();
+                        harpaDataCache[currentHarpaVersion] = hinos;
+                    }
+                } catch(e) {}
+            }
+
+            let title = `Hino ${number}`;
+            let lyrics = `(Arquivo de Hinos não encontrado no seu sistema)\n\nPara visualizar a letra real, certifique-se de que os arquivos 'harpa_crista.json' e 'hinario_ccb.json' estão disponíveis no seu servidor.\n\nRefrão:\nEste é um exemplo de como o refrão ficará em destaque automaticamente no seu aplicativo!\n\nA paz do Senhor!`;
+
+            if (hinos) {
+                let hinoEncontrado = hinos.find(h => h.id == number || h.numero == number);
+                if(hinoEncontrado) {
+                    title = `${number} - ${hinoEncontrado.title || hinoEncontrado.titulo}`;
+                    lyrics = hinoEncontrado.lyrics || hinoEncontrado.letra;
+                }
+            }
+
+            let formattedLyrics = lyrics.replace(/(?:^|\n)(Refrão|Coro|Coro:|Refrão:)([\s\S]*?)(?=\n\n|$)/gi, function(match) {
+                return `\n<strong>${match.trim()}</strong>\n\n`;
+            });
+
+            hymnContainer.innerHTML = `
+                <div class="harpa-hymn-title">${title}</div>
+                <div class="harpa-hymn-lyrics">${formattedLyrics.trim()}</div>
+            `;
+            window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+
+        function backToHarpaGrid() {
+            document.getElementById('harpa-hymn-container').style.display = 'none';
+            document.getElementById('harpa-grid-container').style.display = 'block';
+            document.getElementById('btnBackHarpa').style.display = 'none';
         }
     </script>
 </body>
