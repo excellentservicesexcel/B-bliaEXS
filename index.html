@@ -107,23 +107,34 @@
             color: var(--accent-color);
         }
 
-        /* ----- TELAS (VIEWS) ----- */
+        /* ----- TELAS (VIEWS E TRANSIÇÕES POR DESLIZE) ----- */
         .view-section {
             display: none;
             width: 100%;
             max-width: 800px;
             padding: 25px 20px;
             box-sizing: border-box;
-            animation: fadeIn 0.4s ease;
             position: relative;
         }
 
         .view-section.active { display: block; }
 
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideInLeft {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
+
+        .slide-right { animation: slideInRight 0.35s cubic-bezier(0.25, 1, 0.5, 1); }
+        .slide-left { animation: slideInLeft 0.35s cubic-bezier(0.25, 1, 0.5, 1); }
+        .fade-in { animation: fadeIn 0.4s ease; }
 
         /* ----- TELA INICIAL (HOME) ----- */
         .card-devocional {
@@ -174,7 +185,6 @@
             background: rgba(0,0,0,0.65); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 6000;
             animation: fadeInFocus 0.4s ease forwards; pointer-events: none;
         }
-        @keyframes fadeInFocus { from { opacity: 0; } to { opacity: 1; } }
         
         .verse-focused {
             transform: scale(1.04) translateY(-3px); z-index: 6001; position: relative;
@@ -185,12 +195,34 @@
             color: #fff !important; 
         }
 
-        body.bible-focus-mode .post-it-note,
-        body.bible-focus-mode header,
-        body.bible-focus-mode .fab-container,
-        body.bible-focus-mode .controls-wrapper,
-        body.bible-focus-mode h2 {
+        body.bible-focus-mode .post-it-note, body.bible-focus-mode header, body.bible-focus-mode .fab-container, body.bible-focus-mode .controls-wrapper, body.bible-focus-mode h2 {
             opacity: 0 !important; pointer-events: none !important; transition: opacity 0.3s ease !important;
+        }
+
+        /* ----- TELA DE PLANO DE LEITURA ----- */
+        .plan-progress-container {
+            background-color: var(--secondary-bg); border-radius: 12px; padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin-bottom: 25px; position: sticky; top: 75px; z-index: 800;
+        }
+        .plan-progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-weight: 600; color: var(--text-color); }
+        .plan-progress-bar-bg { width: 100%; height: 12px; background-color: var(--item-bg); border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
+        .plan-progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent-color), #81c784); width: 0%; border-radius: 10px; transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1); }
+        
+        .plan-book-group { margin-bottom: 30px; background-color: var(--secondary-bg); padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .plan-book-title { font-size: 1.15rem; color: var(--accent-color); margin-top: 0; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--item-bg); padding-bottom: 10px; }
+        .plan-chapters-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(45px, 1fr)); gap: 10px; }
+        
+        .chapter-square {
+            width: 100%; aspect-ratio: 1; background-color: var(--item-bg); color: var(--text-color);
+            border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; display: flex; justify-content: center; align-items: center;
+            font-weight: 600; font-size: 0.95rem; cursor: pointer; transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .chapter-square:hover { transform: translateY(-3px); box-shadow: 0 5px 12px rgba(0,0,0,0.2); background-color: rgba(255,255,255,0.1); }
+        .chapter-square:active { transform: scale(0.92); }
+        .chapter-square.read {
+            background-color: var(--accent-color); color: #fff; border-color: var(--accent-color);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.25), inset 0 -2px 5px rgba(0,0,0,0.1);
         }
 
         /* ----- MENU LATERAL (MARCAÇÕES) ----- */
@@ -204,34 +236,20 @@
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-shrink: 0;}
         .sidebar-header h2 { margin: 0; font-size: 1.1rem; color: var(--accent-color); }
         
-        #filterHighlightsBook {
-            background-color: var(--item-bg); color: var(--text-color); padding: 10px 15px; border-radius: 8px; width: 100%;
-            border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; font-weight: 500; outline: none; cursor: pointer;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-        }
+        #filterHighlightsBook { background-color: var(--item-bg); color: var(--text-color); padding: 10px 15px; border-radius: 8px; width: 100%; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; font-weight: 500; outline: none; cursor: pointer; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
         
         #highlightsList { flex: 1; overflow-y: auto; }
         .book-group-title { margin: 15px 0 10px 0; color: var(--text-color); opacity: 0.9; font-size: 1rem; border-bottom: 1px solid var(--item-bg); padding-bottom: 5px; font-weight: 600; }
         
-        .highlight-item { 
-            background-color: var(--item-bg); padding: 15px; border-radius: 8px; margin-bottom: 12px; 
-            font-size: 0.9rem; border-left: 4px solid; position: relative; cursor: pointer; 
-            transition: transform 0.2s, box-shadow 0.2s; 
-        }
+        .highlight-item { background-color: var(--item-bg); padding: 15px; border-radius: 8px; margin-bottom: 12px; font-size: 0.9rem; border-left: 4px solid; position: relative; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
         .highlight-item:hover { transform: translateX(5px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         .highlight-ref { font-weight: 600; color: var(--accent-color); display: block; margin-bottom: 6px; font-size: 0.85rem; }
         .btn-delete { position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--danger-color); cursor: pointer; font-size: 1rem; opacity: 0.6; z-index: 10;}
         .btn-delete:hover { opacity: 1; transform: scale(1.1); }
-        .highlight-text-preview {
-            color: #121212; padding: 8px 12px; border-radius: 6px; margin-top: 8px; 
-            font-style: italic; font-size: 0.85rem; display: inline-block; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2); line-height: 1.4;
-        }
+        .highlight-text-preview { color: #121212; padding: 8px 12px; border-radius: 6px; margin-top: 8px; font-style: italic; font-size: 0.85rem; display: inline-block; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2); line-height: 1.4; }
 
-        /* ----- MODAL DE CONFIGURAÇÕES (ORIGINAL) ----- */
-        #settingsModal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 3000; backdrop-filter: blur(3px);
-        }
+        /* ----- MODAL DE CONFIGURAÇÕES ----- */
+        #settingsModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 3000; backdrop-filter: blur(3px); }
         #settingsModal.open { display: flex; }
         .modal-content { background-color: var(--secondary-bg); padding: 25px; border-radius: 16px; width: 90%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
@@ -246,15 +264,9 @@
         .btn-save { width: 100%; background: var(--accent-color); color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; gap: 8px; }
 
         /* ----- ALERTAS E CONFIRMAÇÕES ELEGANTES ----- */
-        .custom-alert-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 7000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.2s ease;
-        }
+        .custom-alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 7000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.2s ease; }
         .custom-alert-overlay.open { display: flex; opacity: 1; }
-        .custom-alert-box {
-            background: var(--secondary-bg); padding: 25px 30px; border-radius: 20px; text-align: center; max-width: 300px; width: 90%;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 2px 5px rgba(255,255,255,0.05); transform: scale(0.9); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+        .custom-alert-box { background: var(--secondary-bg); padding: 25px 30px; border-radius: 20px; text-align: center; max-width: 300px; width: 90%; box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 2px 5px rgba(255,255,255,0.05); transform: scale(0.9); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .custom-alert-overlay.open .custom-alert-box { transform: scale(1); }
         .custom-alert-box h3 { margin: 0 0 15px 0; color: var(--text-color); font-size: 1.2rem; }
         .custom-alert-box p { color: var(--text-color); opacity: 0.8; font-size: 0.95rem; line-height: 1.5; margin-bottom: 25px; }
@@ -265,26 +277,16 @@
         .custom-alert-box .btn-cancelar { background: transparent; border: 2px solid rgba(255,255,255,0.1); color: var(--text-color); }
 
         /* ----- POP-UP DE FORMATAÇÃO CIRÚRGICO ----- */
-        .format-modal-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 4000;
-            display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.2s ease;
-        }
+        .format-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 4000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.2s ease; }
         .format-modal-overlay.open { display: flex; opacity: 1; }
-        .format-popup {
-            background: var(--secondary-bg); padding: 25px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 2px 2px rgba(255,255,255,0.05);
-            width: 90%; max-width: 320px; text-align: center; transform: scale(0.9); transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+        .format-popup { background: var(--secondary-bg); padding: 25px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 2px 2px rgba(255,255,255,0.05); width: 90%; max-width: 320px; text-align: center; transform: scale(0.9); transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         .format-modal-overlay.open .format-popup { transform: scale(1); }
         .format-popup h3 { margin: 0 0 20px 0; font-size: 1.1rem; color: var(--text-color); opacity: 0.9; font-weight: 500; }
         .format-tools { display: flex; gap: 12px; justify-content: center; margin-bottom: 25px; flex-wrap: wrap; }
-        .format-btn { 
-            background: var(--item-bg); border: 1px solid rgba(255,255,255,0.1); color: var(--text-color); 
-            width: 48px; height: 48px; border-radius: 12px; font-size: 1.3rem; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-        }
+        .format-btn { background: var(--item-bg); border: 1px solid rgba(255,255,255,0.1); color: var(--text-color); width: 48px; height: 48px; border-radius: 12px; font-size: 1.3rem; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .format-btn:hover { background: rgba(255,255,255,0.1); transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.2); }
         .format-btn:active { transform: translateY(0) scale(0.95); }
         .format-btn.btn-clear { color: var(--danger-color); }
-        
         .format-actions { display: flex; gap: 15px; }
         .btn-popup-cancelar { flex: 1; background: transparent; border: 2px solid rgba(255, 82, 82, 0.5); color: var(--danger-color); padding: 12px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
         .btn-popup-cancelar:hover { background: rgba(255, 82, 82, 0.1); border-color: var(--danger-color); }
@@ -292,74 +294,44 @@
         .btn-popup-manter:hover { filter: brightness(1.1); transform: translateY(-2px); }
 
         /* ----- BOTÃO CONTEXTUAL (DIREITA) ----- */
-        #contextualFormatBtn {
-            position: fixed; right: 20px; top: 50%; transform: translateY(-50%) scale(0);
-            width: 55px; height: 55px; border-radius: 50%; background-color: #9b59b6; color: white;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.4); display: flex; justify-content: center; align-items: center;
-            font-size: 1.4rem; z-index: 1500; cursor: pointer; opacity: 0; pointer-events: none;
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
-        }
+        #contextualFormatBtn { position: fixed; right: 20px; top: 50%; transform: translateY(-50%) scale(0); width: 55px; height: 55px; border-radius: 50%; background-color: #9b59b6; color: white; box-shadow: 0 8px 25px rgba(0,0,0,0.4); display: flex; justify-content: center; align-items: center; font-size: 1.4rem; z-index: 1500; cursor: pointer; opacity: 0; pointer-events: none; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s; }
         #contextualFormatBtn.visible { transform: translateY(-50%) scale(1); opacity: 1; pointer-events: auto; }
         #contextualFormatBtn:active { transform: translateY(-50%) scale(0.9); }
 
         /* ----- BOTÃO FLUTUANTE DE AÇÕES (FAB) ----- */
-        .fab-container {
-            position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; align-items: center; gap: 12px; z-index: 950; transition: opacity 0.3s ease;
-        }
-        .fab-btn {
-            width: 60px; height: 60px; border-radius: 50%; background-color: var(--accent-color); color: #fff; border: none;
-            box-shadow: 0 6px 15px rgba(0,0,0,0.3); font-size: 1.5rem; cursor: pointer; display: flex; justify-content: center; align-items: center;
-            transition: transform 0.2s, filter 0.2s, background-color 0.3s;
-        }
+        .fab-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; align-items: center; gap: 12px; z-index: 950; transition: opacity 0.3s ease; }
+        .fab-btn { width: 60px; height: 60px; border-radius: 50%; background-color: var(--accent-color); color: #fff; border: none; box-shadow: 0 6px 15px rgba(0,0,0,0.3); font-size: 1.5rem; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: transform 0.2s, filter 0.2s, background-color 0.3s; }
         .fab-btn:hover { transform: scale(1.1); filter: brightness(1.1); }
         .fab-btn:active { transform: scale(0.95); }
-        
-        .fab-container input[type="color"] {
-            -webkit-appearance: none; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; padding: 0; background: transparent;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: transform 0.2s;
-        }
+        .fab-container input[type="color"] { -webkit-appearance: none; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; padding: 0; background: transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: transform 0.2s; }
         .fab-container input[type="color"]:hover { transform: scale(1.1); }
         .fab-container input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
         .fab-container input[type="color"]::-webkit-color-swatch { border: 2px solid var(--secondary-bg); border-radius: 50%; }
 
-        /* ----- ESTILOS OCULTOS PARA GERAR IMAGEM ----- */
+        /* ----- ESTILOS OCULTOS PARA GERAR IMAGEM (ATUALIZADO COM DEVOCIONAL) ----- */
         #share-wrapper { position: absolute; left: -9999px; top: -9999px; }
         #share-card {
-            width: 1080px; height: 1080px; background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)); background-size: cover; background-position: center; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 100px; box-sizing: border-box; color: #fff; font-family: 'Inter', sans-serif; text-align: center;
+            width: 1080px; height: 1080px; background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)); background-size: cover; background-position: center; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 80px; box-sizing: border-box; color: #fff; font-family: 'Inter', sans-serif; text-align: center;
         }
-        #share-verse { font-size: 3.5rem; font-style: italic; font-weight: 600; margin-bottom: 50px; line-height: 1.4; text-shadow: 2px 2px 10px rgba(0,0,0,0.6); }
-        #share-ref { font-size: 2.2rem; font-weight: 700; color: #e0f2f1; background-color: rgba(76, 175, 80, 0.8); padding: 10px 30px; border-radius: 50px; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); }
+        #share-verse { font-size: 2.8rem; font-style: italic; font-weight: 600; margin-bottom: 30px; line-height: 1.4; text-shadow: 2px 2px 10px rgba(0,0,0,0.6); }
+        #share-ref { font-size: 2rem; font-weight: 700; color: #e0f2f1; background-color: rgba(76, 175, 80, 0.8); padding: 10px 30px; border-radius: 50px; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); margin-bottom: 40px; }
+        #share-devo { font-size: 1.5rem; line-height: 1.6; opacity: 0.9; text-align: center; border-top: 2px solid rgba(255,255,255,0.2); padding-top: 40px; width: 90%; }
 
         /* ----- POST-ITS ULTRA REALISTAS E DOBRÁVEIS ----- */
-        .post-it-note {
-            position: absolute; width: 180px; height: 180px; min-width: 120px; min-height: 120px; max-width: 500px; max-height: 500px;
-            box-shadow: 2px 2px 2px rgba(0,0,0,0.1), 5px 10px 15px rgba(0,0,0,0.2), inset 0 -15px 30px rgba(0,0,0,0.05);
-            border-bottom-right-radius: 50px 10px; z-index: 500; display: flex; flex-direction: column; transform: rotate(-1deg); 
-            transition: height 0.4s cubic-bezier(0.25, 1, 0.5, 1), transform 0.1s, box-shadow 0.3s, background-color 0.3s; overflow: hidden; resize: both;
-        }
-        .post-it-note::after {
-            content: ""; position: absolute; bottom: 0; right: 0; width: 35px; height: 20px; background: linear-gradient(135deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0) 50%), linear-gradient(to right, rgba(0,0,0,0.1), rgba(0,0,0,0)); box-shadow: -3px -3px 5px rgba(0,0,0,0.1); border-bottom-right-radius: 50px 10px; pointer-events: none; z-index: 2; transition: opacity 0.3s;
-        }
-        .post-it-note.folded {
-            height: 40px !important; min-height: 40px !important; resize: none !important; border-bottom-right-radius: 4px; box-shadow: 2px 5px 10px rgba(0,0,0,0.3), inset 0 -10px 15px rgba(0,0,0,0.15); border-bottom: 2px solid rgba(0,0,0,0.1);
-        }
+        .post-it-note { position: absolute; width: 180px; height: 180px; min-width: 120px; min-height: 120px; max-width: 500px; max-height: 500px; box-shadow: 2px 2px 2px rgba(0,0,0,0.1), 5px 10px 15px rgba(0,0,0,0.2), inset 0 -15px 30px rgba(0,0,0,0.05); border-bottom-right-radius: 50px 10px; z-index: 500; display: flex; flex-direction: column; transform: rotate(-1deg); transition: height 0.4s cubic-bezier(0.25, 1, 0.5, 1), transform 0.1s, box-shadow 0.3s, background-color 0.3s; overflow: hidden; resize: both; }
+        .post-it-note::after { content: ""; position: absolute; bottom: 0; right: 0; width: 35px; height: 20px; background: linear-gradient(135deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0) 50%), linear-gradient(to right, rgba(0,0,0,0.1), rgba(0,0,0,0)); box-shadow: -3px -3px 5px rgba(0,0,0,0.1); border-bottom-right-radius: 50px 10px; pointer-events: none; z-index: 2; transition: opacity 0.3s; }
+        .post-it-note.folded { height: 40px !important; min-height: 40px !important; resize: none !important; border-bottom-right-radius: 4px; box-shadow: 2px 5px 10px rgba(0,0,0,0.3), inset 0 -10px 15px rgba(0,0,0,0.15); border-bottom: 2px solid rgba(0,0,0,0.1); }
         .post-it-note.folded::after { opacity: 0; } 
         .post-it-note.folded .post-it-content-wrapper { opacity: 0; pointer-events: none; transition: opacity 0.1s; }
         .post-it-note:hover { z-index: 501; box-shadow: 2px 2px 2px rgba(0,0,0,0.1), 7px 14px 20px rgba(0,0,0,0.25), inset 0 -15px 30px rgba(0,0,0,0.05); }
         .post-it-note.folded:hover { box-shadow: 2px 6px 12px rgba(0,0,0,0.35); }
         .post-it-note.dragging { opacity: 0.95; transform: scale(1.03) rotate(0deg); box-shadow: 10px 20px 30px rgba(0,0,0,0.3); z-index: 502 !important; cursor: grabbing; }
-
-        .post-it-header {
-            width: 100%; height: 40px; background: rgba(0,0,0,0.06); cursor: grab; display: flex; justify-content: flex-end; align-items: center; padding: 0 8px; box-sizing: border-box; border-top-left-radius: 2px; border-top-right-radius: 2px; flex-shrink: 0; border-bottom: 1px solid rgba(0,0,0,0.05);
-        }
+        .post-it-header { width: 100%; height: 40px; background: rgba(0,0,0,0.06); cursor: grab; display: flex; justify-content: flex-end; align-items: center; padding: 0 8px; box-sizing: border-box; border-top-left-radius: 2px; border-top-right-radius: 2px; flex-shrink: 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
         .post-it-note.dragging .post-it-header { cursor: grabbing; }
         .post-it-content-wrapper { flex: 1; padding: 10px 15px 30px 15px; overflow: hidden; display: flex; justify-content: center; align-items: center; position: relative; transition: opacity 0.3s ease 0.1s; opacity: 1; }
-        .post-it-content {
-            width: 100%; height: 100%; font-family: 'Kalam', cursive; font-size: 1.1rem; color: rgba(0,0,0,0.8); outline: none; border: none; background: transparent; resize: none; line-height: 1.3; overflow-y: auto; text-align: center; text-shadow: 0px 1px 0px rgba(255,255,255,0.2); padding: 0; box-sizing: border-box;
-        }
+        .post-it-content { width: 100%; height: 100%; font-family: 'Kalam', cursive; font-size: 1.1rem; color: rgba(0,0,0,0.8); outline: none; border: none; background: transparent; resize: none; line-height: 1.3; overflow-y: auto; text-align: center; text-shadow: 0px 1px 0px rgba(255,255,255,0.2); padding: 0; box-sizing: border-box; }
         .post-it-content::-webkit-scrollbar { width: 4px; }
         .post-it-content::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
-
         .post-it-controls { display: flex; gap: 6px; align-items: center; z-index: 5; }
         .post-it-btn { background: none; border: none; cursor: pointer; border-radius: 6px; color: rgba(0,0,0,0.45); font-size: 0.95rem; padding: 6px 8px; transition: all 0.2s; }
         .post-it-btn:hover { color: #000; background: rgba(255,255,255,0.2); transform: scale(1.05); }
@@ -376,9 +348,7 @@
         <div class="custom-alert-box">
             <h3 id="alertTitle"><i class="fa-solid fa-circle-info" style="color: var(--accent-color);"></i> Aviso</h3>
             <p id="alertMessage"></p>
-            <div class="actions">
-                <button class="btn-ok" onclick="closeCustomAlert()">Entendi</button>
-            </div>
+            <div class="actions"><button class="btn-ok" onclick="closeCustomAlert()">Entendi</button></div>
         </div>
     </div>
 
@@ -398,9 +368,7 @@
             <h2><i class="fa-solid fa-bookmark"></i> Minhas Marcações</h2>
             <button class="icon-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <select id="filterHighlightsBook" onchange="updateSidebarList()">
-            <option value="all">Todas as Marcações</option>
-        </select>
+        <select id="filterHighlightsBook" onchange="updateSidebarList()"><option value="all">Todas as Marcações</option></select>
         <div id="highlightsList"></div>
     </div>
 
@@ -410,7 +378,6 @@
                 <h2><i class="fa-solid fa-palette"></i> Temas e Cores</h2>
                 <button class="icon-btn" onclick="toggleSettings()"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            
             <div class="theme-section">
                 <label>Temas Prontos</label>
                 <div class="preset-themes">
@@ -419,21 +386,11 @@
                     <button id="btn-theme-clean" class="preset-btn" onclick="applyPreset('clean')">Clean</button>
                 </div>
             </div>
-
             <div class="theme-section">
                 <label>Criar Novo Padrão</label>
-                <div class="color-picker-group">
-                    <span>Fundo</span>
-                    <input type="color" id="customBg" value="#121212">
-                </div>
-                <div class="color-picker-group">
-                    <span>Texto</span>
-                    <input type="color" id="customText" value="#f1f1f1">
-                </div>
-                <div class="color-picker-group">
-                    <span>Detalhes</span>
-                    <input type="color" id="customAccent" value="#4CAF50">
-                </div>
+                <div class="color-picker-group"><span>Fundo</span><input type="color" id="customBg" value="#121212"></div>
+                <div class="color-picker-group"><span>Texto</span><input type="color" id="customText" value="#f1f1f1"></div>
+                <div class="color-picker-group"><span>Detalhes</span><input type="color" id="customAccent" value="#4CAF50"></div>
             </div>
             <button class="btn-save" onclick="saveCustomTheme()"><i class="fa-solid fa-floppy-disk"></i> Salvar Meu Padrão</button>
         </div>
@@ -471,6 +428,7 @@
         <div class="nav-tabs">
             <button class="nav-tab active" onclick="switchView('home')">Início</button>
             <button class="nav-tab" onclick="switchView('reader')">Leitura</button>
+            <button class="nav-tab" onclick="switchView('plan')">Plano</button>
         </div>
     </header>
 
@@ -478,7 +436,6 @@
         <div class="card-devocional">
             <h2>Versículo do Dia</h2>
             <div id="daily-content"></div>
-            
             <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px; flex-wrap: wrap;">
                 <button class="btn-read btn-share" id="btnShare" onclick="shareVerse()">
                     <i class="fa-solid fa-share-nodes"></i> Compartilhar
@@ -491,31 +448,22 @@
     </main>
 
     <main id="view-reader" class="view-section">
-        
         <div class="controls-wrapper">
             <div class="reading-controls">
                 <div class="control-group">
                     <i class="fa-solid fa-language"></i>
-                    <select id="versionSelect">
-                        <option value="almeida" style="font-weight: bold;">Almeida (Padrão)</option>
-                    </select>
+                    <select id="versionSelect"><option value="almeida" style="font-weight: bold;">Almeida (Padrão)</option></select>
                 </div>
                 <div class="control-group">
-                    <i class="fa-solid fa-book-open"></i>
-                    <select id="bookSelect"></select>
+                    <i class="fa-solid fa-book-open"></i><select id="bookSelect"></select>
                 </div>
                 <div class="control-group" style="min-width: 80px;">
-                    <i class="fa-solid fa-hashtag"></i>
-                    <select id="chapterSelect"></select>
+                    <i class="fa-solid fa-hashtag"></i><select id="chapterSelect"></select>
                 </div>
                 <div class="control-group" style="min-width: 90px;">
-                    <i class="fa-solid fa-list-ol"></i>
-                    <select id="verseSelect">
-                        <option value="">Todos</option>
-                    </select>
+                    <i class="fa-solid fa-list-ol"></i><select id="verseSelect"><option value="">Todos</option></select>
                 </div>
             </div>
-            
             <button class="btn-read" onclick="loadChapter()"><i class="fa-solid fa-magnifying-glass"></i> Carregar Capítulo</button>
         </div>
 
@@ -530,7 +478,6 @@
             <button class="fab-btn" style="background-color: #f1c40f; color: #121212;" onclick="createNewPostIt()" title="Colar Post-it">
                 <i class="fa-solid fa-sticky-note"></i>
             </button>
-            
             <input type="color" id="highlightColor" value="#a3e4d7" title="Cor da marcação">
             <button class="fab-btn" onmousedown="event.preventDefault(); applyColorHighlight()" ontouchstart="event.preventDefault(); applyColorHighlight()" title="Grifar texto selecionado">
                 <i class="fa-solid fa-highlighter"></i>
@@ -538,94 +485,145 @@
         </div>
     </main>
 
+    <main id="view-plan" class="view-section">
+        <div class="plan-progress-container">
+            <div class="plan-progress-header">
+                <span>Progresso de Leitura</span>
+                <span id="planProgressText">0%</span>
+            </div>
+            <div class="plan-progress-bar-bg">
+                <div class="plan-progress-bar-fill" id="planProgressBar"></div>
+            </div>
+        </div>
+        <div id="readingPlanContent">
+            </div>
+    </main>
+
     <div id="share-wrapper">
         <div id="share-card">
             <div id="share-verse"></div>
             <div id="share-ref"></div>
+            <div id="share-devo"></div>
         </div>
     </div>
 
     <script>
-        // --- SISTEMA DE ALERTAS ELEGANTES ---
+        // --- SISTEMA DE GESTOS (SWIPE APP-DRAWER) ---
+        let touchStartX = 0;
+        let touchEndX = 0;
+        let touchStartY = 0;
+        let touchEndY = 0;
+
+        document.addEventListener('touchstart', e => {
+            // Ignora se estiver tocando em post-its ou se estiver com texto selecionado
+            if (e.target.closest('.post-it-note') || !window.getSelection().isCollapsed) return;
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        }, {passive: true});
+
+        document.addEventListener('touchend', e => {
+            if (e.target.closest('.post-it-note') || !window.getSelection().isCollapsed) return;
+            touchEndX = e.changedTouches[0].screenX;
+            touchEndY = e.changedTouches[0].screenY;
+            handleSwipe();
+        }, {passive: true});
+
+        function handleSwipe() {
+            const diffX = touchEndX - touchStartX;
+            const diffY = touchEndY - touchStartY;
+
+            // Thresholds: deve ser um arrasto claro horizontal (mais de 60px) e com pouca variação vertical
+            if (Math.abs(diffX) > 60 && Math.abs(diffY) < 50) {
+                const views = ['home', 'reader', 'plan'];
+                const currentActive = document.querySelector('.view-section.active');
+                if(!currentActive) return;
+                
+                const currentView = currentActive.id.replace('view-', '');
+                const currentIndex = views.indexOf(currentView);
+
+                if (diffX < 0) {
+                    // Arrasto pra esquerda -> Próxima aba
+                    if (currentIndex < views.length - 1) switchView(views[currentIndex + 1]);
+                } else {
+                    // Arrasto pra direita -> Aba anterior
+                    if (currentIndex > 0) switchView(views[currentIndex - 1]);
+                }
+            }
+        }
+
+        // --- SISTEMA DE ALERTAS ---
         let confirmCallback = null;
+        function customAlert(message) { document.getElementById('alertMessage').innerText = message; document.getElementById('customAlert').classList.add('open'); }
+        function closeCustomAlert() { document.getElementById('customAlert').classList.remove('open'); }
+        function customConfirm(message, callback) { document.getElementById('confirmMessage').innerText = message; confirmCallback = callback; document.getElementById('customConfirm').classList.add('open'); }
+        function resolveConfirm(result) { document.getElementById('customConfirm').classList.remove('open'); if (confirmCallback) confirmCallback(result); confirmCallback = null; }
 
-        function customAlert(message) {
-            document.getElementById('alertMessage').innerText = message;
-            document.getElementById('customAlert').classList.add('open');
-        }
-        function closeCustomAlert() {
-            document.getElementById('customAlert').classList.remove('open');
-        }
-
-        function customConfirm(message, callback) {
-            document.getElementById('confirmMessage').innerText = message;
-            confirmCallback = callback;
-            document.getElementById('customConfirm').classList.add('open');
-        }
-        function resolveConfirm(result) {
-            document.getElementById('customConfirm').classList.remove('open');
-            if (confirmCallback) confirmCallback(result);
-            confirmCallback = null;
-        }
-
-        // --- SISTEMA DE TELA CHEIA ---
         function toggleFullScreen() {
             const btn = document.getElementById('btnFullscreen');
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    customAlert(`Erro ao tentar entrar em tela cheia: ${err.message}`);
-                });
+                document.documentElement.requestFullscreen().catch(err => customAlert(`Erro: ${err.message}`));
                 btn.innerHTML = '<i class="fa-solid fa-compress"></i>';
             } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                    btn.innerHTML = '<i class="fa-solid fa-expand"></i>';
-                }
+                if (document.exitFullscreen) { document.exitFullscreen(); btn.innerHTML = '<i class="fa-solid fa-expand"></i>'; }
             }
         }
         document.addEventListener('fullscreenchange', () => {
             const btn = document.getElementById('btnFullscreen');
-            if (!document.fullscreenElement) {
-                btn.innerHTML = '<i class="fa-solid fa-expand"></i>';
-            } else {
-                btn.innerHTML = '<i class="fa-solid fa-compress"></i>';
-            }
+            if (!document.fullscreenElement) btn.innerHTML = '<i class="fa-solid fa-expand"></i>';
+            else btn.innerHTML = '<i class="fa-solid fa-compress"></i>';
         });
 
         // --- DADOS BÁSICOS ---
         const devotionals = [
-            { ref: "João 3:16", verse: "Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito, para que todo aquele que nele crê não pereça, mas tenha a vida eterna.", devo: "O amor de Deus não possui limites." },
-            { ref: "Filipenses 4:13", verse: "Posso todas as coisas naquele que me fortalece.", devo: "Não importa o tamanho do desafio de hoje. Sua força vem de Deus." },
-            { ref: "Salmos 23:1", verse: "O Senhor é o meu pastor; nada me faltará.", devo: "A figura do pastor traz cuidado e proteção. Descanse nEle." },
-            { ref: "Isaías 41:10", verse: "Não temas, porque eu sou contigo...", devo: "A presença de Deus afasta o medo. Confie na justiça do Senhor." }
+            { ref: "João 3:16", verse: "Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito, para que todo aquele que nele crê não pereça, mas tenha a vida eterna.", devo: "O amor de Deus não possui limites e ultrapassa qualquer fronteira que possamos imaginar." },
+            { ref: "Filipenses 4:13", verse: "Posso todas as coisas naquele que me fortalece.", devo: "Não importa o tamanho do desafio de hoje. Sua força vem de Deus, confie nEle." },
+            { ref: "Salmos 23:1", verse: "O Senhor é o meu pastor; nada me faltará.", devo: "A figura do pastor traz cuidado e proteção. Descanse nEle e não tema o dia de amanhã." },
+            { ref: "Isaías 41:10", verse: "Não temas, porque eu sou contigo...", devo: "A presença de Deus afasta o medo. Confie na justiça e na providência do Senhor todos os dias." }
         ];
 
-        const books = [
-            "Gênesis", "Êxodo", "Levítico", "Números", "Deuteronômio", "Josué", "Juízes", "Rute", 
-            "1 Samuel", "2 Samuel", "1 Reis", "2 Reis", "1 Crônicas", "2 Crônicas", "Esdras", "Neemias", "Ester", "Jó", "Salmos", "Provérbios", "Eclesiastes", "Cânticos", "Isaías", "Jeremias", "Lamentações", "Ezequiel", "Daniel", "Oséias", "Joel", "Amós", "Obadias", "Jonas", "Miquéias", "Naum", "Habacuque", "Sofonias", "Ageu", "Zacarias", "Malaquias", 
-            "Mateus", "Marcos", "Lucas", "João", "Atos", "Romanos", "1 Coríntios", "2 Coríntios", "Gálatas", "Efésios", "Filipenses", "Colossenses", "1 Tessalonicenses", "2 Tessalonicenses", "1 Timóteo", "2 Timóteo", "Tito", "Filemom", "Hebreus", "Tiago", "1 Pedro", "2 Pedro", "1 João", "2 João", "3 João", "Judas", "Apocalipse"
+        // Estrutura Cronológica Simplificada da Bíblia (Ordem dos Livros + Qtd Capítulos)
+        const bibleStructureChronological = [
+            { name: "Gênesis", chapters: 50 }, { name: "Jó", chapters: 42 }, { name: "Êxodo", chapters: 40 },
+            { name: "Levítico", chapters: 27 }, { name: "Números", chapters: 36 }, { name: "Deuteronômio", chapters: 34 },
+            { name: "Josué", chapters: 24 }, { name: "Juízes", chapters: 21 }, { name: "Rute", chapters: 4 },
+            { name: "1 Samuel", chapters: 31 }, { name: "2 Samuel", chapters: 24 }, { name: "1 Crônicas", chapters: 29 },
+            { name: "Salmos", chapters: 150 }, { name: "1 Reis", chapters: 22 }, { name: "Provérbios", chapters: 31 },
+            { name: "Eclesiastes", chapters: 12 }, { name: "Cânticos", chapters: 8 }, { name: "2 Reis", chapters: 25 },
+            { name: "2 Crônicas", chapters: 36 }, { name: "Oséias", chapters: 14 }, { name: "Amós", chapters: 9 },
+            { name: "Isaías", chapters: 66 }, { name: "Miquéias", chapters: 7 }, { name: "Joel", chapters: 3 },
+            { name: "Obadias", chapters: 1 }, { name: "Jonas", chapters: 4 }, { name: "Naum", chapters: 3 },
+            { name: "Habacuque", chapters: 3 }, { name: "Sofonias", chapters: 3 }, { name: "Jeremias", chapters: 52 },
+            { name: "Lamentações", chapters: 5 }, { name: "Ezequiel", chapters: 48 }, { name: "Daniel", chapters: 12 },
+            { name: "Esdras", chapters: 10 }, { name: "Neemias", chapters: 13 }, { name: "Ester", chapters: 10 },
+            { name: "Ageu", chapters: 2 }, { name: "Zacarias", chapters: 14 }, { name: "Malaquias", chapters: 4 },
+            { name: "Mateus", chapters: 28 }, { name: "Marcos", chapters: 16 }, { name: "Lucas", chapters: 24 },
+            { name: "João", chapters: 21 }, { name: "Atos", chapters: 28 }, { name: "Tiago", chapters: 5 },
+            { name: "1 Tessalonicenses", chapters: 5 }, { name: "2 Tessalonicenses", chapters: 3 }, { name: "Gálatas", chapters: 6 },
+            { name: "1 Coríntios", chapters: 16 }, { name: "2 Coríntios", chapters: 13 }, { name: "Romanos", chapters: 16 },
+            { name: "Efésios", chapters: 6 }, { name: "Filipenses", chapters: 4 }, { name: "Colossenses", chapters: 4 },
+            { name: "Filemom", chapters: 1 }, { name: "1 Timóteo", chapters: 6 }, { name: "Tito", chapters: 3 },
+            { name: "1 Pedro", chapters: 5 }, { name: "2 Pedro", chapters: 3 }, { name: "2 Timóteo", chapters: 4 },
+            { name: "1 João", chapters: 5 }, { name: "2 João", chapters: 1 }, { name: "3 João", chapters: 1 },
+            { name: "Judas", chapters: 1 }, { name: "Apocalipse", chapters: 22 }
         ];
 
-        let currentChapterData = null;
-        let currentDevo = null; 
-        let postItsData = [];
-        
-        let activeEditVerseNodes = []; 
-        let backupVerseHTML = [];
-        let savedSelectionRange = null;
+        // Ordem Padrão para os Selects de Leitura
+        const booksStandard = ["Gênesis", "Êxodo", "Levítico", "Números", "Deuteronômio", "Josué", "Juízes", "Rute", "1 Samuel", "2 Samuel", "1 Reis", "2 Reis", "1 Crônicas", "2 Crônicas", "Esdras", "Neemias", "Ester", "Jó", "Salmos", "Provérbios", "Eclesiastes", "Cânticos", "Isaías", "Jeremias", "Lamentações", "Ezequiel", "Daniel", "Oséias", "Joel", "Amós", "Obadias", "Jonas", "Miquéias", "Naum", "Habacuque", "Sofonias", "Ageu", "Zacarias", "Malaquias", "Mateus", "Marcos", "Lucas", "João", "Atos", "Romanos", "1 Coríntios", "2 Coríntios", "Gálatas", "Efésios", "Filipenses", "Colossenses", "1 Tessalonicenses", "2 Tessalonicenses", "1 Timóteo", "2 Timóteo", "Tito", "Filemom", "Hebreus", "Tiago", "1 Pedro", "2 Pedro", "1 João", "2 João", "3 João", "Judas", "Apocalipse"];
+
+        let currentChapterData = null; let currentDevo = null; let postItsData = [];
+        let activeEditVerseNodes = []; let backupVerseHTML = []; let savedSelectionRange = null;
 
         window.onload = async () => {
-            initSelects();
-            await scanLocalVersions(); 
+            initSelects(); await scanLocalVersions(); 
             loadDevotional(); loadTheme(); updateSidebarList(); loadPostIts(); 
+            initReadingPlan(); // Inicia o plano de leitura
         }
 
         async function scanLocalVersions() {
             const select = document.getElementById('versionSelect');
             const possibleFiles = [
-                { file: 'nvi.json', name: 'NVI' }, { file: 'acf.json', name: 'ACF' },
-                { file: 'ara.json', name: 'ARA' }, { file: 'arc.json', name: 'ARC' },
-                { file: 'nvt.json', name: 'NVT' }, { file: 'ntlh.json', name: 'NTLH' },
+                { file: 'nvi.json', name: 'NVI' }, { file: 'acf.json', name: 'ACF' }, { file: 'ara.json', name: 'ARA' }, 
+                { file: 'arc.json', name: 'ARC' }, { file: 'nvt.json', name: 'NVT' }, { file: 'ntlh.json', name: 'NTLH' },
                 { file: 'kja.json', name: 'KJA' }, { file: 'naa.json', name: 'NAA' }, { file: 'nbv.json', name: 'NBV' }
             ];
             for (const v of possibleFiles) {
@@ -636,16 +634,34 @@
         }
 
         function switchView(viewName) {
-            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
-            document.getElementById(`view-${viewName}`).classList.add('active');
+            const views = ['home', 'reader', 'plan'];
+            const currentActive = document.querySelector('.view-section.active');
+            let currentViewName = currentActive ? currentActive.id.replace('view-', '') : 'home';
             
-            if(event && event.currentTarget && event.currentTarget.classList.contains('nav-tab')) {
-                event.currentTarget.classList.add('active');
+            let currentIndex = views.indexOf(currentViewName);
+            let newIndex = views.indexOf(viewName);
+            
+            // Remove classes ativas e de animação anteriores
+            document.querySelectorAll('.view-section').forEach(el => {
+                el.classList.remove('active', 'slide-right', 'slide-left', 'fade-in');
+            });
+            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+            
+            const newView = document.getElementById(`view-${viewName}`);
+            newView.classList.add('active');
+            
+            // Aplica a animação correta dependendo da direção do index
+            if (newIndex > currentIndex) {
+                newView.classList.add('slide-right');
+            } else if (newIndex < currentIndex) {
+                newView.classList.add('slide-left');
             } else {
-                const targetTab = document.querySelector(`.nav-tab[onclick="switchView('${viewName}')"]`);
-                if(targetTab) targetTab.classList.add('active');
+                newView.classList.add('fade-in');
             }
+
+            const targetTab = document.querySelector(`.nav-tab[onclick="switchView('${viewName}')"]`);
+            if(targetTab) targetTab.classList.add('active');
+
             renderAllPostIts(); 
         }
 
@@ -653,25 +669,25 @@
         function toggleSettings() { document.getElementById('settingsModal').classList.toggle('open'); }
 
         function loadDevotional() {
-            const today = new Date().toDateString(); 
-            const savedDate = localStorage.getItem('devoDate'); 
-            let savedIndex = localStorage.getItem('devoIndex'); 
-            if (savedDate !== today || savedIndex === null) {
-                savedIndex = Math.floor(Math.random() * devotionals.length); localStorage.setItem('devoDate', today); localStorage.setItem('devoIndex', savedIndex);
-            }
+            const today = new Date().toDateString(); const savedDate = localStorage.getItem('devoDate'); let savedIndex = localStorage.getItem('devoIndex'); 
+            if (savedDate !== today || savedIndex === null) { savedIndex = Math.floor(Math.random() * devotionals.length); localStorage.setItem('devoDate', today); localStorage.setItem('devoIndex', savedIndex); }
             currentDevo = devotionals[parseInt(savedIndex)];
             document.getElementById('daily-content').innerHTML = `<div class="verse-of-day">"${currentDevo.verse}"</div><span class="verse-ref"><i class="fa-solid fa-bookmark"></i> ${currentDevo.ref}</span><div class="devocional-text">${currentDevo.devo}</div>`;
         }
 
         async function shareVerse() {
             const btn = document.getElementById('btnShare'); const originalHTML = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
-            document.getElementById('share-verse').textContent = `"${currentDevo.verse}"`; document.getElementById('share-ref').textContent = currentDevo.ref; document.getElementById('share-card').style.backgroundImage = `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url('https://picsum.photos/1080/1080?random=${Date.now()}')`;
+            document.getElementById('share-verse').textContent = `"${currentDevo.verse}"`; 
+            document.getElementById('share-ref').textContent = currentDevo.ref; 
+            document.getElementById('share-devo').innerHTML = `<strong>Reflexão:</strong> ${currentDevo.devo}`;
+            document.getElementById('share-card').style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url('https://picsum.photos/1080/1080?random=${Date.now()}')`;
+            
             const element = document.getElementById('share-card');
             setTimeout(async () => {
                 try {
                     const canvas = await html2canvas(element, { useCORS: true, scale: 2 });
                     canvas.toBlob(async (blob) => {
-                        const fileName = `Versiculo-${currentDevo.ref.replace(':', '-')}.jpg`;
+                        const fileName = `Devocional-${currentDevo.ref.replace(':', '-')}.jpg`;
                         const file = new File([blob], fileName, { type: 'image/jpeg' });
                         if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ title: 'Versículo', files: [file] }); } catch (e) { downloadFallback(blob, fileName); } } else { downloadFallback(blob, fileName); }
                     }, 'image/jpeg', 0.9);
@@ -692,63 +708,44 @@
             document.getElementById('customBg').value = colors.bg; document.getElementById('customText').value = colors.text; document.getElementById('customAccent').value = colors.accent;
         }
 
-        function updateActiveThemeButton(presetName) {
-            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active-theme'));
-            const activeBtn = document.getElementById(`btn-theme-${presetName}`); if(activeBtn) activeBtn.classList.add('active-theme');
-        }
-
+        function updateActiveThemeButton(presetName) { document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active-theme')); const activeBtn = document.getElementById(`btn-theme-${presetName}`); if(activeBtn) activeBtn.classList.add('active-theme'); }
         function applyPreset(presetName) { applyTheme(presets[presetName]); updateActiveThemeButton(presetName); localStorage.setItem('bibleTheme', JSON.stringify(presets[presetName])); localStorage.setItem('bibleThemeName', presetName); }
-
         function saveCustomTheme() {
             const bg = document.getElementById('customBg').value; const text = document.getElementById('customText').value; const accent = document.getElementById('customAccent').value;
-            const isDark = (parseInt(bg.replace('#', ''), 16) < 0xffffff/2);
-            const secBg = isDark ? lightenColor(bg, 8) : darkenColor(bg, 4); const itemBg = isDark ? lightenColor(bg, 16) : darkenColor(bg, 8);
+            const isDark = (parseInt(bg.replace('#', ''), 16) < 0xffffff/2); const secBg = isDark ? lightenColor(bg, 8) : darkenColor(bg, 4); const itemBg = isDark ? lightenColor(bg, 16) : darkenColor(bg, 8);
             const customTheme = { bg, text, accent, secBg, itemBg };
             applyTheme(customTheme); updateActiveThemeButton('custom'); localStorage.setItem('bibleTheme', JSON.stringify(customTheme)); localStorage.setItem('bibleThemeName', 'custom'); toggleSettings();
         }
-
         function loadTheme() { const savedTheme = localStorage.getItem('bibleTheme'); const savedThemeName = localStorage.getItem('bibleThemeName') || 'dark'; if (savedTheme) applyTheme(JSON.parse(savedTheme)); updateActiveThemeButton(savedThemeName); }
         function lightenColor(color, percent) { let num = parseInt(color.replace("#",""),16), amt = Math.round(2.55 * percent), R = (num >> 16) + amt, B = (num >> 8 & 0x00FF) + amt, G = (num & 0x0000FF) + amt; return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 + (B<255?B<1?0:B:255)*0x100 + (G<255?G<1?0:G:255)).toString(16).slice(1); }
         function darkenColor(color, percent) { return lightenColor(color, -percent); }
 
         function initSelects() {
             const bookSelect = document.getElementById('bookSelect'); const chapterSelect = document.getElementById('chapterSelect');
-            books.forEach(book => { const option = document.createElement('option'); option.value = book; option.textContent = book; bookSelect.appendChild(option); });
+            booksStandard.forEach(book => { const option = document.createElement('option'); option.value = book; option.textContent = book; bookSelect.appendChild(option); });
             for(let i = 1; i <= 150; i++) { const option = document.createElement('option'); option.value = i; option.textContent = `Cap. ${i}`; chapterSelect.appendChild(option); }
         }
 
         async function loadChapter() {
-            const book = document.getElementById('bookSelect').value; 
-            const chapter = document.getElementById('chapterSelect').value; 
-            let version = document.getElementById('versionSelect').value; 
-            const contentDiv = document.getElementById('bible-content');
-            
+            const book = document.getElementById('bookSelect').value; const chapter = document.getElementById('chapterSelect').value; let version = document.getElementById('versionSelect').value; const contentDiv = document.getElementById('bible-content');
             localStorage.setItem('bibleVersion', version);
             contentDiv.innerHTML = '<div style="text-align: center; margin-top: 50px;"><i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: var(--accent-color)"></i></div>';
             
             try {
                 if (version.endsWith('.json')) {
-                    let response = await fetch(version); if (!response.ok) throw new Error("Erro arquivo.");
-                    let bibleData = await response.json();
+                    let response = await fetch(version); if (!response.ok) throw new Error("Erro arquivo."); let bibleData = await response.json();
                     let bookData = bibleData.find(b => b.name === book || (b.abbrev && b.abbrev.toLowerCase() === book.toLowerCase()));
-                    if(!bookData) bookData = bibleData[books.indexOf(book)];
+                    if(!bookData) bookData = bibleData[booksStandard.indexOf(book)];
                     const chapterData = bookData.chapters[parseInt(chapter) - 1];
                     let verses = chapterData.map((txt, idx) => ({ verse: idx + 1, text: txt }));
                     currentChapterData = { reference: `${book} ${chapter}`, verses: verses };
                 } else {
-                    let ref = `${encodeURIComponent(book)}+${chapter}`;
-                    let response = await fetch(`https://bible-api.com/${ref}?translation=${version}`);
-                    if (!response.ok) throw new Error('Não encontrei a referência.'); 
-                    currentChapterData = await response.json();
+                    let ref = `${encodeURIComponent(book)}+${chapter}`; let response = await fetch(`https://bible-api.com/${ref}?translation=${version}`);
+                    if (!response.ok) throw new Error('Não encontrei a referência.'); currentChapterData = await response.json();
                 }
                 
-                const verseSelect = document.getElementById('verseSelect');
-                verseSelect.innerHTML = '<option value="">Todos</option>';
-                const maxVerses = currentChapterData.verses.length;
-                for(let i = 1; i <= maxVerses; i++) {
-                    verseSelect.innerHTML += `<option value="${i}">V. ${i}</option>`;
-                }
-
+                const verseSelect = document.getElementById('verseSelect'); verseSelect.innerHTML = '<option value="">Todos</option>';
+                for(let i = 1; i <= currentChapterData.verses.length; i++) { verseSelect.innerHTML += `<option value="${i}">V. ${i}</option>`; }
                 renderContent();
             } catch (error) { contentDiv.innerHTML = `<div style="text-align:center;color:var(--danger-color);">${error.message}</div>`; }
         }
@@ -757,15 +754,72 @@
             const val = e.target.value;
             if(val !== "") {
                 const verseEl = document.querySelector(`.verse[data-verse="${val}"]`);
-                if(verseEl) {
-                    const y = verseEl.getBoundingClientRect().top + window.pageYOffset - 100; 
-                    window.scrollTo({top: y, behavior: 'smooth'});
-                }
+                if(verseEl) { const y = verseEl.getBoundingClientRect().top + window.pageYOffset - 100; window.scrollTo({top: y, behavior: 'smooth'}); }
             }
         });
 
         // ==========================================
-        //  A MÁGICA: BÍBLIA CONVERSA COM AS ANOTAÇÕES E REMONTA AS CORES
+        //  SISTEMA DE PLANO DE LEITURA
+        // ==========================================
+        function initReadingPlan() {
+            const planContent = document.getElementById('readingPlanContent');
+            const savedPlan = JSON.parse(localStorage.getItem('bibleReadingPlan') || '[]');
+            let totalChapters = 0;
+            let readCount = 0;
+            let html = '';
+
+            bibleStructureChronological.forEach(bookData => {
+                totalChapters += bookData.chapters;
+                html += `<div class="plan-book-group">
+                            <h3 class="plan-book-title"><i class="fa-solid fa-book-bible"></i> ${bookData.name}</h3>
+                            <div class="plan-chapters-grid">`;
+                
+                for(let i = 1; i <= bookData.chapters; i++) {
+                    const chapterId = `${bookData.name}-${i}`;
+                    const isRead = savedPlan.includes(chapterId);
+                    if(isRead) readCount++;
+                    
+                    html += `<button class="chapter-square ${isRead ? 'read' : ''}" onclick="togglePlanChapter('${chapterId}', this)">${i}</button>`;
+                }
+                
+                html += `   </div>
+                         </div>`;
+            });
+
+            planContent.innerHTML = html;
+            updateProgress(readCount, totalChapters);
+        }
+
+        function togglePlanChapter(chapterId, btnElement) {
+            let savedPlan = JSON.parse(localStorage.getItem('bibleReadingPlan') || '[]');
+            const isRead = savedPlan.includes(chapterId);
+
+            if(isRead) {
+                // Desmarcar
+                savedPlan = savedPlan.filter(id => id !== chapterId);
+                btnElement.classList.remove('read');
+            } else {
+                // Marcar como lido
+                savedPlan.push(chapterId);
+                btnElement.classList.add('read');
+            }
+
+            localStorage.setItem('bibleReadingPlan', JSON.stringify(savedPlan));
+            
+            // Calcula o novo progresso
+            let totalChapters = 0;
+            bibleStructureChronological.forEach(b => totalChapters += b.chapters);
+            updateProgress(savedPlan.length, totalChapters);
+        }
+
+        function updateProgress(readCount, totalChapters) {
+            const percentage = totalChapters > 0 ? Math.round((readCount / totalChapters) * 100) : 0;
+            document.getElementById('planProgressBar').style.width = `${percentage}%`;
+            document.getElementById('planProgressText').innerText = `${percentage}%`;
+        }
+
+        // ==========================================
+        //  A MÁGICA: BÍBLIA CONVERSA COM AS ANOTAÇÕES
         // ==========================================
         function renderContent() {
             if (!currentChapterData) return;
@@ -774,54 +828,37 @@
             
             const db = JSON.parse(localStorage.getItem('bibleFormats') || '[]');
             const highlightsDb = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
-            
             const version = document.getElementById('versionSelect').value;
             const book = document.getElementById('bookSelect').value;
             const chapter = document.getElementById('chapterSelect').value;
-
             const chapterHighlights = highlightsDb.filter(h => h.book === book && h.chapter == chapter);
 
             (currentChapterData.verses || [currentChapterData]).forEach(v => {
                 let vNum = v.verse || v.number;
                 let verseTextHTML = v.text;
 
-                // 1. Puxa as formatações estruturais (Negrito, Itálico, Sublinhado) que estão limpas de cor
                 let savedFormat = db.find(f => f.version === version && f.book === book && f.chapter == chapter && f.verse == vNum);
-                if (savedFormat) {
-                    verseTextHTML = savedFormat.html;
-                }
+                if (savedFormat) verseTextHTML = savedFormat.html;
 
-                // 2. Puxa AS CORES de "Minhas Anotações" dinamicamente!
                 let activeHighlights = chapterHighlights.filter(h => {
-                    let vParts = String(h.verse).split('-');
-                    let vStart = parseInt(vParts[0]);
-                    let vEnd = parseInt(vParts[1] || vParts[0]);
+                    let vParts = String(h.verse).split('-'); let vStart = parseInt(vParts[0]); let vEnd = parseInt(vParts[1] || vParts[0]);
                     return vNum >= vStart && vNum <= vEnd;
                 });
 
                 activeHighlights.forEach(h => {
                     let vParts = String(h.verse).split('-');
                     let isMultiVerse = (vParts.length > 1 && vParts[0] !== vParts[1]);
-                    
                     let wrapStart = `<span style="background-color: ${h.color}; color: #121212; border-radius: 4px; padding: 2px;">`;
                     let wrapEnd = `</span>`;
 
                     if (isMultiVerse) {
-                        // Cobre o versículo inteiro se for seleção múltipla
                         verseTextHTML = wrapStart + verseTextHTML + wrapEnd;
                     } else {
-                        // Tenta casar o texto exato para versículo único
                         if(h.text && h.text.length > 0) {
                             let safeText = h.text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
                             let regex = new RegExp(`(${safeText})`, 'gi');
-                            if(regex.test(verseTextHTML)) {
-                                verseTextHTML = verseTextHTML.replace(regex, wrapStart + "$1" + wrapEnd);
-                            } else {
-                                verseTextHTML = wrapStart + verseTextHTML + wrapEnd; // Fallback
-                            }
-                        } else {
-                            verseTextHTML = wrapStart + verseTextHTML + wrapEnd; // Fallback
-                        }
+                            if(regex.test(verseTextHTML)) { verseTextHTML = verseTextHTML.replace(regex, wrapStart + "$1" + wrapEnd); } else { verseTextHTML = wrapStart + verseTextHTML + wrapEnd; }
+                        } else { verseTextHTML = wrapStart + verseTextHTML + wrapEnd; }
                     }
                 });
 
@@ -834,41 +871,24 @@
             renderAllPostIts(); 
         }
 
-        // ==========================================
-        //  SISTEMA DE NAVEGAÇÃO E FOCO CINEMATOGRÁFICO MULTI-VERSÍCULO
-        // ==========================================
         async function focusHighlight(book, chapter, verseRef) {
             document.getElementById('sidebar').classList.remove('open');
-            document.getElementById('bookSelect').value = book;
-            document.getElementById('chapterSelect').value = chapter;
-            document.getElementById('verseSelect').value = ""; 
-            
-            switchView('reader');
-            await loadChapter(); 
+            document.getElementById('bookSelect').value = book; document.getElementById('chapterSelect').value = chapter; document.getElementById('verseSelect').value = ""; 
+            switchView('reader'); await loadChapter(); 
 
-            let vParts = String(verseRef).split('-');
-            let vStart = parseInt(vParts[0]);
-            let vEnd = parseInt(vParts[1] || vParts[0]);
-            
+            let vParts = String(verseRef).split('-'); let vStart = parseInt(vParts[0]); let vEnd = parseInt(vParts[1] || vParts[0]);
             let versesToFocus = [];
-            for(let i = vStart; i <= vEnd; i++) {
-                let el = document.querySelector(`.verse[data-verse="${i}"]`);
-                if(el) versesToFocus.push(el);
-            }
+            for(let i = vStart; i <= vEnd; i++) { let el = document.querySelector(`.verse[data-verse="${i}"]`); if(el) versesToFocus.push(el); }
 
             if(versesToFocus.length > 0) {
                 versesToFocus[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
-                
                 setTimeout(() => {
                     document.body.classList.add('bible-focus-mode');
                     versesToFocus.forEach(el => el.classList.add('verse-focused'));
-                    
                     const removeFocus = (e) => {
                         const clickedInside = versesToFocus.some(el => el.contains(e.target));
                         if (!clickedInside) {
-                            versesToFocus.forEach(el => el.classList.remove('verse-focused'));
-                            document.body.classList.remove('bible-focus-mode');
-                            document.removeEventListener('click', removeFocus);
+                            versesToFocus.forEach(el => el.classList.remove('verse-focused')); document.body.classList.remove('bible-focus-mode'); document.removeEventListener('click', removeFocus);
                         }
                     };
                     setTimeout(() => document.addEventListener('click', removeFocus), 50);
@@ -877,102 +897,64 @@
         }
 
         // ==========================================
-        //  GRIFAR MÚLTIPLOS VERSÍCULOS BLINDADOS E SEGUROS
+        //  GRIFAR MÚLTIPLOS VERSÍCULOS
         // ==========================================
         function applyColorHighlight() {
             const sel = window.getSelection();
             if(sel.isCollapsed) { customAlert("Selecione uma palavra ou frase primeiro antes de clicar em grifar."); return; }
             
-            // Lógica Matemática de Seleção (Imune a bugs de div)
             let startNode = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentNode : sel.anchorNode;
             let endNode = sel.focusNode.nodeType === 3 ? sel.focusNode.parentNode : sel.focusNode;
             
-            let v1 = startNode.closest ? startNode.closest('.verse') : null;
-            let v2 = endNode.closest ? endNode.closest('.verse') : null;
+            let v1 = startNode.closest ? startNode.closest('.verse') : null; let v2 = endNode.closest ? endNode.closest('.verse') : null;
             
             if(!v1 && !v2) { customAlert("A seleção deve estar dentro do texto de um versículo."); return; }
-            if(v1 && !v2) v2 = v1;
-            if(v2 && !v1) v1 = v2;
+            if(v1 && !v2) v2 = v1; if(v2 && !v1) v1 = v2;
 
-            let n1 = parseInt(v1.getAttribute('data-verse'));
-            let n2 = parseInt(v2.getAttribute('data-verse'));
-            
-            let vStart = Math.min(n1, n2);
-            let vEnd = Math.max(n1, n2);
+            let n1 = parseInt(v1.getAttribute('data-verse')); let n2 = parseInt(v2.getAttribute('data-verse'));
+            let vStart = Math.min(n1, n2); let vEnd = Math.max(n1, n2);
             let vRef = vStart === vEnd ? `${vStart}` : `${vStart}-${vEnd}`;
 
             const color = document.getElementById('highlightColor').value;
             const textSelected = sel.toString().trim();
 
-            // Salva em "Minhas Anotações" e já recarrega a Bíblia! O renderContent faz a mágica da pintura.
             saveToSidebar(textSelected, color, vRef);
-            
-            sel.removeAllRanges();
-            document.getElementById('contextualFormatBtn').classList.remove('visible');
-
-            // Renderiza imediatamente para mostrar a cor sem recarregar a página
+            sel.removeAllRanges(); document.getElementById('contextualFormatBtn').classList.remove('visible');
             renderContent();
         }
 
         function saveToSidebar(text, color, vRef) {
-            const book = document.getElementById('bookSelect').value; 
-            const chapter = document.getElementById('chapterSelect').value;
+            const book = document.getElementById('bookSelect').value; const chapter = document.getElementById('chapterSelect').value;
             let h = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
             h.push({ id: Date.now(), book, chapter, verse: vRef, text: text, color });
             localStorage.setItem('bibleHighlights', JSON.stringify(h));
             updateSidebarList();
         }
 
-        // ==========================================
-        //  MENU LATERAL COM FILTRO INTELIGENTE E EXCLUSÃO LIMPA
-        // ==========================================
         function updateSidebarList() {
-            const listDiv = document.getElementById('highlightsList');
-            const filterSelect = document.getElementById('filterHighlightsBook');
-            const currentFilter = filterSelect.value;
+            const listDiv = document.getElementById('highlightsList'); const filterSelect = document.getElementById('filterHighlightsBook'); const currentFilter = filterSelect.value;
             const highlights = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
-
             const uniqueBooks = [...new Set(highlights.map(h => h.book))];
             
             let optionsHTML = '<option value="all">Todas as Marcações</option>';
-            uniqueBooks.forEach(b => {
-                optionsHTML += `<option value="${b}" ${currentFilter === b ? 'selected' : ''}>${b}</option>`;
-            });
+            uniqueBooks.forEach(b => { optionsHTML += `<option value="${b}" ${currentFilter === b ? 'selected' : ''}>${b}</option>`; });
             filterSelect.innerHTML = optionsHTML;
 
             let filteredHighlights = highlights;
-            if (currentFilter !== 'all') {
-                filteredHighlights = highlights.filter(h => h.book === currentFilter);
-            }
+            if (currentFilter !== 'all') filteredHighlights = highlights.filter(h => h.book === currentFilter);
 
-            if (filteredHighlights.length === 0) {
-                listDiv.innerHTML = '<p style="color: var(--text-color); opacity: 0.5; font-size: 0.9rem; text-align: center; margin-top: 30px;">Nenhuma marcação encontrada.</p>'; 
-                return;
-            }
-            
+            if (filteredHighlights.length === 0) { listDiv.innerHTML = '<p style="color: var(--text-color); opacity: 0.5; font-size: 0.9rem; text-align: center; margin-top: 30px;">Nenhuma marcação encontrada.</p>'; return; }
             listDiv.innerHTML = '';
             
-            const grouped = filteredHighlights.reduce((acc, h) => {
-                if(!acc[h.book]) acc[h.book] = [];
-                acc[h.book].push(h);
-                return acc;
-            }, {});
+            const grouped = filteredHighlights.reduce((acc, h) => { if(!acc[h.book]) acc[h.book] = []; acc[h.book].push(h); return acc; }, {});
 
             for (const book in grouped) {
-                const header = document.createElement('h3');
-                header.className = 'book-group-title';
-                header.innerHTML = `<i class="fa-solid fa-book-bible" style="color: var(--accent-color);"></i> ${book}`;
+                const header = document.createElement('h3'); header.className = 'book-group-title'; header.innerHTML = `<i class="fa-solid fa-book-bible" style="color: var(--accent-color);"></i> ${book}`;
                 listDiv.appendChild(header);
 
                 grouped[book].slice().reverse().forEach(h => {
-                    const item = document.createElement('div');
-                    item.className = 'highlight-item'; 
-                    item.style.borderLeftColor = h.color;
-                    
-                    item.onclick = (e) => {
-                        if (e.target.closest('button')) return; 
-                        focusHighlight(h.book, h.chapter, h.verse);
-                    };
+                    const item = document.createElement('div'); item.className = 'highlight-item'; item.style.borderLeftColor = h.color;
+                    item.onclick = (e) => { if (e.target.closest('button')) return; focusHighlight(h.book, h.chapter, h.verse); };
                     item.innerHTML = `
                         <button class="btn-delete" onclick="deleteHighlight(${h.id})" title="Excluir"><i class="fa-solid fa-trash-can"></i></button>
                         <span class="highlight-ref">Capítulo ${h.chapter} : ${h.verse}</span>
@@ -987,319 +969,143 @@
             let highlights = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
             highlights = highlights.filter(h => h.id !== id);
             localStorage.setItem('bibleHighlights', JSON.stringify(highlights));
-
             updateSidebarList();
-            
-            // Apenas re-renderiza. Como a cor vinha de "Minhas Anotações", o texto volta ao normal automaticamente!
             if(document.getElementById('view-reader').classList.contains('active')) renderContent();
         }
 
         // ==========================================
-        //  BOTÃO CONTEXTUAL & POP-UP DE ESTILO MULTI-VERSÍCULO
+        //  BOTÃO CONTEXTUAL & POP-UP DE ESTILO 
         // ==========================================
-        
         document.addEventListener('selectionchange', () => {
-            const sel = window.getSelection();
-            const btn = document.getElementById('contextualFormatBtn');
+            const sel = window.getSelection(); const btn = document.getElementById('contextualFormatBtn');
             if(!sel.isCollapsed && sel.rangeCount > 0) {
-                let verses = Array.from(document.querySelectorAll('.verse'));
-                let hasVerse = verses.some(v => sel.containsNode(v, true));
-                
-                if(!hasVerse && sel.anchorNode) {
-                    let v = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentNode.closest('.verse') : sel.anchorNode.closest('.verse');
-                    if(v) hasVerse = true;
-                }
-
-                if(hasVerse) {
-                    btn.classList.add('visible');
-                    return;
-                }
+                let verses = Array.from(document.querySelectorAll('.verse')); let hasVerse = verses.some(v => sel.containsNode(v, true));
+                if(!hasVerse && sel.anchorNode) { let v = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentNode.closest('.verse') : sel.anchorNode.closest('.verse'); if(v) hasVerse = true; }
+                if(hasVerse) { btn.classList.add('visible'); return; }
             }
             btn.classList.remove('visible');
         });
 
         function openFormatMenu() {
-            const sel = window.getSelection();
-            if(sel.isCollapsed) return;
-            
-            let startNode = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentNode : sel.anchorNode;
-            let endNode = sel.focusNode.nodeType === 3 ? sel.focusNode.parentNode : sel.focusNode;
-            
-            let v1 = startNode.closest ? startNode.closest('.verse') : null;
-            let v2 = endNode.closest ? endNode.closest('.verse') : null;
-            
-            if(!v1 && !v2) return;
-            if(v1 && !v2) v2 = v1;
-            if(v2 && !v1) v1 = v2;
-
-            let n1 = parseInt(v1.getAttribute('data-verse'));
-            let n2 = parseInt(v2.getAttribute('data-verse'));
-            
-            let vStart = Math.min(n1, n2);
-            let vEnd = Math.max(n1, n2);
+            const sel = window.getSelection(); if(sel.isCollapsed) return;
+            let startNode = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentNode : sel.anchorNode; let endNode = sel.focusNode.nodeType === 3 ? sel.focusNode.parentNode : sel.focusNode;
+            let v1 = startNode.closest ? startNode.closest('.verse') : null; let v2 = endNode.closest ? endNode.closest('.verse') : null;
+            if(!v1 && !v2) return; if(v1 && !v2) v2 = v1; if(v2 && !v1) v1 = v2;
+            let n1 = parseInt(v1.getAttribute('data-verse')); let n2 = parseInt(v2.getAttribute('data-verse'));
+            let vStart = Math.min(n1, n2); let vEnd = Math.max(n1, n2);
 
             let selectedVerses = [];
-            for(let i=vStart; i<=vEnd; i++){
-                let el = document.querySelector(`.verse[data-verse="${i}"]`);
-                if(el) selectedVerses.push(el);
-            }
-
-            activeEditVerseNodes = selectedVerses;
-            if(activeEditVerseNodes.length === 0) return;
+            for(let i=vStart; i<=vEnd; i++){ let el = document.querySelector(`.verse[data-verse="${i}"]`); if(el) selectedVerses.push(el); }
+            activeEditVerseNodes = selectedVerses; if(activeEditVerseNodes.length === 0) return;
 
             backupVerseHTML = activeEditVerseNodes.map(v => v.querySelector('.verse-text').innerHTML);
             savedSelectionRange = sel.getRangeAt(0);
 
-            document.getElementById('formatPopupOverlay').classList.add('open');
-            document.getElementById('contextualFormatBtn').classList.remove('visible');
+            document.getElementById('formatPopupOverlay').classList.add('open'); document.getElementById('contextualFormatBtn').classList.remove('visible');
         }
 
         function applyFormatCommand(cmd) {
             if(activeEditVerseNodes.length === 0) return;
+            const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(savedSelectionRange);
             
-            const sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(savedSelectionRange);
-
             const container = document.getElementById('bible-content');
-            container.contentEditable = "true";
-            document.execCommand(cmd);
-            container.contentEditable = "false";
-
-            // Limpa sugeira nos números e salva as Formatações Estruturais
-            activeEditVerseNodes.forEach(v => {
-                let vNum = v.querySelector('.verse-num');
-                if(vNum) {
-                    vNum.style.fontWeight = ''; vNum.style.fontStyle = ''; vNum.style.textDecoration = '';
-                }
-                saveFormatHTML(v.querySelector('.verse-text'));
-            });
-
-            savedSelectionRange = sel.getRangeAt(0);
-            sel.removeAllRanges();
-            renderContent(); // Atualiza a tela misturando formato + anotações
+            container.contentEditable = "true"; document.execCommand(cmd); container.contentEditable = "false";
+            
+            activeEditVerseNodes.forEach(v => { let vNum = v.querySelector('.verse-num'); if(vNum) { vNum.style.fontWeight = ''; vNum.style.fontStyle = ''; vNum.style.textDecoration = ''; } saveFormatHTML(v.querySelector('.verse-text')); });
+            savedSelectionRange = sel.getRangeAt(0); sel.removeAllRanges(); renderContent(); 
         }
 
         function saveFormatHTML(verseTextEl) {
-            const verseEl = verseTextEl.closest('.verse');
-            const vNum = verseEl.getAttribute('data-verse');
-            const version = document.getElementById('versionSelect').value; 
-            const book = document.getElementById('bookSelect').value; 
-            const chapter = document.getElementById('chapterSelect').value;
-
+            const verseEl = verseTextEl.closest('.verse'); const vNum = verseEl.getAttribute('data-verse');
+            const version = document.getElementById('versionSelect').value; const book = document.getElementById('bookSelect').value; const chapter = document.getElementById('chapterSelect').value;
             let db = JSON.parse(localStorage.getItem('bibleFormats') || '[]');
             db = db.filter(f => !(f.version === version && f.book === book && f.chapter == chapter && f.verse == vNum));
             db.push({ id: Date.now(), version, book, chapter, verse: vNum, html: verseTextEl.innerHTML });
             localStorage.setItem('bibleFormats', JSON.stringify(db));
         }
 
-        function saveFormat() {
-            closeFormatPopup();
-        }
-
-        function cancelFormat() {
-            if(activeEditVerseNodes.length > 0) {
-                activeEditVerseNodes.forEach((v, idx) => {
-                    v.querySelector('.verse-text').innerHTML = backupVerseHTML[idx];
-                    saveFormatHTML(v.querySelector('.verse-text'));
-                });
-            }
-            renderContent();
-            closeFormatPopup();
-        }
-
-        function closeFormatPopup() {
-            document.getElementById('formatPopupOverlay').classList.remove('open');
-            activeEditVerseNodes = [];
-        }
+        function saveFormat() { closeFormatPopup(); }
+        function cancelFormat() { if(activeEditVerseNodes.length > 0) { activeEditVerseNodes.forEach((v, idx) => { v.querySelector('.verse-text').innerHTML = backupVerseHTML[idx]; saveFormatHTML(v.querySelector('.verse-text')); }); } renderContent(); closeFormatPopup(); }
+        function closeFormatPopup() { document.getElementById('formatPopupOverlay').classList.remove('open'); activeEditVerseNodes = []; }
 
         // ==========================================
-        //  LÓGICA DOS POST-ITS (ANCORAGEM PERFEITA)
+        //  LÓGICA DOS POST-ITS 
         // ==========================================
-        
-        function loadPostIts() {
-            postItsData = JSON.parse(localStorage.getItem('biblePostIts') || '[]');
-            postItsData = postItsData.filter(p => p.text && p.text.trim() !== '');
-            savePostIts();
-            renderAllPostIts();
-        }
-
+        function loadPostIts() { postItsData = JSON.parse(localStorage.getItem('biblePostIts') || '[]'); postItsData = postItsData.filter(p => p.text && p.text.trim() !== ''); savePostIts(); renderAllPostIts(); }
         function savePostIts() { localStorage.setItem('biblePostIts', JSON.stringify(postItsData)); }
 
         function renderAllPostIts() {
             document.querySelectorAll('.post-it-note').forEach(n => n.remove());
-            
             const activeViewId = document.querySelector('.view-section.active').id.replace('view-', '');
             let loadedBook = null; let loadedChapter = null;
 
-            if (currentChapterData && currentChapterData.reference) {
-                const refParts = currentChapterData.reference.split(' ');
-                loadedChapter = refParts.pop(); loadedBook = refParts.join(' '); 
-            }
+            if (currentChapterData && currentChapterData.reference) { const refParts = currentChapterData.reference.split(' '); loadedChapter = refParts.pop(); loadedBook = refParts.join(' '); }
 
             postItsData.forEach(data => {
-                let parent = document.body;
-                let shouldRender = false;
-
-                if (data.view === 'home' && activeViewId === 'home') {
-                    shouldRender = true;
-                } else if (data.view === 'reader' && activeViewId === 'reader') {
+                let parent = document.body; let shouldRender = false;
+                if (data.view === 'home' && activeViewId === 'home') { shouldRender = true; } else if (data.view === 'reader' && activeViewId === 'reader') {
                     if (data.book === loadedBook && data.chapter == loadedChapter) {
-                        shouldRender = true;
-                        if(!data.anchorVerse) data.anchorVerse = '1';
-                        parent = document.querySelector(`.verse[data-verse="${data.anchorVerse}"]`);
-                        if(parent) {
-                            parent.style.position = 'relative';
-                        } else {
-                            shouldRender = false;
-                        }
+                        shouldRender = true; if(!data.anchorVerse) data.anchorVerse = '1'; parent = document.querySelector(`.verse[data-verse="${data.anchorVerse}"]`);
+                        if(parent) { parent.style.position = 'relative'; } else { shouldRender = false; }
                     }
                 }
-
                 if(shouldRender && parent) renderPostItElement(data, parent);
             });
         }
 
         function createNewPostIt() {
             const activeViewId = document.querySelector('.view-section.active').id.replace('view-', '');
-            let loadedBook = null; let loadedChapter = null;
-            let anchorVerse = null;
-            let x = 10, y = 10;
+            let loadedBook = null; let loadedChapter = null; let anchorVerse = null; let x = 10, y = 10;
 
             if (activeViewId === 'reader') {
                 if (!currentChapterData) { customAlert("Carregue um capítulo primeiro antes de colar um adesivo!"); return; }
-                
-                const refParts = currentChapterData.reference.split(' '); 
-                loadedChapter = refParts.pop(); loadedBook = refParts.join(' ');
+                const refParts = currentChapterData.reference.split(' '); loadedChapter = refParts.pop(); loadedBook = refParts.join(' ');
 
-                let targetVerse = document.querySelector('.verse'); 
-                let minDiff = Infinity;
-                document.querySelectorAll('.verse').forEach(v => {
-                    const rect = v.getBoundingClientRect();
-                    const diff = Math.abs(rect.top + (rect.height/2) - (window.innerHeight / 2));
-                    if (diff < minDiff) { minDiff = diff; targetVerse = v; }
-                });
+                let targetVerse = document.querySelector('.verse'); let minDiff = Infinity;
+                document.querySelectorAll('.verse').forEach(v => { const rect = v.getBoundingClientRect(); const diff = Math.abs(rect.top + (rect.height/2) - (window.innerHeight / 2)); if (diff < minDiff) { minDiff = diff; targetVerse = v; } });
 
-                if(targetVerse) {
-                    anchorVerse = targetVerse.dataset.verse;
-                    const vRect = targetVerse.getBoundingClientRect();
-                    x = (window.innerWidth / 2) - 90 - vRect.left;
-                    y = (window.innerHeight / 2) - 90 - vRect.top;
-                    if (x < 10) x = 10;
-                    if (y < -50) y = -50; 
-                }
-            } else {
-                const scrollY = window.scrollY || document.documentElement.scrollTop;
-                x = (window.innerWidth / 2) - 90; 
-                y = scrollY + (window.innerHeight / 2) - 90;
-            }
+                if(targetVerse) { anchorVerse = targetVerse.dataset.verse; const vRect = targetVerse.getBoundingClientRect(); x = (window.innerWidth / 2) - 90 - vRect.left; y = (window.innerHeight / 2) - 90 - vRect.top; if (x < 10) x = 10; if (y < -50) y = -50; }
+            } else { const scrollY = window.scrollY || document.documentElement.scrollTop; x = (window.innerWidth / 2) - 90; y = scrollY + (window.innerHeight / 2) - 90; }
 
-            const newPostIt = {
-                id: Date.now(), view: activeViewId, book: loadedBook, chapter: loadedChapter,
-                anchorVerse: anchorVerse, x: x, y: y,
-                w: 180, h: 180, color: '#ffeb3b', text: '', folded: false
-            };
-            postItsData.push(newPostIt); savePostIts(); 
-            renderAllPostIts();
+            const newPostIt = { id: Date.now(), view: activeViewId, book: loadedBook, chapter: loadedChapter, anchorVerse: anchorVerse, x: x, y: y, w: 180, h: 180, color: '#ffeb3b', text: '', folded: false };
+            postItsData.push(newPostIt); savePostIts(); renderAllPostIts();
         }
 
         function renderPostItElement(data, parent) {
-            const postIt = document.createElement('div');
-            postIt.className = 'post-it-note';
-            postIt.id = `postit-${data.id}`;
-            postIt.style.left = `${data.x}px`; postIt.style.top = `${data.y}px`;
-            postIt.style.width = `${data.w}px`; postIt.style.height = `${data.h}px`;
-            postIt.style.backgroundColor = data.color;
-            
+            const postIt = document.createElement('div'); postIt.className = 'post-it-note'; postIt.id = `postit-${data.id}`; postIt.style.left = `${data.x}px`; postIt.style.top = `${data.y}px`; postIt.style.width = `${data.w}px`; postIt.style.height = `${data.h}px`; postIt.style.backgroundColor = data.color;
             if(data.folded) postIt.classList.add('folded');
 
-            const header = document.createElement('div');
-            header.className = 'post-it-header';
-            
-            const controls = document.createElement('div');
-            controls.className = 'post-it-controls';
+            const header = document.createElement('div'); header.className = 'post-it-header'; const controls = document.createElement('div'); controls.className = 'post-it-controls';
 
-            const foldBtn = document.createElement('button');
-            foldBtn.className = 'post-it-btn'; foldBtn.title = 'Dobrar / Desdobrar';
-            foldBtn.innerHTML = data.folded ? '<i class="fa-solid fa-expand"></i>' : '<i class="fa-solid fa-compress"></i>';
-            foldBtn.onclick = () => {
-                data.folded = !data.folded;
-                if(data.folded) {
-                    postIt.classList.add('folded'); foldBtn.innerHTML = '<i class="fa-solid fa-expand"></i>';
-                } else {
-                    postIt.classList.remove('folded'); foldBtn.innerHTML = '<i class="fa-solid fa-compress"></i>';
-                }
-                savePostIts();
-            };
+            const foldBtn = document.createElement('button'); foldBtn.className = 'post-it-btn'; foldBtn.title = 'Dobrar / Desdobrar'; foldBtn.innerHTML = data.folded ? '<i class="fa-solid fa-expand"></i>' : '<i class="fa-solid fa-compress"></i>';
+            foldBtn.onclick = () => { data.folded = !data.folded; if(data.folded) { postIt.classList.add('folded'); foldBtn.innerHTML = '<i class="fa-solid fa-expand"></i>'; } else { postIt.classList.remove('folded'); foldBtn.innerHTML = '<i class="fa-solid fa-compress"></i>'; } savePostIts(); };
 
-            const colorInput = document.createElement('input');
-            colorInput.type = 'color'; colorInput.className = 'post-it-color'; colorInput.value = data.color;
+            const colorInput = document.createElement('input'); colorInput.type = 'color'; colorInput.className = 'post-it-color'; colorInput.value = data.color;
             colorInput.addEventListener('input', (e) => { data.color = e.target.value; postIt.style.backgroundColor = data.color; savePostIts(); });
 
-            const deleteBtn = document.createElement('button');
-            deleteBtn.className = 'post-it-btn'; deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
-            deleteBtn.onclick = () => { 
-                customConfirm("Deseja amassar e jogar fora esta anotação?", (res) => {
-                    if(res) { postIt.remove(); postItsData = postItsData.filter(p => p.id !== data.id); savePostIts(); }
-                });
-            };
+            const deleteBtn = document.createElement('button'); deleteBtn.className = 'post-it-btn'; deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
+            deleteBtn.onclick = () => { customConfirm("Deseja amassar e jogar fora esta anotação?", (res) => { if(res) { postIt.remove(); postItsData = postItsData.filter(p => p.id !== data.id); savePostIts(); } }); };
 
-            controls.appendChild(foldBtn); controls.appendChild(colorInput); controls.appendChild(deleteBtn);
-            header.appendChild(controls); postIt.appendChild(header);
+            controls.appendChild(foldBtn); controls.appendChild(colorInput); controls.appendChild(deleteBtn); header.appendChild(controls); postIt.appendChild(header);
 
-            const contentWrapper = document.createElement('div');
-            contentWrapper.className = 'post-it-content-wrapper';
-
-            const textArea = document.createElement('textarea');
-            textArea.className = 'post-it-content'; textArea.placeholder = 'Sua anotação...'; textArea.value = data.text;
+            const contentWrapper = document.createElement('div'); contentWrapper.className = 'post-it-content-wrapper';
+            const textArea = document.createElement('textarea'); textArea.className = 'post-it-content'; textArea.placeholder = 'Sua anotação...'; textArea.value = data.text;
             textArea.addEventListener('input', (e) => { data.text = e.target.value; savePostIts(); });
             textArea.addEventListener('blur', (e) => { if (data.text.trim() === '') { postIt.remove(); postItsData = postItsData.filter(p => p.id !== data.id); savePostIts(); } });
 
-            contentWrapper.appendChild(textArea); postIt.appendChild(contentWrapper);
-            
-            parent.appendChild(postIt);
+            contentWrapper.appendChild(textArea); postIt.appendChild(contentWrapper); parent.appendChild(postIt);
             
             makeDraggableAndResizable(postIt, data);
             if(data.text === '') textArea.focus();
         }
 
         function makeDraggableAndResizable(element, data) {
-            const header = element.querySelector('.post-it-header');
-            let isDragging = false; let startX, startY, initialX, initialY;
-
-            function startDrag(e) {
-                if (e.target.closest('.post-it-controls')) return; 
-                isDragging = true; element.classList.add('dragging');
-                const event = e.type.includes('touch') ? e.touches[0] : e;
-                startX = event.clientX; startY = event.clientY;
-                initialX = element.offsetLeft; initialY = element.offsetTop;
-                document.addEventListener('mousemove', drag, { passive: false }); document.addEventListener('mouseup', stopDrag);
-                document.addEventListener('touchmove', drag, { passive: false }); document.addEventListener('touchend', stopDrag);
-            }
-
-            function drag(e) {
-                if (!isDragging) return; if(e.cancelable) e.preventDefault(); 
-                const event = e.type.includes('touch') ? e.touches[0] : e;
-                element.style.left = (initialX + (event.clientX - startX)) + 'px';
-                element.style.top = (initialY + (event.clientY - startY)) + 'px';
-            }
-
-            function stopDrag(e) {
-                if (!isDragging) return; isDragging = false; element.classList.remove('dragging');
-                document.removeEventListener('mousemove', drag); document.removeEventListener('mouseup', stopDrag);
-                document.removeEventListener('touchmove', drag); document.removeEventListener('touchend', stopDrag);
-                data.x = parseInt(element.style.left); data.y = parseInt(element.style.top); savePostIts();
-            }
-
+            const header = element.querySelector('.post-it-header'); let isDragging = false; let startX, startY, initialX, initialY;
+            function startDrag(e) { if (e.target.closest('.post-it-controls')) return; isDragging = true; element.classList.add('dragging'); const event = e.type.includes('touch') ? e.touches[0] : e; startX = event.clientX; startY = event.clientY; initialX = element.offsetLeft; initialY = element.offsetTop; document.addEventListener('mousemove', drag, { passive: false }); document.addEventListener('mouseup', stopDrag); document.addEventListener('touchmove', drag, { passive: false }); document.addEventListener('touchend', stopDrag); }
+            function drag(e) { if (!isDragging) return; if(e.cancelable) e.preventDefault(); const event = e.type.includes('touch') ? e.touches[0] : e; element.style.left = (initialX + (event.clientX - startX)) + 'px'; element.style.top = (initialY + (event.clientY - startY)) + 'px'; }
+            function stopDrag(e) { if (!isDragging) return; isDragging = false; element.classList.remove('dragging'); document.removeEventListener('mousemove', drag); document.removeEventListener('mouseup', stopDrag); document.removeEventListener('touchmove', drag); document.removeEventListener('touchend', stopDrag); data.x = parseInt(element.style.left); data.y = parseInt(element.style.top); savePostIts(); }
             header.addEventListener('mousedown', startDrag); header.addEventListener('touchstart', startDrag, { passive: false });
-
-            const resizeObserver = new ResizeObserver(entries => {
-                for (let entry of entries) {
-                    if(!isDragging && !data.folded && entry.contentRect.width > 0) {
-                        data.w = element.offsetWidth; data.h = element.offsetHeight; savePostIts();
-                    }
-                }
-            });
+            const resizeObserver = new ResizeObserver(entries => { for (let entry of entries) { if(!isDragging && !data.folded && entry.contentRect.width > 0) { data.w = element.offsetWidth; data.h = element.offsetHeight; savePostIts(); } } });
             resizeObserver.observe(element);
         }
     </script>
