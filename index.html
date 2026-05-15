@@ -266,7 +266,7 @@
         .preset-btn.active-theme { background-color: var(--accent-color); color: #ffffff; box-shadow: inset 0 3px 6px rgba(0,0,0,0.3); transform: scale(0.96); }
         .btn-save { width: 100%; background: var(--accent-color); color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; gap: 8px; }
 
-        /* ----- ALERTAS E CONFIRMAÇÕES ELEGANTES ----- */
+        /* ----- ALERTAS, CONFIRMAÇÕES E PROMPTS ELEGANTES ----- */
         .custom-alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); z-index: 7000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.2s ease; }
         .custom-alert-overlay.open { display: flex; opacity: 1; }
         .custom-alert-box { background: var(--secondary-bg); padding: 25px 30px; border-radius: 20px; text-align: center; max-width: 300px; width: 90%; box-shadow: 0 15px 35px rgba(0,0,0,0.5), inset 0 2px 5px rgba(255,255,255,0.05); transform: scale(0.9); transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
@@ -430,7 +430,8 @@
     </div>
 
     <div id="musicPopupOverlay" class="custom-alert-overlay">
-        <div class="custom-alert-box" id="musicPopupContent" style="max-width: 350px;"></div>
+        <div class="custom-alert-box" id="musicPopupContent" style="max-width: 350px;">
+            </div>
     </div>
 
     <div id="sidebar">
@@ -914,27 +915,43 @@
         function renderMusicLinkInput() {
             closeMusicPopup();
             customPromptMsg("Cole o link (YouTube ou áudio direto):", (url) => {
-                if (url && url.trim() !== '') { startMusic(url.trim()); } else { toggleMusicPopup(); }
+                if (url && url.trim() !== '') {
+                    startMusic(url.trim());
+                } else {
+                    toggleMusicPopup();
+                }
             }, true);
         }
 
         function handleLocalAudio(event) {
             const file = event.target.files[0];
-            if (file) { const url = URL.createObjectURL(file); startMusic(url); }
+            if (file) {
+                const url = URL.createObjectURL(file);
+                startMusic(url);
+            }
         }
 
         function startMusic(url) {
             const ytId = getYoutubeId(url);
+
             if (ytId) {
-                currentAudioMode = 'youtube'; musicPlayer.pause(); 
+                currentAudioMode = 'youtube';
+                musicPlayer.pause(); 
+
                 if (ytPlayer && ytPlayer.loadVideoById) {
-                    ytPlayer.loadVideoById({videoId: ytId}); ytPlayer.setVolume(globalMusicVolume); finalizeStartMusic();
+                    ytPlayer.loadVideoById({videoId: ytId});
+                    ytPlayer.setVolume(globalMusicVolume);
+                    finalizeStartMusic();
                 } else {
                     ytPlayer = new YT.Player('ytPlayerContainer', {
                         height: '1', width: '1', videoId: ytId,
                         playerVars: { 'autoplay': 1, 'controls': 0, 'loop': 1, 'playlist': ytId, 'playsinline': 1 },
                         events: {
-                            'onReady': function(event) { event.target.setVolume(globalMusicVolume); event.target.playVideo(); finalizeStartMusic(); },
+                            'onReady': function(event) { 
+                                event.target.setVolume(globalMusicVolume);
+                                event.target.playVideo(); 
+                                finalizeStartMusic(); 
+                            },
                             'onStateChange': function(event) { if (event.data === YT.PlayerState.ENDED) event.target.playVideo(); }
                         }
                     });
@@ -942,7 +959,9 @@
             } else {
                 currentAudioMode = 'html5';
                 if (ytPlayer && ytPlayer.pauseVideo) ytPlayer.pauseVideo(); 
-                musicPlayer.src = url; musicPlayer.volume = globalMusicVolume / 100;
+
+                musicPlayer.src = url;
+                musicPlayer.volume = globalMusicVolume / 100;
                 musicPlayer.play().then(() => { finalizeStartMusic(); }).catch(e => {
                     customAlert("Não foi possível reproduzir este áudio. Verifique se o arquivo ou link é válido.");
                     musicPlayer.src = ''; currentAudioMode = 'none';
@@ -950,35 +969,53 @@
             }
         }
 
-        function finalizeStartMusic() { document.getElementById('musicIconHeader').classList.add('fa-beat-fade'); toggleMusicPopup(); }
+        function finalizeStartMusic() {
+            document.getElementById('musicIconHeader').classList.add('fa-beat-fade');
+            toggleMusicPopup(); 
+        }
 
         function renderMusicControls() {
             let isPlaying = false; let isMuted = false;
+
             if (currentAudioMode === 'youtube' && ytPlayer && ytPlayer.getPlayerState) {
                 const state = ytPlayer.getPlayerState();
-                isPlaying = (state === 1 || state === 3); isMuted = ytPlayer.isMuted();
+                isPlaying = (state === 1 || state === 3); 
+                isMuted = ytPlayer.isMuted();
             } else {
                 isPlaying = !musicPlayer.paused; isMuted = musicPlayer.muted;
             }
 
             musicContent.innerHTML = `
                 <h3><i class="fa-solid fa-compact-disc ${isPlaying ? 'fa-spin' : ''}" style="color: var(--accent-color); animation-duration: 3s;"></i> Reprodutor</h3>
+                
                 <div style="margin: 15px 0;">
                     <p style="font-size: 0.85rem; opacity: 0.8; margin-bottom: 5px; text-align: left;"><i class="fa-solid fa-volume-high"></i> Volume: <span id="volLabel">${globalMusicVolume}%</span></p>
                     <input type="range" min="0" max="100" value="${globalMusicVolume}" class="speed-slider" oninput="changeMusicVolume(this.value)">
                 </div>
+
                 <div class="format-tools" style="margin: 20px 0;">
-                    <button class="format-btn" onclick="togglePlayPauseMusic()" title="Play/Pause"><i class="fa-solid ${isPlaying ? 'fa-pause' : 'fa-play'}"></i></button>
-                    <button class="format-btn" onclick="toggleMuteMusic()" title="Mutar/Desmutar"><i class="fa-solid ${isMuted ? 'fa-volume-xmark' : 'fa-volume-high'}"></i></button>
-                    <button class="format-btn btn-clear" onclick="changeMusic()" title="Trocar Música"><i class="fa-solid fa-rotate"></i></button>
+                    <button class="format-btn" onclick="togglePlayPauseMusic()" title="Play/Pause">
+                        <i class="fa-solid ${isPlaying ? 'fa-pause' : 'fa-play'}"></i>
+                    </button>
+                    <button class="format-btn" onclick="toggleMuteMusic()" title="Mutar/Desmutar">
+                        <i class="fa-solid ${isMuted ? 'fa-volume-xmark' : 'fa-volume-high'}"></i>
+                    </button>
+                    <button class="format-btn btn-clear" onclick="changeMusic()" title="Trocar Música">
+                        <i class="fa-solid fa-rotate"></i>
+                    </button>
                 </div>
                 <button class="btn-cancelar" style="width: 100%; border:none; opacity:0.6;" onclick="closeMusicPopup()">Ocultar Controles</button>
             `;
         }
 
         function changeMusicVolume(val) {
-            globalMusicVolume = val; document.getElementById('volLabel').innerText = val + '%';
-            if (currentAudioMode === 'youtube' && ytPlayer && ytPlayer.setVolume) { ytPlayer.setVolume(val); } else if (musicPlayer) { musicPlayer.volume = val / 100; }
+            globalMusicVolume = val;
+            document.getElementById('volLabel').innerText = val + '%';
+            if (currentAudioMode === 'youtube' && ytPlayer && ytPlayer.setVolume) {
+                ytPlayer.setVolume(val);
+            } else if (musicPlayer) {
+                musicPlayer.volume = val / 100;
+            }
         }
 
         function togglePlayPauseMusic() {
@@ -994,7 +1031,9 @@
         }
 
         function toggleMuteMusic() {
-            if (currentAudioMode === 'youtube' && ytPlayer) { if (ytPlayer.isMuted()) ytPlayer.unMute(); else ytPlayer.mute(); } else { musicPlayer.muted = !musicPlayer.muted; }
+            if (currentAudioMode === 'youtube' && ytPlayer) {
+                if (ytPlayer.isMuted()) ytPlayer.unMute(); else ytPlayer.mute();
+            } else { musicPlayer.muted = !musicPlayer.muted; }
             renderMusicControls();
         }
 
@@ -1006,7 +1045,7 @@
         }
 
         // ==========================================
-        //  SISTEMA DE LEGENDA E TTS BLINDADO
+        //  SISTEMA DE LEGENDA E TTS (KARAOKÊ CIRÚRGICO)
         // ==========================================
         let isTranslationActive = false;
         let currentTranslationLang = 'en';
@@ -1017,8 +1056,11 @@
             if (isTranslationActive) {
                 isTranslationActive = false;
                 const btn = document.getElementById('btnTranslateToggle');
-                btn.style.backgroundColor = 'var(--item-bg)'; btn.style.color = 'var(--text-color)'; btn.innerHTML = '<i class="fa-solid fa-language"></i> Legenda';
-                document.querySelectorAll('.verse-translation').forEach(el => el.remove()); window.speechSynthesis.cancel(); 
+                btn.style.backgroundColor = 'var(--item-bg)';
+                btn.style.color = 'var(--text-color)';
+                btn.innerHTML = '<i class="fa-solid fa-language"></i> Legenda';
+                document.querySelectorAll('.verse-translation').forEach(el => el.remove());
+                window.speechSynthesis.cancel(); 
             } else {
                 document.getElementById('translatePopupOverlay').classList.add('open');
             }
@@ -1033,7 +1075,9 @@
             
             isTranslationActive = true;
             const btn = document.getElementById('btnTranslateToggle');
-            btn.style.backgroundColor = 'var(--accent-color)'; btn.style.color = '#fff'; btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Traduzindo...';
+            btn.style.backgroundColor = 'var(--accent-color)';
+            btn.style.color = '#fff';
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Traduzindo...';
             
             await applyTranslationToCurrentChapter();
             
@@ -1078,9 +1122,23 @@
                         if(!verseEl.querySelector('.verse-translation')) {
                             const transDiv = document.createElement('div');
                             transDiv.className = 'verse-translation'; transDiv.title = "Ouvir Tradução";
-                            transDiv.dataset.originalText = translatedTexts[idx];
-                            transDiv.innerHTML = `<i class="fa-solid fa-volume-low" style="margin-right: 6px; opacity:0.8;"></i> ${translatedTexts[idx]}`;
                             
+                            // Blindagem do HTML para o Karaokê (fatiando palavra por palavra)
+                            const words = translatedTexts[idx].split(/(\s+)/);
+                            let cleanHtml = `<i class="fa-solid fa-volume-low" style="margin-right: 6px; opacity:0.8;"></i> `;
+                            let charIndexTracker = 0;
+                            
+                            words.forEach(word => {
+                                if (word.trim().length > 0) {
+                                    cleanHtml += `<span id="tts-word-${charIndexTracker}">${word}</span>`;
+                                } else {
+                                    cleanHtml += word;
+                                }
+                                charIndexTracker += word.length;
+                            });
+
+                            transDiv.innerHTML = cleanHtml;
+                            transDiv.dataset.originalText = translatedTexts[idx];
                             transDiv.onclick = (e) => { e.stopPropagation(); readTextAloud(translatedTexts[idx], currentTranslationLang, transDiv); };
                             verseEl.appendChild(transDiv);
                         }
@@ -1090,49 +1148,62 @@
         }
 
         function clearAllTtsHighlights() {
-            document.querySelectorAll('.verse-translation').forEach(el => {
-                if (el.dataset.originalText) { el.innerHTML = `<i class="fa-solid fa-volume-low" style="margin-right: 6px; opacity:0.8;"></i> ${el.dataset.originalText}`; }
+            document.querySelectorAll('.verse-translation span[id^="tts-word-"]').forEach(el => {
+                el.style.backgroundColor = '';
+                el.style.color = '';
+                el.style.padding = '';
+                el.style.borderRadius = '';
+                el.style.boxShadow = '';
             });
         }
 
         function readTextAloud(text, lang, element) {
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); clearAllTtsHighlights();
+                window.speechSynthesis.cancel(); 
+                clearAllTtsHighlights();
+
                 const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = lang; utterance.rate = currentTtsSpeed; 
+                utterance.lang = lang; 
+                utterance.rate = currentTtsSpeed; 
                 
-                // Previne o Chrome de matar o evento no meio do caminho
-                window.speechUtterances.push(utterance);
+                window.speechUtterances = [utterance]; // Previne Garbage Collector
 
                 utterance.onboundary = function(event) {
                     if (event.name === 'word') {
-                        const charIndex = event.charIndex;
-                        let wordLength = event.charLength;
+                        clearAllTtsHighlights();
                         
-                        // Fallback matemático caso o navegador não retorne o tamanho da palavra (ex: Safari/Android)
-                        if (!wordLength) {
-                            const match = text.substring(charIndex).match(/^[^ \t\n\r]+/);
-                            wordLength = match ? match[0].length : 1;
-                        }
+                        let closestWordId = null;
+                        let minDiff = Infinity;
                         
-                        if (wordLength > 0) {
-                            const before = text.substring(0, charIndex);
-                            const word = text.substring(charIndex, charIndex + wordLength);
-                            const after = text.substring(charIndex + wordLength);
-                            element.innerHTML = `<i class="fa-solid fa-volume-low" style="margin-right: 6px; opacity:0.8;"></i> ${before}<span style="background-color: var(--accent-color); color: #fff; padding: 0 4px; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.3);">${word}</span>${after}`;
+                        // Encontra a palavra exata ou mais próxima matematicamente
+                        element.querySelectorAll('span[id^="tts-word-"]').forEach(s => {
+                            let wIdx = parseInt(s.id.replace('tts-word-', ''));
+                            if (wIdx <= event.charIndex && (event.charIndex - wIdx) < minDiff) {
+                                minDiff = event.charIndex - wIdx;
+                                closestWordId = s.id;
+                            }
+                        });
+
+                        if (closestWordId) {
+                            let target = document.getElementById(closestWordId);
+                            if(target) {
+                                target.style.backgroundColor = 'var(--accent-color)';
+                                target.style.color = '#fff';
+                                target.style.padding = '0 4px';
+                                target.style.borderRadius = '4px';
+                                target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
+                            }
                         }
                     }
                 };
 
-                utterance.onend = function() { 
-                    clearAllTtsHighlights(); 
-                    const index = window.speechUtterances.indexOf(utterance);
-                    if(index > -1) window.speechUtterances.splice(index, 1);
-                };
-                utterance.onerror = function() { clearAllTtsHighlights(); };
+                utterance.onend = function() { clearAllTtsHighlights(); window.speechUtterances = []; };
+                utterance.onerror = function() { clearAllTtsHighlights(); window.speechUtterances = []; };
 
                 window.speechSynthesis.speak(utterance);
-            } else { customAlert("Seu navegador não suporta leitura por voz."); }
+            } else { 
+                customAlert("Seu navegador não suporta leitura por voz."); 
+            }
         }
 
         // ==========================================
@@ -1350,10 +1421,45 @@
             }
         }
 
+        // LIMPEZA CIRÚRGICA DE MARCAÇÕES
         function deleteHighlight(id) {
             let highlights = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
+            const hlToDelete = highlights.find(h => h.id === id);
             highlights = highlights.filter(h => h.id !== id);
             localStorage.setItem('bibleHighlights', JSON.stringify(highlights));
+
+            if(hlToDelete) {
+                let db = JSON.parse(localStorage.getItem('bibleFormats') || '[]');
+                let vParts = String(hlToDelete.verse).split('-');
+                let vStart = parseInt(vParts[0]); let vEnd = parseInt(vParts[1] || vParts[0]);
+                
+                for (let vNum = vStart; vNum <= vEnd; vNum++) {
+                    let formatObj = db.find(f => f.book === hlToDelete.book && f.chapter == hlToDelete.chapter && f.verse == vNum);
+                    if(formatObj) {
+                        let tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = formatObj.html;
+                        
+                        let allEls = tempDiv.querySelectorAll('*');
+                        let targetText = hlToDelete.text.replace(/\s+/g, '').toLowerCase();
+                        
+                        allEls.forEach(el => {
+                            if (el.style && (el.style.backgroundColor || el.style.background)) {
+                                let elText = el.textContent.replace(/\s+/g, '').toLowerCase();
+                                if(elText && (targetText.includes(elText) || elText.includes(targetText))) {
+                                    el.style.backgroundColor = '';
+                                    el.style.background = '';
+                                    el.style.color = '';
+                                    el.removeAttribute('color');
+                                    if (el.getAttribute('style') === '') el.removeAttribute('style');
+                                }
+                            }
+                        });
+                        formatObj.html = tempDiv.innerHTML;
+                    }
+                }
+                localStorage.setItem('bibleFormats', JSON.stringify(db));
+            }
+
             updateSidebarList();
             if(document.getElementById('view-reader').classList.contains('active')) renderContent();
         }
@@ -1389,6 +1495,7 @@
             document.getElementById('formatPopupOverlay').classList.add('open'); document.getElementById('contextualFormatBtn').classList.remove('visible');
         }
 
+        // ESTILIZAÇÃO BLINDADA (NEGRITO, ITALICO...)
         function applyFormatCommand(cmd) {
             if(activeEditVerseNodes.length === 0) return;
             const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(savedSelectionRange);
