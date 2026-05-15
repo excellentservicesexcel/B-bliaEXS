@@ -280,6 +280,18 @@
         
         .prompt-input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: var(--item-bg); color: var(--text-color); margin-bottom: 20px; box-sizing: border-box; outline: none; font-family: 'Inter', sans-serif; }
 
+        /* ----- CONTROLE DE VELOCIDADE (SLIDER) ----- */
+        .speed-slider {
+            -webkit-appearance: none; width: 100%; height: 6px; background: rgba(255,255,255,0.1);
+            border-radius: 5px; outline: none; margin-bottom: 15px;
+        }
+        .speed-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%;
+            background: var(--accent-color); cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            transition: transform 0.1s;
+        }
+        .speed-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
         /* ----- POP-UP DE FORMATAÇÃO CIRÚRGICO ----- */
         .format-modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 4000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.2s ease; }
         .format-modal-overlay.open { display: flex; opacity: 1; }
@@ -392,7 +404,7 @@
         <div class="custom-alert-box" style="max-width: 350px;">
             <h3><i class="fa-solid fa-language" style="color: var(--accent-color);"></i> Ativar Legenda</h3>
             <p>Escolha o idioma para traduzir o texto:</p>
-            <select id="translateLangSelect" class="prompt-input" style="cursor: pointer;">
+            <select id="translateLangSelect" class="prompt-input" style="cursor: pointer; margin-bottom: 15px;">
                 <option value="en">Inglês (English)</option>
                 <option value="es">Espanhol (Español)</option>
                 <option value="fr">Francês (Français)</option>
@@ -403,7 +415,17 @@
                 <option value="la">Latim (Latina)</option>
                 <option value="ja">Japonês (日本語)</option>
             </select>
-            <div class="actions">
+            
+            <p style="margin-bottom: 10px; font-size: 0.9rem; text-align: left; opacity: 0.8;">
+                <i class="fa-solid fa-gauge-high" style="color: var(--accent-color); margin-right: 5px;"></i>Velocidade da Voz: <strong id="speedValueLabel">1x</strong>
+            </p>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                <i class="fa-solid fa-turtle" style="opacity: 0.5; font-size: 0.8rem;"></i>
+                <input type="range" id="ttsSpeedSlider" min="0.3" max="3" step="0.1" value="1" class="speed-slider" oninput="document.getElementById('speedValueLabel').innerText = parseFloat(this.value).toFixed(1) + 'x'">
+                <i class="fa-solid fa-rabbit" style="opacity: 0.5; font-size: 0.8rem;"></i>
+            </div>
+
+            <div class="actions" style="margin-top: 20px;">
                 <button class="btn-cancelar" onclick="closeTranslatePopup()">Cancelar</button>
                 <button class="btn-ok" onclick="confirmTranslation()">Confirmar</button>
             </div>
@@ -908,7 +930,7 @@
                     toggleMusicPopup(); // Abre direto na tela de controles
                 })
                 .catch(e => {
-                    customAlert("Não foi possível reproduzir este áudio. Verifique se o link ou arquivo é válido.");
+                    customAlert("Não foi possível reproduzir este áudio. Verifique se o arquivo ou link é válido.");
                     musicPlayer.src = '';
                 });
         }
@@ -957,10 +979,11 @@
         }
 
         // ==========================================
-        //  SISTEMA DE LEGENDA (TRADUÇÃO EM TEMPO REAL) E TTS
+        //  SISTEMA DE LEGENDA E TTS (VOZ COM CONTROLE DE VELOCIDADE)
         // ==========================================
         let isTranslationActive = false;
         let currentTranslationLang = 'en';
+        let currentTtsSpeed = 1; // Variável global de velocidade (1x é o padrão)
         let translatedVersesCache = {};
 
         function toggleTranslation() {
@@ -971,7 +994,7 @@
                 btn.style.color = 'var(--text-color)';
                 btn.innerHTML = '<i class="fa-solid fa-language"></i> Legenda';
                 document.querySelectorAll('.verse-translation').forEach(el => el.remove());
-                window.speechSynthesis.cancel(); // Para leitura se fechar legenda
+                window.speechSynthesis.cancel(); 
             } else {
                 document.getElementById('translatePopupOverlay').classList.add('open');
             }
@@ -983,6 +1006,8 @@
 
         async function confirmTranslation() {
             currentTranslationLang = document.getElementById('translateLangSelect').value;
+            // Resgata o valor selecionado na barra de slider
+            currentTtsSpeed = parseFloat(document.getElementById('ttsSpeedSlider').value);
             closeTranslatePopup();
             
             isTranslationActive = true;
@@ -1054,11 +1079,10 @@
                             const transDiv = document.createElement('div');
                             transDiv.className = 'verse-translation';
                             transDiv.title = "Ouvir Tradução";
-                            // Adicionado o ícone de áudio e a ação de falar (TTS)
                             transDiv.innerHTML = `<i class="fa-solid fa-volume-low" style="margin-right: 6px; opacity:0.8;"></i> ${translatedTexts[idx]}`;
                             
                             transDiv.onclick = (e) => {
-                                e.stopPropagation(); // Evita que clique na legenda foque o versículo inteiro
+                                e.stopPropagation(); 
                                 readTextAloud(translatedTexts[idx], currentTranslationLang);
                             };
 
@@ -1069,12 +1093,12 @@
             }
         }
 
-        // Função responsável por ler o texto
         function readTextAloud(text, lang) {
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); // Interrompe áudio anterior se houver
+                window.speechSynthesis.cancel(); 
                 const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = lang; // Usa a própria sigla da tradução para a voz (en, es, fr, etc)
+                utterance.lang = lang; 
+                utterance.rate = currentTtsSpeed; // Aplica a velocidade selecionada
                 window.speechSynthesis.speak(utterance);
             } else {
                 customAlert("Seu navegador não suporta leitura por voz.");
