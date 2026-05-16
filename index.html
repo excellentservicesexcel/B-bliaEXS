@@ -1033,7 +1033,6 @@
             let savedIndex = localStorage.getItem('devoIndex'); 
             
             try {
-                // Tenta carregar do arquivo palavras.json
                 const response = await fetch('./palavras.json');
                 if (response.ok) {
                     const devos = await response.json();
@@ -1357,10 +1356,9 @@
         
         let ttsWords = [];
         let ttsCurrentIndex = 0;
-        let ttsUtterance = null;
-        let ttsLang = 'en';
-        let ttsTimer = null;
+        let ttsQueueIndex = 0;
         let isTtsManuallyPaused = false;
+        let ttsLang = 'en';
 
         function toggleTranslation() {
             if (isTranslationActive) {
@@ -1441,14 +1439,12 @@
             }
         }
 
-        // --- SISTEMA INTELIGENTE DE TTS POP-UP ---
+        // --- SISTEMA DE TTS INVERSO (O ÁUDIO OBEDECE ÀS PALAVRAS) ---
         function readTextAloud(text, lang) {
             if (!('speechSynthesis' in window)) { customAlert("Seu navegador não suporta leitura por voz."); return; }
             
             ttsLang = lang;
             ttsWords = text.match(/\S+/g) || [];
-            ttsCurrentIndex = 0;
-            isTtsManuallyPaused = false;
             
             document.getElementById('ttsPlayerPopup').classList.add('open');
             document.getElementById('ttsWordTranslation').style.display = 'none';
@@ -1467,83 +1463,71 @@
         }
 
         function playTtsFromWord(index) {
-            window.speechSynthesis.cancel();
-            clearTimeout(ttsTimer);
-            
-            if (index >= ttsWords.length) { stopTts(); return; }
-            
+            window.speechSynthesis.cancel(); // Limpa completamente áudios perdidos
             ttsCurrentIndex = index;
-            const remainingText = ttsWords.slice(index).join(' ');
-            ttsUtterance = new SpeechSynthesisUtterance(remainingText);
-            ttsUtterance.lang = ttsLang;
-            ttsUtterance.rate = currentTtsSpeed;
-
-            const voices = window.speechSynthesis.getVoices();
-            let localVoice = voices.find(v => v.lang.startsWith(ttsLang) && v.localService) || voices.find(v => v.lang.startsWith(ttsLang));
-            if(localVoice) ttsUtterance.voice = localVoice;
-
-            ttsUtterance.onstart = function() {
-                isTtsManuallyPaused = false;
-                // Inicia o loop cronometrado inteligente das palavras
-                scheduleNextWord();
-            };
+            ttsQueueIndex = index;
+            isTtsManuallyPaused = false;
             
-            ttsUtterance.onend = function() {
-                clearTimeout(ttsTimer);
-                if (!isTtsManuallyPaused && ttsCurrentIndex >= ttsWords.length - 1) {
-                     stopTts();
-                }
-            };
-
-            window.speechSynthesis.speak(ttsUtterance);
+            // Cria uma fila de 3 palavras para não haver buracos/silêncio longo na transição
+            for(let i = 0; i < 3; i++) {
+                queueNextWord();
+            }
         }
 
-        // Esta função garante que as palavras andem sozinhas num ritmo natural e sincronizado
-        function scheduleNextWord() {
-            clearTimeout(ttsTimer);
-            if (isTtsManuallyPaused || ttsCurrentIndex >= ttsWords.length - 1) return;
+        // Injeta exatamente 1 palavra de cada vez na fila do leitor.
+        function queueNextWord() {
+            if (isTtsManuallyPaused || ttsQueueIndex >= ttsWords.length) return;
             
-            let currentWord = ttsWords[ttsCurrentIndex];
+            let wordIndex = ttsQueueIndex;
+            let word = ttsWords[wordIndex];
+            ttsQueueIndex++; // Avança na fila
             
-            // Cálculo dinâmico para a palavra durar o tempo exato na tela
-            let baseMs = 200; 
-            let lengthBonus = currentWord.length * 40;
-            let punctuationBonus = /[.,!?]/.test(currentWord) ? 300 : 0;
-            let delay = (baseMs + lengthBonus + punctuationBonus) / currentTtsSpeed;
+            let utter = new SpeechSynthesisUtterance(word);
+            utter.lang = ttsLang;
+            utter.rate = currentTtsSpeed;
             
-            ttsTimer = setTimeout(() => {
-                if(!isTtsManuallyPaused) {
-                    ttsCurrentIndex++;
-                    if(ttsCurrentIndex < ttsWords.length) {
-                        document.getElementById('ttsCurrentWord').innerText = ttsWords[ttsCurrentIndex].replace(/[.,!?¿¡;:"]/g, '');
-                        scheduleNextWord();
+            const voices = window.speechSynthesis.getVoices();
+            let localVoice = voices.find(v => v.lang.startsWith(ttsLang) && v.localService) || voices.find(v => v.lang.startsWith(ttsLang));
+            if(localVoice) utter.voice = localVoice;
+            
+            // O navegador só dispara o onstart no EXATO MILISSEGUNDO que a palavra toca no alto falante
+            utter.onstart = function() {
+                if (isTtsManuallyPaused) return; 
+                ttsCurrentIndex = wordIndex; // Mantém salvo a palavra atual
+                document.getElementById('ttsCurrentWord').innerText = word.replace(/[.,!?¿¡;:"]/g, '');
+            };
+            
+            utter.onend = function() {
+                if (!isTtsManuallyPaused) {
+                    queueNextWord(); // Puxa mais uma palavra pra fila sem engasgar
+                    if (wordIndex === ttsWords.length - 1) {
+                        stopTts();
                     }
                 }
-            }, delay);
+            };
+
+            window.speechSynthesis.speak(utter);
         }
 
         function toggleTtsPlayPause() {
             if (!isTtsManuallyPaused) {
-                // Pausar de verdade (Cancela o áudio atual e congela o cronômetro das palavras na exata posição)
+                // Pausar de verdade cancelando o sistema
                 isTtsManuallyPaused = true;
                 window.speechSynthesis.cancel();
-                clearTimeout(ttsTimer);
-                
                 document.getElementById('ttsPlayPauseBtn').innerHTML = '<i class="fa-solid fa-play"></i>';
                 document.getElementById('ttsExtraControls').style.display = 'flex';
             } else {
-                // Retomar de onde parou cortando a frase e gerando o áudio apenas do restante
+                // Ao despausar, ele retoma cortando a frase exatamente de onde parou
                 document.getElementById('ttsPlayPauseBtn').innerHTML = '<i class="fa-solid fa-pause"></i>';
                 document.getElementById('ttsExtraControls').style.display = 'none';
                 document.getElementById('ttsWordTranslation').style.display = 'none';
-                playTtsFromWord(ttsCurrentIndex);
+                playTtsFromWord(ttsCurrentIndex); 
             }
         }
 
         function stopTts() {
             isTtsManuallyPaused = true;
             window.speechSynthesis.cancel();
-            clearTimeout(ttsTimer);
             document.getElementById('ttsPlayerPopup').classList.remove('open');
         }
 
@@ -1551,9 +1535,9 @@
             currentTtsSpeed = parseFloat(val);
             document.getElementById('ttsPlayerSpeedLabel').innerText = currentTtsSpeed.toFixed(1) + 'x';
             
+            // Se estiver tocando, a fila se ajusta à nova velocidade instantaneamente sem travar
             if (!isTtsManuallyPaused) {
-                // Se mexer na velocidade, reinicia instantaneamente de onde está com o novo rítmo
-                playTtsFromWord(ttsCurrentIndex);
+                playTtsFromWord(ttsCurrentIndex); 
             }
         }
 
