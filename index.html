@@ -416,7 +416,7 @@
         .post-it-color::-webkit-color-swatch-wrapper { padding: 0; }
         .post-it-color::-webkit-color-swatch { border: 1px solid rgba(0,0,0,0.2); border-radius: 50%; }
 
-        /* ----- LEGENDA DE TRADUÇÃO CIRÚRGICA E TTS ----- */
+        /* ----- LEGENDA DE TRADUÇÃO CIRÚRGICA ----- */
         .verse-translation {
             display: block; font-size: 0.85rem; color: var(--text-color); opacity: 0.6; margin-top: 6px; 
             font-style: italic; padding-left: 10px; border-left: 2px solid var(--accent-color); line-height: 1.4;
@@ -424,6 +424,28 @@
         }
         .verse-translation:hover { opacity: 1; }
 
+        /* ----- NOVO: TTS PLAYER POPUP (REPRODUTOR INTELIGENTE) ----- */
+        .tts-player-box {
+            position: fixed; top: 30%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
+            background: #ffffff; padding: 25px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.05);
+            z-index: 5500; width: 90%; max-width: 320px; text-align: center; opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; flex-direction: column; gap: 15px; color: #333;
+        }
+        .tts-player-box.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
+        
+        .tts-word-display { background: #f8f9fa; padding: 20px 10px; border-radius: 12px; border: 1px solid #eee; min-height: 80px; display: flex; flex-direction: column; justify-content: center; }
+        #ttsCurrentWord { font-size: 1.8rem; font-weight: 700; color: var(--accent-color); margin: 0; line-height: 1.2; word-break: break-word;}
+        #ttsWordTranslation { font-size: 1.2rem; font-weight: 500; color: #666; margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 10px; }
+        
+        .tts-controls, .tts-extra-controls { display: flex; justify-content: center; gap: 15px; }
+        .tts-btn { width: 50px; height: 50px; border-radius: 50%; border: none; background: var(--accent-color); color: #fff; font-size: 1.2rem; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: transform 0.2s; display: flex; justify-content: center; align-items: center; }
+        .tts-btn:hover { transform: scale(1.05); }
+        .tts-btn:active { transform: scale(0.95); }
+        .tts-btn-small { width: 40px; height: 40px; font-size: 1rem; background: #f0f0f0; color: var(--accent-color); }
+        
+        .tts-speed-control { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; background: #f8f9fa; padding: 10px; border-radius: 10px;}
+        .tts-speed-control .speed-slider { margin-bottom: 0; background: #ddd; }
+        .tts-speed-control input[type=range]::-webkit-slider-thumb { box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
@@ -479,6 +501,30 @@
     <div id="ytPlayerContainer" style="position: absolute; top: -9999px; left: -9999px; width: 1px; height: 1px; opacity: 0; pointer-events: none;"></div>
     <input type="file" id="localAudioInput" accept="audio/*" style="display:none;" onchange="handleLocalAudio(event)">
 
+    <div id="ttsPlayerPopup" class="tts-player-box">
+        <div class="tts-word-display">
+            <div id="ttsCurrentWord">...</div>
+            <div id="ttsWordTranslation" style="display: none;"></div>
+        </div>
+        
+        <div class="tts-extra-controls" id="ttsExtraControls" style="display: none;">
+            <button class="tts-btn tts-btn-small" onclick="repeatCurrentWord()" title="Falar palavra novamente"><i class="fa-solid fa-rotate-right"></i></button>
+            <button class="tts-btn tts-btn-small" onclick="translateCurrentWord()" title="Traduzir palavra pausada"><i class="fa-solid fa-language"></i></button>
+        </div>
+
+        <div class="tts-controls">
+            <button id="ttsPlayPauseBtn" class="tts-btn" onclick="toggleTtsPlayPause()"><i class="fa-solid fa-pause"></i></button>
+            <button class="tts-btn" onclick="stopTts()"><i class="fa-solid fa-stop"></i></button>
+        </div>
+        
+        <div class="tts-speed-control">
+            <i class="fa-solid fa-turtle" style="opacity: 0.5; font-size: 0.8rem;"></i>
+            <input type="range" id="ttsPlayerSpeedSlider" min="0.1" max="3" step="0.1" value="1" class="speed-slider" oninput="changeTtsSpeed(this.value)">
+            <i class="fa-solid fa-rabbit" style="opacity: 0.5; font-size: 0.8rem;"></i>
+            <span id="ttsPlayerSpeedLabel" style="font-size: 0.8rem; margin-left: 5px; font-weight: 600;">1.0x</span>
+        </div>
+    </div>
+
     <div id="customAlert" class="custom-alert-overlay">
         <div class="custom-alert-box">
             <h3 id="alertTitle"><i class="fa-solid fa-circle-info" style="color: var(--accent-color);"></i> Aviso</h3>
@@ -526,17 +572,8 @@
                 <option value="la">Latim (Latina)</option>
                 <option value="ja">Japonês (日本語)</option>
             </select>
-            
-            <p style="margin-bottom: 10px; font-size: 0.9rem; text-align: left; opacity: 0.8;">
-                <i class="fa-solid fa-gauge-high" style="color: var(--accent-color); margin-right: 5px;"></i>Velocidade da Voz: <strong id="speedValueLabel">1.0x</strong>
-            </p>
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                <i class="fa-solid fa-turtle" style="opacity: 0.5; font-size: 0.8rem;"></i>
-                <input type="range" id="ttsSpeedSlider" min="0.1" max="3" step="0.1" value="1" class="speed-slider" oninput="document.getElementById('speedValueLabel').innerText = parseFloat(this.value).toFixed(1) + 'x'">
-                <i class="fa-solid fa-rabbit" style="opacity: 0.5; font-size: 0.8rem;"></i>
-            </div>
 
-            <div class="actions" style="margin-top: 20px;">
+            <div class="actions" style="margin-top: 10px;">
                 <button class="btn-cancelar" onclick="closeTranslatePopup()">Cancelar</button>
                 <button class="btn-ok" onclick="confirmTranslation()">Confirmar</button>
             </div>
@@ -1286,12 +1323,17 @@
         }
 
         // ==========================================
-        //  SISTEMA DE LEGENDA E TTS (KARAOKÊ CIRÚRGICO)
+        //  SISTEMA DE LEGENDA E TTS (POP-UP CIRÚRGICO)
         // ==========================================
         let isTranslationActive = false;
         let currentTranslationLang = 'en';
         let currentTtsSpeed = 1; 
         let translatedVersesCache = {};
+        
+        let ttsWords = [];
+        let ttsCurrentIndex = 0;
+        let ttsUtterance = null;
+        let ttsLang = 'en';
 
         function toggleTranslation() {
             if (isTranslationActive) {
@@ -1301,7 +1343,7 @@
                 btn.style.color = 'var(--text-color)';
                 btn.innerHTML = '<i class="fa-solid fa-language"></i> Legenda';
                 document.querySelectorAll('.verse-translation').forEach(el => el.remove());
-                window.speechSynthesis.cancel(); 
+                stopTts();
             } else {
                 document.getElementById('translatePopupOverlay').classList.add('open');
             }
@@ -1311,7 +1353,6 @@
 
         async function confirmTranslation() {
             currentTranslationLang = document.getElementById('translateLangSelect').value;
-            currentTtsSpeed = parseFloat(document.getElementById('ttsSpeedSlider').value);
             closeTranslatePopup();
             
             isTranslationActive = true;
@@ -1364,22 +1405,9 @@
                             const transDiv = document.createElement('div');
                             transDiv.className = 'verse-translation'; transDiv.title = "Ouvir Tradução";
                             
-                            const tokens = translatedTexts[idx].match(/(\s+|\S+)/g) || [];
-                            let cleanHtml = `<i class="fa-solid fa-volume-low" style="margin-right: 6px; opacity:0.8;"></i> `;
-                            let charIndexTracker = 0;
-                            
-                            tokens.forEach(token => {
-                                if (token.trim().length > 0) {
-                                    cleanHtml += `<span id="tts-word-${charIndexTracker}">${token}</span>`;
-                                } else {
-                                    cleanHtml += token;
-                                }
-                                charIndexTracker += token.length;
-                            });
-
-                            transDiv.innerHTML = cleanHtml;
-                            transDiv.dataset.originalText = translatedTexts[idx];
-                            transDiv.onclick = (e) => { e.stopPropagation(); readTextAloud(translatedTexts[idx], currentTranslationLang, transDiv); };
+                            // Simplificado: Removemos o envelopamento de palavras para o karaokê antigo
+                            transDiv.innerHTML = `<i class="fa-solid fa-volume-low" style="margin-right: 6px; opacity:0.8;"></i> ${translatedTexts[idx]}`;
+                            transDiv.onclick = (e) => { e.stopPropagation(); readTextAloud(translatedTexts[idx], currentTranslationLang); };
                             verseEl.appendChild(transDiv);
                         }
                     }
@@ -1387,108 +1415,125 @@
             }
         }
 
-        function clearAllTtsHighlights() {
-            document.querySelectorAll('.verse-translation span[id^="tts-word-"]').forEach(el => {
-                el.style.backgroundColor = '';
-                el.style.color = '';
-                el.style.padding = '';
-                el.style.borderRadius = '';
-                el.style.boxShadow = '';
-            });
+        // --- SISTEMA INTELIGENTE DE TTS POP-UP ---
+        function readTextAloud(text, lang) {
+            if (!('speechSynthesis' in window)) { customAlert("Seu navegador não suporta leitura por voz."); return; }
+            
+            ttsLang = lang;
+            ttsWords = text.match(/\S+/g) || [];
+            ttsCurrentIndex = 0;
+            
+            document.getElementById('ttsPlayerPopup').classList.add('open');
+            document.getElementById('ttsWordTranslation').style.display = 'none';
+            document.getElementById('ttsExtraControls').style.display = 'none';
+            document.getElementById('ttsPlayPauseBtn').innerHTML = '<i class="fa-solid fa-pause"></i>';
+            document.getElementById('ttsPlayerSpeedSlider').value = currentTtsSpeed;
+            document.getElementById('ttsPlayerSpeedLabel').innerText = parseFloat(currentTtsSpeed).toFixed(1) + 'x';
+            
+            if(ttsWords.length > 0) {
+                document.getElementById('ttsCurrentWord').innerText = ttsWords[0].replace(/[.,!?¿¡]/g, '');
+            } else {
+                document.getElementById('ttsCurrentWord').innerText = '...';
+            }
+            
+            playTtsFromWord(0);
         }
 
-        function readTextAloud(text, lang, element) {
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); clearAllTtsHighlights();
-                
-                window.speechSynthesis.getVoices();
-                
-                const chunks = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [text];
-                window.speechUtterances = [];
-                let globalCharOffset = 0;
+        function playTtsFromWord(index) {
+            window.speechSynthesis.cancel();
+            if (index >= ttsWords.length) { stopTts(); return; }
+            
+            ttsCurrentIndex = index;
+            const remainingText = ttsWords.slice(index).join(' ');
+            ttsUtterance = new SpeechSynthesisUtterance(remainingText);
+            ttsUtterance.lang = ttsLang;
+            ttsUtterance.rate = currentTtsSpeed;
 
-                chunks.forEach((chunk, index) => {
-                    const utterance = new SpeechSynthesisUtterance(chunk);
-                    utterance.lang = lang; 
-                    utterance.rate = currentTtsSpeed; 
-                    utterance.charOffset = globalCharOffset;
-                    globalCharOffset += chunk.length;
+            const voices = window.speechSynthesis.getVoices();
+            let localVoice = voices.find(v => v.lang.startsWith(ttsLang) && v.localService) || voices.find(v => v.lang.startsWith(ttsLang));
+            if(localVoice) ttsUtterance.voice = localVoice;
 
-                    const voices = window.speechSynthesis.getVoices();
-                    let localVoice = voices.find(v => v.lang.startsWith(lang) && v.localService) || voices.find(v => v.lang.startsWith(lang));
-                    if(localVoice) utterance.voice = localVoice;
-
-                    utterance.onstart = function() {
-                        let spans = Array.from(element.querySelectorAll('span[id^="tts-word-"]'));
-                        let chunkSpans = spans.filter(s => {
-                            let wIdx = parseInt(s.id.replace('tts-word-', ''));
-                            return wIdx >= utterance.charOffset && wIdx < (utterance.charOffset + chunk.length);
-                        });
-
-                        utterance._fallbackTimer = setTimeout(() => {
-                            if(!utterance._boundaryFired && chunkSpans.length > 0) {
-                                let charsPerSec = 14 * currentTtsSpeed;
-                                let msPerChar = 1000 / charsPerSec;
-                                let accumulatedDelay = 0;
-
-                                chunkSpans.forEach((span) => {
-                                    let wordLength = span.innerText.length + 1;
-                                    let wordDuration = wordLength * msPerChar;
-                                    
-                                    setTimeout(() => {
-                                        clearAllTtsHighlights();
-                                        span.style.backgroundColor = 'var(--accent-color)';
-                                        span.style.color = '#fff';
-                                        span.style.padding = '0 4px';
-                                        span.style.borderRadius = '4px';
-                                        span.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
-                                    }, accumulatedDelay);
-                                    
-                                    accumulatedDelay += wordDuration;
-                                });
-                            }
-                        }, 150); 
-                    };
-
-                    utterance.onboundary = function(event) {
-                        utterance._boundaryFired = true; 
-                        if (event.name === 'word') {
-                            clearAllTtsHighlights();
-                            let absoluteIndex = utterance.charOffset + event.charIndex;
-                            let closestWordId = null;
-                            let minDiff = Infinity;
-                            
-                            element.querySelectorAll('span[id^="tts-word-"]').forEach(s => {
-                                let wIdx = parseInt(s.id.replace('tts-word-', ''));
-                                if (wIdx <= absoluteIndex && (absoluteIndex - wIdx) < minDiff) {
-                                    minDiff = absoluteIndex - wIdx;
-                                    closestWordId = s.id;
-                                }
-                            });
-
-                            if (closestWordId) {
-                                let target = document.getElementById(closestWordId);
-                                if(target) {
-                                    target.style.backgroundColor = 'var(--accent-color)';
-                                    target.style.color = '#fff';
-                                    target.style.padding = '0 4px';
-                                    target.style.borderRadius = '4px';
-                                    target.style.boxShadow = '0 2px 4px rgba(0,0,0,0.3)';
-                                }
-                            }
-                        }
-                    };
-
-                    if (index === chunks.length - 1) {
-                        utterance.onend = function() { clearAllTtsHighlights(); window.speechUtterances = []; };
+            ttsUtterance.onboundary = function(event) {
+                if (event.name === 'word') {
+                    const wordMatch = remainingText.substring(event.charIndex).match(/^[^\s.,!?¿¡]+/);
+                    if (wordMatch) {
+                        document.getElementById('ttsCurrentWord').innerText = wordMatch[0];
+                        const spokenSoFar = remainingText.substring(0, event.charIndex);
+                        ttsCurrentIndex = index + (spokenSoFar.match(/\S+/g) || []).length;
                     }
-                    utterance.onerror = function() { clearAllTtsHighlights(); window.speechUtterances = []; };
-                    
-                    window.speechUtterances.push(utterance);
-                    window.speechSynthesis.speak(utterance);
-                });
-            } else { customAlert("Seu navegador não suporta leitura por voz."); }
+                }
+            };
+            
+            ttsUtterance.onend = function(e) {
+                // Fechar se terminar naturalmente e não foi por causa de um "pause/cancel" manual
+                if (!window.speechSynthesis.paused && !window.speechSynthesis.pending && ttsCurrentIndex >= ttsWords.length - 1) {
+                     stopTts();
+                }
+            };
+
+            window.speechSynthesis.speak(ttsUtterance);
         }
+
+        function toggleTtsPlayPause() {
+            // Utilizamos cancel e restart ao invés de .pause() do window para não bugar no mobile
+            if (window.speechSynthesis.speaking && !document.getElementById('ttsExtraControls').style.display || document.getElementById('ttsExtraControls').style.display === 'none') {
+                window.speechSynthesis.cancel(); // Pausa cirurgicamente
+                document.getElementById('ttsPlayPauseBtn').innerHTML = '<i class="fa-solid fa-play"></i>';
+                document.getElementById('ttsExtraControls').style.display = 'flex'; // Mostra botões extras
+            } else {
+                playTtsFromWord(ttsCurrentIndex); // Continua da exata palavra
+                document.getElementById('ttsPlayPauseBtn').innerHTML = '<i class="fa-solid fa-pause"></i>';
+                document.getElementById('ttsExtraControls').style.display = 'none';
+                document.getElementById('ttsWordTranslation').style.display = 'none';
+            }
+        }
+
+        function stopTts() {
+            window.speechSynthesis.cancel();
+            document.getElementById('ttsPlayerPopup').classList.remove('open');
+        }
+
+        function changeTtsSpeed(val) {
+            currentTtsSpeed = parseFloat(val);
+            document.getElementById('ttsPlayerSpeedLabel').innerText = currentTtsSpeed.toFixed(1) + 'x';
+            // Se estiver rodando sem estar pausado, reinicia com a nova velocidade
+            if (document.getElementById('ttsExtraControls').style.display === 'none') {
+                playTtsFromWord(ttsCurrentIndex);
+            }
+        }
+
+        function repeatCurrentWord() {
+            if (ttsCurrentIndex < ttsWords.length) {
+                let word = ttsWords[ttsCurrentIndex].replace(/[.,!?¿¡]/g, '');
+                let utter = new SpeechSynthesisUtterance(word);
+                utter.lang = ttsLang;
+                utter.rate = currentTtsSpeed;
+                const voices = window.speechSynthesis.getVoices();
+                let localVoice = voices.find(v => v.lang.startsWith(ttsLang) && v.localService) || voices.find(v => v.lang.startsWith(ttsLang));
+                if(localVoice) utter.voice = localVoice;
+                window.speechSynthesis.speak(utter);
+            }
+        }
+
+        async function translateCurrentWord() {
+            if (ttsCurrentIndex < ttsWords.length) {
+                let word = ttsWords[ttsCurrentIndex].replace(/[.,!?¿¡]/g, '');
+                document.getElementById('ttsWordTranslation').style.display = 'block';
+                document.getElementById('ttsWordTranslation').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+                
+                try {
+                    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${ttsLang}&tl=pt&dt=t&q=${encodeURIComponent(word)}`;
+                    const response = await fetch(url); 
+                    const data = await response.json();
+                    let fullTranslation = "";
+                    data[0].forEach(part => { if(part[0]) fullTranslation += part[0]; });
+                    document.getElementById('ttsWordTranslation').innerText = fullTranslation;
+                } catch (e) {
+                    document.getElementById('ttsWordTranslation').innerText = 'Erro';
+                }
+            }
+        }
+
 
         // ==========================================
         //  SISTEMA DE PLANO DE LEITURA 
