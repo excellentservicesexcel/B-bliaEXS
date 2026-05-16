@@ -424,26 +424,26 @@
         }
         .verse-translation:hover { opacity: 1; }
 
-        /* ----- NOVO: TTS PLAYER POPUP (REPRODUTOR INTELIGENTE) ----- */
+        /* ----- NOVO: TTS PLAYER POPUP (COMPACTO E ELEGANTE) ----- */
         .tts-player-box {
-            position: fixed; top: 30%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
-            background: #ffffff; padding: 25px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.05);
-            z-index: 5500; width: 90%; max-width: 320px; text-align: center; opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex; flex-direction: column; gap: 15px; color: #333;
+            position: fixed; top: 25%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
+            background: #ffffff; padding: 20px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.05);
+            z-index: 5500; width: 90%; max-width: 260px; text-align: center; opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; flex-direction: column; gap: 12px; color: #333;
         }
         .tts-player-box.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
         
-        .tts-word-display { background: #f8f9fa; padding: 20px 10px; border-radius: 12px; border: 1px solid #eee; min-height: 80px; display: flex; flex-direction: column; justify-content: center; }
-        #ttsCurrentWord { font-size: 1.8rem; font-weight: 700; color: var(--accent-color); margin: 0; line-height: 1.2; word-break: break-word;}
-        #ttsWordTranslation { font-size: 1.2rem; font-weight: 500; color: #666; margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 10px; }
+        .tts-word-display { background: #f8f9fa; padding: 15px 10px; border-radius: 12px; border: 1px solid #eee; min-height: 60px; display: flex; flex-direction: column; justify-content: center; }
+        #ttsCurrentWord { font-size: 1.5rem; font-weight: 700; color: var(--accent-color); margin: 0; line-height: 1.2; word-break: break-word;}
+        #ttsWordTranslation { font-size: 1.1rem; font-weight: 500; color: #666; margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 10px; }
         
-        .tts-controls, .tts-extra-controls { display: flex; justify-content: center; gap: 15px; }
-        .tts-btn { width: 50px; height: 50px; border-radius: 50%; border: none; background: var(--accent-color); color: #fff; font-size: 1.2rem; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: transform 0.2s; display: flex; justify-content: center; align-items: center; }
+        .tts-controls, .tts-extra-controls { display: flex; justify-content: center; gap: 12px; }
+        .tts-btn { width: 45px; height: 45px; border-radius: 50%; border: none; background: var(--accent-color); color: #fff; font-size: 1.1rem; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: transform 0.2s; display: flex; justify-content: center; align-items: center; }
         .tts-btn:hover { transform: scale(1.05); }
         .tts-btn:active { transform: scale(0.95); }
-        .tts-btn-small { width: 40px; height: 40px; font-size: 1rem; background: #f0f0f0; color: var(--accent-color); }
+        .tts-btn-small { width: 38px; height: 38px; font-size: 0.95rem; background: #f0f0f0; color: var(--accent-color); }
         
-        .tts-speed-control { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; background: #f8f9fa; padding: 10px; border-radius: 10px;}
+        .tts-speed-control { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 8px; background: #f8f9fa; padding: 8px; border-radius: 10px;}
         .tts-speed-control .speed-slider { margin-bottom: 0; background: #ddd; }
         .tts-speed-control input[type=range]::-webkit-slider-thumb { box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
     </style>
@@ -896,11 +896,8 @@
         document.addEventListener('fullscreenchange', () => { const btn = document.getElementById('btnFullscreen'); if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.mozFullScreenElement && !document.msFullscreenElement) btn.innerHTML = '<i class="fa-solid fa-expand"></i>'; else btn.innerHTML = '<i class="fa-solid fa-compress"></i>'; });
 
         // --- DADOS BÁSICOS E DEVOCIONAIS APROFUNDADOS ---
-        const devotionals = [
-            { ref: "João 3:16", verse: "Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito, para que todo aquele que nele crê não pereça, mas tenha a vida eterna.", devo: "O amor de Deus não é um sentimento passivo, mas uma ação de sacrifício absoluto. Ele entregou o que tinha de mais precioso para resgatar a humanidade perdida. Quando compreendemos a profundidade dessa entrega, percebemos que não há limite para a graça divina. Nossa resposta a esse amor deve ser uma fé ativa, vivendo cada dia na certeza de que nosso destino final não é a morte, mas a eternidade gloriosa ao lado do Criador." },
-            { ref: "Filipenses 4:13", verse: "Posso todas as coisas em Cristo que me fortalece.", devo: "Muitas vezes, interpretamos este versículo como uma garantia de sucesso material, mas o apóstolo Paulo o escreveu de dentro de uma prisão. A verdadeira mensagem é sobre resiliência e contentamento. Em Cristo, temos a força necessária para suportar a escassez ou a abundância, a dor ou a alegria. A sua força não nos blinda dos problemas, mas nos dá a capacidade sobrenatural de atravessar qualquer tempestade sem perdermos a paz de espírito e a nossa fé." },
-            { ref: "Salmos 23:1-2", verse: "O Senhor é o meu pastor, nada me faltará. Deitar-me faz em verdes pastos, guia-me mansamente a águas tranquilas.", devo: "A figura do pastor no antigo oriente médio não era apenas de um guia, mas de um provedor e protetor que dava a vida por suas ovelhas. Dizer 'nada me faltará' é um atestado de total dependência e confiança na provisão divina. Deus sabe exatamente quando precisamos avançar e quando precisamos descansar em 'verdes pastos'. Nos momentos de exaustão da vida moderna, permita que Ele conduza sua alma de volta às águas de refrigério." },
-            { ref: "Isaías 41:10", verse: "Não temas, porque eu sou contigo; não te assombres, porque eu sou teu Deus; eu te fortaleço, e te ajudo, e te sustento com a destra da minha justiça.", devo: "O medo é uma das paralisias mais profundas da alma humana. Mas Deus não nos pede simplesmente para 'não ter medo'; Ele nos dá um motivo concreto: a Sua presença. O Deus do universo promete ser o nosso sustento pessoal. Quando a ansiedade tentar dominar seus pensamentos, lembre-se de que a 'destra da Sua justiça' está estendida para te segurar. Você não está lutando sozinho; a própria força do Criador é a sua garantia de vitória." }
+        const fallbackDevotionals = [
+            { ref: "João 3:16", verse: "Porque Deus amou o mundo de tal maneira que deu o seu Filho unigênito, para que todo aquele que nele crê não pereça, mas tenha a vida eterna.", devo: "O amor de Deus não é um sentimento passivo, mas uma ação de sacrifício absoluto. Ele entregou o que tinha de mais precioso para resgatar a humanidade perdida." }
         ];
 
         const bibleStructureChronological = [
@@ -935,7 +932,7 @@
 
         window.onload = async () => {
             initSelects(); await scanLocalVersions(); 
-            loadDevotional(); loadTheme(); updateSidebarList(); loadPostIts(); 
+            await loadDevotional(); loadTheme(); updateSidebarList(); loadPostIts(); 
             initReadingPlan(); 
         }
 
@@ -1030,11 +1027,41 @@
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); updateSidebarList(); }
         function toggleSettings() { document.getElementById('settingsModal').classList.toggle('open'); }
 
-        function loadDevotional() {
-            const today = new Date().toDateString(); const savedDate = localStorage.getItem('devoDate'); let savedIndex = localStorage.getItem('devoIndex'); 
-            if (savedDate !== today || savedIndex === null) { savedIndex = Math.floor(Math.random() * devotionals.length); localStorage.setItem('devoDate', today); localStorage.setItem('devoIndex', savedIndex); }
-            currentDevo = devotionals[parseInt(savedIndex)];
-            document.getElementById('daily-content').innerHTML = `<div class="verse-of-day">"${currentDevo.verse}"</div><span class="verse-ref"><i class="fa-solid fa-bookmark"></i> ${currentDevo.ref}</span><div class="devocional-text">${currentDevo.devo}</div>`;
+        async function loadDevotional() {
+            const today = new Date().toDateString(); 
+            const savedDate = localStorage.getItem('devoDate'); 
+            let savedIndex = localStorage.getItem('devoIndex'); 
+            
+            try {
+                // Tenta carregar do arquivo palavras.json
+                const response = await fetch('./palavras.json');
+                if (response.ok) {
+                    const devos = await response.json();
+                    // Atualiza apenas se mudou o dia (meia-noite) ou não tiver salvo
+                    if (savedDate !== today || savedIndex === null) { 
+                        savedIndex = Math.floor(Math.random() * devos.length); 
+                        localStorage.setItem('devoDate', today); 
+                        localStorage.setItem('devoIndex', savedIndex); 
+                    }
+                    currentDevo = devos[parseInt(savedIndex)];
+                } else {
+                    throw new Error("Local JSON fetch failed");
+                }
+            } catch(e) {
+                // Fallback de segurança se o palavras.json não existir
+                if (savedDate !== today || savedIndex === null) { 
+                    savedIndex = Math.floor(Math.random() * fallbackDevotionals.length); 
+                    localStorage.setItem('devoDate', today); 
+                    localStorage.setItem('devoIndex', savedIndex); 
+                }
+                currentDevo = fallbackDevotionals[parseInt(savedIndex)];
+            }
+            
+            document.getElementById('daily-content').innerHTML = `
+                <div class="verse-of-day">"${currentDevo.verse}"</div>
+                <span class="verse-ref"><i class="fa-solid fa-bookmark"></i> ${currentDevo.ref}</span>
+                <div class="devocional-text">${currentDevo.devo}</div>
+            `;
         }
 
         async function shareVerse() {
@@ -1431,7 +1458,7 @@
             document.getElementById('ttsPlayerSpeedLabel').innerText = parseFloat(currentTtsSpeed).toFixed(1) + 'x';
             
             if(ttsWords.length > 0) {
-                document.getElementById('ttsCurrentWord').innerText = ttsWords[0].replace(/[.,!?¿¡]/g, '');
+                document.getElementById('ttsCurrentWord').innerText = ttsWords[0].replace(/[.,!?¿¡;:"]/g, '');
             } else {
                 document.getElementById('ttsCurrentWord').innerText = '...';
             }
@@ -1455,17 +1482,18 @@
 
             ttsUtterance.onboundary = function(event) {
                 if (event.name === 'word') {
-                    const wordMatch = remainingText.substring(event.charIndex).match(/^[^\s.,!?¿¡]+/);
-                    if (wordMatch) {
-                        document.getElementById('ttsCurrentWord').innerText = wordMatch[0];
-                        const spokenSoFar = remainingText.substring(0, event.charIndex);
-                        ttsCurrentIndex = index + (spokenSoFar.match(/\S+/g) || []).length;
+                    const textUpToHere = remainingText.substring(0, event.charIndex);
+                    const wordsBefore = (textUpToHere.match(/\S+/g) || []).length;
+                    ttsCurrentIndex = index + wordsBefore; 
+                    
+                    const match = remainingText.substring(event.charIndex).match(/^\S+/);
+                    if (match) {
+                        document.getElementById('ttsCurrentWord').innerText = match[0].replace(/[.,!?¿¡;:"]/g, '');
                     }
                 }
             };
             
             ttsUtterance.onend = function(e) {
-                // Fechar se terminar naturalmente e não foi por causa de um "pause/cancel" manual
                 if (!window.speechSynthesis.paused && !window.speechSynthesis.pending && ttsCurrentIndex >= ttsWords.length - 1) {
                      stopTts();
                 }
@@ -1475,13 +1503,17 @@
         }
 
         function toggleTtsPlayPause() {
-            // Utilizamos cancel e restart ao invés de .pause() do window para não bugar no mobile
-            if (window.speechSynthesis.speaking && !document.getElementById('ttsExtraControls').style.display || document.getElementById('ttsExtraControls').style.display === 'none') {
-                window.speechSynthesis.cancel(); // Pausa cirurgicamente
+            if (window.speechSynthesis.paused) {
+                window.speechSynthesis.resume();
+                document.getElementById('ttsPlayPauseBtn').innerHTML = '<i class="fa-solid fa-pause"></i>';
+                document.getElementById('ttsExtraControls').style.display = 'none';
+                document.getElementById('ttsWordTranslation').style.display = 'none';
+            } else if (window.speechSynthesis.speaking) {
+                window.speechSynthesis.pause();
                 document.getElementById('ttsPlayPauseBtn').innerHTML = '<i class="fa-solid fa-play"></i>';
-                document.getElementById('ttsExtraControls').style.display = 'flex'; // Mostra botões extras
+                document.getElementById('ttsExtraControls').style.display = 'flex';
             } else {
-                playTtsFromWord(ttsCurrentIndex); // Continua da exata palavra
+                playTtsFromWord(ttsCurrentIndex);
                 document.getElementById('ttsPlayPauseBtn').innerHTML = '<i class="fa-solid fa-pause"></i>';
                 document.getElementById('ttsExtraControls').style.display = 'none';
                 document.getElementById('ttsWordTranslation').style.display = 'none';
@@ -1496,15 +1528,25 @@
         function changeTtsSpeed(val) {
             currentTtsSpeed = parseFloat(val);
             document.getElementById('ttsPlayerSpeedLabel').innerText = currentTtsSpeed.toFixed(1) + 'x';
-            // Se estiver rodando sem estar pausado, reinicia com a nova velocidade
-            if (document.getElementById('ttsExtraControls').style.display === 'none') {
+            
+            let wasPaused = window.speechSynthesis.paused;
+            window.speechSynthesis.cancel(); 
+            
+            setTimeout(() => {
                 playTtsFromWord(ttsCurrentIndex);
-            }
+                if (wasPaused) {
+                    setTimeout(() => {
+                        window.speechSynthesis.pause();
+                        document.getElementById('ttsPlayPauseBtn').innerHTML = '<i class="fa-solid fa-play"></i>';
+                        document.getElementById('ttsExtraControls').style.display = 'flex';
+                    }, 50);
+                }
+            }, 50);
         }
 
         function repeatCurrentWord() {
             if (ttsCurrentIndex < ttsWords.length) {
-                let word = ttsWords[ttsCurrentIndex].replace(/[.,!?¿¡]/g, '');
+                let word = ttsWords[ttsCurrentIndex].replace(/[.,!?¿¡;:"]/g, '');
                 let utter = new SpeechSynthesisUtterance(word);
                 utter.lang = ttsLang;
                 utter.rate = currentTtsSpeed;
@@ -1517,7 +1559,7 @@
 
         async function translateCurrentWord() {
             if (ttsCurrentIndex < ttsWords.length) {
-                let word = ttsWords[ttsCurrentIndex].replace(/[.,!?¿¡]/g, '');
+                let word = ttsWords[ttsCurrentIndex].replace(/[.,!?¿¡;:"]/g, '');
                 document.getElementById('ttsWordTranslation').style.display = 'block';
                 document.getElementById('ttsWordTranslation').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
                 
