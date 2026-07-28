@@ -304,6 +304,10 @@
         }
         .verse-text { transition: background 0.2s; border-radius: 4px; }
 
+        /* A área do texto é marcada como editável só para desligar a barra de
+           pesquisa do Chrome; o cursor piscante e o contorno ficam invisíveis. */
+        #bible-content { caret-color: transparent; outline: none; -webkit-user-modify: read-only; }
+
         .chapter-title-heading {
             font-family: var(--font-display); font-size: 2rem; font-weight: 700; font-style: italic;
             text-align: center; margin: 6px 0 26px; letter-spacing: 0.5px;
@@ -717,7 +721,7 @@
         #share-card { width: 1080px; height: 1350px; background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)); background-size: cover; background-position: center; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 80px; box-sizing: border-box; color: #fff; font-family: 'Inter', sans-serif; text-align: center; }
         #share-verse { font-family: var(--font-display); font-size: 3.4rem; font-style: italic; font-weight: 600; margin-bottom: 34px; line-height: 1.35; text-shadow: 2px 2px 12px rgba(0,0,0,0.7); }
         /* A cor da etiqueta segue o tema escolhido; é definida no momento de gerar a imagem. */
-        #share-ref { font-family: var(--font-body); font-size: 1.9rem; font-weight: 700; color: #eaf7ee; background-color: rgba(76, 175, 80, 0.85); padding: 12px 34px; border-radius: 50px; letter-spacing: 1px; box-shadow: 0 4px 18px rgba(0,0,0,0.45); margin-bottom: 44px; text-shadow: 0 1px 3px rgba(0,0,0,0.35); }
+        #share-ref { font-family: var(--font-body); font-size: 1.9rem; font-weight: 700; color: #eaf7ee; background-color: rgba(76, 175, 80, 0.85); padding: 8px 18px; border-radius: 4px; letter-spacing: 1px; margin-bottom: 44px; text-shadow: 0 1px 3px rgba(0,0,0,0.35); }
         #share-devo { font-size: 1.5rem; line-height: 1.6; opacity: 0.95; text-align: center; border-top: 2px solid rgba(255,255,255,0.25); padding-top: 40px; width: 90%; text-shadow: 0 2px 8px rgba(0,0,0,0.75); }
 
         /* ----- POST-ITS ULTRA REALISTAS E DOBRÁVEIS ----- */
@@ -1505,7 +1509,42 @@
             refEl.style.color = isLightColor(accent) ? '#14150f' : '#f2fbf4';
         }
 
-        // Busca a foto como data URL: evita "canvas contaminado" e garante que já carregou.
+        // Temas das fotos: paisagens e cenas ligadas à Bíblia.
+        const shareThemes = [
+            'sheep pasture', 'shepherd flock sheep', 'sunrise clouds sky', 'sunset sea horizon',
+            'mountain landscape valley', 'desert dunes sand', 'olive tree grove', 'wheat field golden',
+            'vineyard hills', 'river valley green', 'starry night sky', 'forest path light',
+            'lake reflection mountains', 'palm oasis desert', 'green hills meadow', 'sunbeams clouds sky',
+            'sea of galilee israel', 'jerusalem landscape', 'judaean desert', 'waterfall nature landscape',
+            'rainbow sky field', 'countryside meadow flowers', 'canyon landscape', 'dove sky flight',
+            'stone path mountains', 'harvest field sunset', 'cedar tree forest', 'calm water dawn'
+        ];
+
+        // Procura uma foto de paisagem no acervo aberto do Wikimedia Commons.
+        async function fetchThemedPhotoUrl(signal) {
+            const theme = pickRandom(shareThemes);
+            const api = 'https://commons.wikimedia.org/w/api.php'
+                + '?origin=*&format=json&formatversion=2&action=query'
+                + '&generator=search&gsrnamespace=6&gsrlimit=30'
+                + '&gsrsearch=' + encodeURIComponent('filetype:bitmap ' + theme)
+                + '&prop=imageinfo&iiprop=url%7Cdimensions&iiurlwidth=1400';
+
+            const res = await fetch(api, { signal });
+            if (!res.ok) throw new Error('busca indisponível');
+            const data = await res.json();
+
+            const pages = (data && data.query && data.query.pages) ? data.query.pages : [];
+            const list = Array.isArray(pages) ? pages : Object.values(pages);
+
+            const candidates = list
+                .map(p => (p && p.imageinfo && p.imageinfo[0]) ? p.imageinfo[0] : null)
+                .filter(info => info && info.thumburl && /\.(jpe?g|png)$/i.test(String(info.thumburl).split('?')[0]))
+                // Só paisagens (mais largas que altas), evitando retratos e recortes estranhos.
+                .filter(info => !info.width || !info.height || info.width >= info.height);
+
+            if (!candidates.length) throw new Error('sem resultados');
+            return pickRandom(candidates).thumburl;
+        }
         async function fetchImageAsDataUrl(url, timeoutMs = 7000) {
             const controller = new AbortController();
             const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -1532,18 +1571,30 @@
             shareBgLoading = true;
             const palette = pickRandom(sharePalettes);
             const angle = pickRandom(shareAngles);
-            const tint = `linear-gradient(${angle}deg, ${hexToRgba(palette[0], 0.72)}, ${hexToRgba(palette[1], 0.55)}, ${hexToRgba(palette[2], 0.78)})`;
+            const tint = `linear-gradient(${angle}deg, ${hexToRgba(palette[0], 0.62)}, ${hexToRgba(palette[1], 0.45)}, ${hexToRgba(palette[2], 0.68)})`;
+
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 12000);
+
             try {
-                const seed = Math.floor(Math.random() * 1000000);
-                const photo = await fetchImageAsDataUrl(`https://picsum.photos/seed/${seed}/1080/1350`);
+                let photoUrl = null;
+                // 1º: paisagem temática (ovelhas, céu, montanhas, deserto...)
+                try { photoUrl = await fetchThemedPhotoUrl(controller.signal); } catch (e) { photoUrl = null; }
+                // 2º: se o acervo temático falhar, ainda assim uma foto de verdade.
+                if (!photoUrl) photoUrl = `https://picsum.photos/seed/${Math.floor(Math.random() * 1000000)}/1400/1050`;
+
+                const photo = await fetchImageAsDataUrl(photoUrl, 10000);
                 await new Promise((resolve, reject) => {
                     const img = new Image();
                     img.onload = resolve; img.onerror = reject; img.src = photo;
                 });
                 shareBgCache = `${SHARE_DARKEN}, ${tint}, url('${photo}')`;
             } catch (e) {
-                shareBgCache = null; // sem internet: usaremos o degradê na hora
-            } finally { shareBgLoading = false; }
+                shareBgCache = null; // sem internet: só nesse caso usaremos o degradê
+            } finally {
+                clearTimeout(timer);
+                shareBgLoading = false;
+            }
         }
 
         let lastShareBlob = null;
@@ -2397,6 +2448,7 @@
                          </div>`;
             });
             contentDiv.innerHTML = html;
+            protectBibleContent();
             renderAllPostIts(); 
 
             // INJEÇÃO DA LEGENDA APÓS RENDERIZAR
@@ -2776,13 +2828,47 @@
             document.getElementById('contextualDictionaryBtn').classList.remove('visible');
         }
 
+        // A barra "Toque para pesquisar" do Chrome não aparece dentro de áreas editáveis.
+        // Marcamos o texto como editável, mas bloqueamos qualquer alteração real
+        // e desligamos o teclado virtual. A seleção continua funcionando igual.
+        let allowVerseEditing = false;
+
+        function protectBibleContent() {
+            const container = document.getElementById('bible-content');
+            if (!container) return;
+            container.setAttribute('contenteditable', 'true');
+            container.setAttribute('inputmode', 'none');
+            container.setAttribute('spellcheck', 'false');
+            container.setAttribute('autocorrect', 'off');
+            container.setAttribute('autocapitalize', 'off');
+            if (container.dataset.guarded) return;
+            container.dataset.guarded = '1';
+            const block = (e) => { if (!allowVerseEditing) { e.preventDefault(); return false; } };
+            container.addEventListener('beforeinput', block);
+            container.addEventListener('paste', block);
+            container.addEventListener('drop', block);
+            container.addEventListener('dragstart', block);
+            container.addEventListener('cut', block);
+            container.addEventListener('keydown', (e) => {
+                if (allowVerseEditing) return;
+                // Deixa passar apenas atalhos de cópia e navegação.
+                const allowed = ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End','PageUp','PageDown','Tab','Shift','Control','Meta','Alt','Escape'];
+                if (allowed.includes(e.key)) return;
+                if ((e.ctrlKey || e.metaKey) && ['c','a','x'].includes(e.key.toLowerCase())) return;
+                e.preventDefault();
+            });
+        }
+
         // ESTILIZAÇÃO BLINDADA
         function applyFormatCommand(cmd) {
             if(activeEditVerseNodes.length === 0) return;
             const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(savedSelectionRange);
             
             const container = document.getElementById('bible-content');
-            container.contentEditable = "true"; document.execCommand(cmd); container.contentEditable = "false";
+            allowVerseEditing = true;
+            container.contentEditable = "true"; document.execCommand(cmd);
+            allowVerseEditing = false;
+            protectBibleContent();
             
             activeEditVerseNodes.forEach(v => { let vNum = v.querySelector('.verse-num'); if(vNum) { vNum.style.fontWeight = ''; vNum.style.fontStyle = ''; vNum.style.textDecoration = ''; } saveFormatHTML(v.querySelector('.verse-text')); });
             savedSelectionRange = sel.getRangeAt(0); sel.removeAllRanges(); renderContent(); 
@@ -3350,7 +3436,13 @@
 
         // Reposiciona os adesivos se a página mudar de tamanho (rotação, zoom, fonte).
         let postItRepositionTimer = null;
+        let lastViewportWidth = window.innerWidth;
         window.addEventListener('resize', () => {
+            // O teclado do celular dispara "resize" mudando só a ALTURA.
+            // Redesenhar nesse momento destruía o adesivo recém-criado.
+            if (window.innerWidth === lastViewportWidth) return;
+            lastViewportWidth = window.innerWidth;
+            if (document.activeElement && document.activeElement.closest('.post-it-note')) return;
             clearTimeout(postItRepositionTimer);
             postItRepositionTimer = setTimeout(renderAllPostIts, 150);
         });
@@ -3396,7 +3488,19 @@
             const contentWrapper = document.createElement('div'); contentWrapper.className = 'post-it-content-wrapper';
             const textArea = document.createElement('textarea'); textArea.className = 'post-it-content'; textArea.placeholder = 'Sua anotação...'; textArea.value = data.text;
             textArea.addEventListener('input', (e) => { data.text = e.target.value; savePostIts(); });
-            textArea.addEventListener('blur', (e) => { if (data.text.trim() === '') { postIt.remove(); postItsData = postItsData.filter(p => p.id !== data.id); savePostIts(); } });
+            // Só descarta o adesivo se, um instante depois, ele continuar vazio
+            // e realmente sem foco (evita sumir enquanto o teclado abre).
+            textArea.addEventListener('blur', () => {
+                setTimeout(() => {
+                    if (!document.body.contains(postIt)) return;
+                    const stillFocused = document.activeElement === textArea;
+                    if (!stillFocused && (data.text || '').trim() === '') {
+                        postIt.remove();
+                        postItsData = postItsData.filter(p => p.id !== data.id);
+                        savePostIts();
+                    }
+                }, 400);
+            });
 
             contentWrapper.appendChild(textArea); postIt.appendChild(contentWrapper); parent.appendChild(postIt);
             
