@@ -310,7 +310,69 @@
             animation: fadeInUp 0.5s var(--ease-spring);
         }
 
-        /* ----- MODO FOCO: AS LETRAS SAEM DO PAPEL ----- */
+        /* ----- BUSCA INTELIGENTE (LEITURA E HARPA) ----- */
+        .smart-search { position: relative; width: 100%; }
+        .smart-search > i.fa-magnifying-glass {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            color: var(--accent-color); font-size: 0.9rem; pointer-events: none; opacity: 0.8;
+        }
+        .smart-search input {
+            width: 100%; box-sizing: border-box; background-color: var(--item-bg); color: var(--text-color);
+            padding: 12px 40px 12px 38px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.06);
+            font-family: var(--font-body); font-size: 0.9rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .smart-search input::placeholder { opacity: 0.5; }
+        .smart-search input:focus { border-color: color-mix(in srgb, var(--accent-color) 55%, transparent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 14%, transparent); }
+        .search-clear {
+            position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; color: var(--text-color); opacity: 0; pointer-events: none;
+            cursor: pointer; font-size: 0.9rem; padding: 8px; border-radius: 50%; transition: opacity 0.2s, background-color 0.2s;
+        }
+        .smart-search.has-text .search-clear { opacity: 0.6; pointer-events: auto; }
+        .search-clear:hover { opacity: 1; background: color-mix(in srgb, var(--accent-color) 15%, transparent); }
+
+        .search-results {
+            margin-bottom: 18px; border-radius: var(--radius-md); overflow: hidden;
+            background: color-mix(in srgb, var(--secondary-bg) 94%, transparent);
+            border: 1px solid color-mix(in srgb, var(--accent-color) 14%, transparent);
+            box-shadow: var(--shadow-soft); display: none;
+        }
+        .search-results.open { display: block; animation: fadeInUp 0.28s var(--ease-spring); }
+
+        .search-group-label {
+            font-size: 0.68rem; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
+            color: var(--accent-color); opacity: 0.8; padding: 12px 16px 6px; display: flex; align-items: center; gap: 7px;
+        }
+        .search-result-item {
+            padding: 11px 16px; cursor: pointer; border-left: 3px solid transparent;
+            transition: background-color 0.18s, border-color 0.18s; display: block; width: 100%;
+            text-align: left; background: none; border-top: none; border-right: none; border-bottom: none;
+            color: var(--text-color); font-family: var(--font-body);
+        }
+        .search-result-item:hover, .search-result-item:focus-visible {
+            background-color: color-mix(in srgb, var(--accent-color) 12%, transparent);
+            border-left-color: var(--accent-color); outline: none;
+        }
+        .search-result-ref { font-size: 0.78rem; font-weight: 700; color: var(--accent-color); display: block; margin-bottom: 3px; }
+        .search-result-text {
+            font-family: var(--font-display); font-size: 1rem; line-height: 1.45; opacity: 0.9;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .search-result-text mark, .search-result-ref mark {
+            background: color-mix(in srgb, var(--accent-color) 40%, transparent);
+            color: inherit; border-radius: 3px; padding: 0 2px; font-weight: 600;
+        }
+        .search-jump-item { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 0.95rem; }
+        .search-jump-item i { color: var(--accent-color); font-size: 0.85rem; }
+        .search-status { padding: 16px; text-align: center; font-size: 0.85rem; opacity: 0.6; line-height: 1.5; }
+        .search-more { padding: 10px 16px 14px; font-size: 0.75rem; opacity: 0.5; text-align: center; }
+
+        /* Realce do versículo alcançado pela busca */
+        @keyframes searchPulse {
+            0%   { background-color: color-mix(in srgb, var(--accent-color) 38%, transparent); }
+            100% { background-color: transparent; }
+        }
+        .verse.search-hit { animation: searchPulse 2.2s ease forwards; }
         @keyframes liftOffPage {
             from { transform: scale(1); letter-spacing: 0; text-shadow: none; }
             to   { transform: scale(1.13); letter-spacing: 0.4px; }
@@ -628,8 +690,8 @@
         /* ----- ESTILOS OCULTOS PARA GERAR IMAGEM (AJUSTADO PARA 4:5 - INSTAGRAM) ----- */
         #share-wrapper { position: absolute; left: -9999px; top: -9999px; }
         #share-card { width: 1080px; height: 1350px; background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)); background-size: cover; background-position: center; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 80px; box-sizing: border-box; color: #fff; font-family: 'Inter', sans-serif; text-align: center; }
-        #share-verse { font-size: 2.8rem; font-style: italic; font-weight: 600; margin-bottom: 30px; line-height: 1.4; text-shadow: 2px 2px 10px rgba(0,0,0,0.6); }
-        #share-ref { font-size: 2rem; font-weight: 700; color: #e0f2f1; background-color: rgba(76, 175, 80, 0.8); padding: 10px 30px; border-radius: 50px; letter-spacing: 1px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); margin-bottom: 40px; }
+        #share-verse { font-family: var(--font-display); font-size: 3.4rem; font-style: italic; font-weight: 600; margin-bottom: 34px; line-height: 1.35; text-shadow: 2px 2px 12px rgba(0,0,0,0.7); }
+        #share-ref { font-family: var(--font-body); font-size: 1.9rem; font-weight: 700; color: #16150f; background-color: rgba(201, 162, 77, 0.92); padding: 12px 34px; border-radius: 50px; letter-spacing: 1px; box-shadow: 0 4px 18px rgba(0,0,0,0.45); margin-bottom: 44px; }
         #share-devo { font-size: 1.5rem; line-height: 1.6; opacity: 0.9; text-align: center; border-top: 2px solid rgba(255,255,255,0.2); padding-top: 40px; width: 90%; }
 
         /* ----- POST-ITS ULTRA REALISTAS E DOBRÁVEIS ----- */
@@ -995,7 +1057,15 @@
                 <button class="btn-read" onclick="loadChapter()" style="flex: 2;"><i class="fa-solid fa-magnifying-glass"></i> Carregar Capítulo</button>
                 <button id="btnTranslateToggle" class="btn-read" onclick="toggleTranslation()" style="flex: 1; background-color: var(--item-bg); color: var(--text-color); border: 1px solid rgba(255,255,255,0.05);"><i class="fa-solid fa-language"></i> Legenda</button>
             </div>
+
+            <div class="smart-search" id="readerSearchWrap">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="readerSearch" autocomplete="off" placeholder="Buscar versículo, palavra ou referência (ex: jo 3 16)">
+                <button class="search-clear" onclick="clearReaderSearch()" title="Limpar busca"><i class="fa-solid fa-xmark"></i></button>
+            </div>
         </div>
+
+        <div id="readerSearchResults" class="search-results"></div>
 
         <div id="bible-content">
             <div style="text-align: center; margin-top: 60px; color: var(--text-color); opacity: 0.5; font-size: 0.95rem;">
@@ -1056,6 +1126,14 @@
                 <i class="fa-solid fa-arrow-left"></i> Voltar
             </button>
         </div>
+
+        <div class="smart-search" id="harpaSearchWrap" style="margin-bottom: 18px;">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="harpaSearch" autocomplete="off" placeholder="Buscar hino por número, título ou trecho da letra">
+            <button class="search-clear" onclick="clearHarpaSearch()" title="Limpar busca"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div id="harpaSearchResults" class="search-results"></div>
 
         <div id="harpa-grid-container">
             <div class="harpa-grid" id="harpaGrid"></div>
@@ -1188,6 +1266,8 @@
             initSelects(); await scanLocalVersions(); 
             await loadDevotional(); loadTheme(); updateSidebarList(); loadPostIts(); 
             initReadingPlan(); 
+            setupSmartSearch('readerSearch', 'readerSearchWrap', onReaderSearch);
+            setupSmartSearch('harpaSearch', 'harpaSearchWrap', onHarpaSearch);
         }
 
         async function scanLocalVersions() {
@@ -1319,52 +1399,158 @@
             `;
         }
 
-        async function shareVerse() {
-            try {
-                if (navigator.share) {
-                    const btn = document.getElementById('btnShare'); const originalHTML = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Preparando...';
-                    document.getElementById('share-verse').textContent = `"${currentDevo.verse}"`; 
-                    document.getElementById('share-ref').textContent = currentDevo.ref; 
-                    document.getElementById('share-devo').innerHTML = `<strong>Reflexão:</strong> ${currentDevo.devo}`;
-                    document.getElementById('share-card').style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url('https://picsum.photos/1080/1350?random=${Date.now()}')`;
-                    
-                    const element = document.getElementById('share-card');
-                    setTimeout(async () => {
-                        try {
-                            const canvas = await html2canvas(element, { useCORS: true, scale: 2 });
-                            canvas.toBlob(async (blob) => {
-                                const fileName = `Devocional-${currentDevo.ref.replace(':', '-')}.jpg`;
-                                const file = new File([blob], fileName, { type: 'image/jpeg' });
-                                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                                    try { 
-                                        await navigator.share({ title: 'Versículo do Dia', files: [file] }); 
-                                    } catch (e) { 
-                                        if (e.name !== 'AbortError') downloadFallback(blob, fileName); 
-                                    }
-                                } else {
-                                    downloadFallback(blob, fileName);
-                                }
-                            }, 'image/jpeg', 0.9);
-                        } catch (error) { customAlert("Erro ao preparar a imagem para compartilhamento."); } finally { btn.innerHTML = originalHTML; }
-                    }, 500); 
-                } else {
-                    const btn = document.getElementById('btnShare'); const originalHTML = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
-                    document.getElementById('share-verse').textContent = `"${currentDevo.verse}"`; 
-                    document.getElementById('share-ref').textContent = currentDevo.ref; 
-                    document.getElementById('share-devo').innerHTML = `<strong>Reflexão:</strong> ${currentDevo.devo}`;
-                    document.getElementById('share-card').style.backgroundImage = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url('https://picsum.photos/1080/1350?random=${Date.now()}')`;
-                    
-                    const element = document.getElementById('share-card');
-                    setTimeout(async () => {
-                        try {
-                            const canvas = await html2canvas(element, { useCORS: true, scale: 2 });
-                            canvas.toBlob((blob) => { downloadFallback(blob, `Devocional-${currentDevo.ref.replace(':', '-')}.jpg`); }, 'image/jpeg', 0.9);
-                        } catch (error) { customAlert("Erro ao gerar imagem."); } finally { btn.innerHTML = originalHTML; }
-                    }, 500);
-                }
-            } catch (e) { customAlert("Erro de sistema."); }
+        // ==========================================
+        //  FUNDOS DO CARTÃO DE COMPARTILHAMENTO
+        //  40 paletas x 8 ângulos x foto aleatória = variação praticamente infinita
+        // ==========================================
+        const sharePalettes = [
+            ['#0f2027', '#203a43', '#2c5364'], ['#42275a', '#734b6d', '#2c1b33'],
+            ['#1e3c72', '#2a5298', '#0f1c3f'], ['#3a1c71', '#d76d77', '#ffaf7b'],
+            ['#134e5e', '#71b280', '#0b2e26'], ['#5d4157', '#a8caba', '#2b1b28'],
+            ['#232526', '#414345', '#1a1a1a'], ['#8e2de2', '#4a00e0', '#1f0038'],
+            ['#c31432', '#240b36', '#0d0416'], ['#603813', '#b29f94', '#2e1a08'],
+            ['#16222a', '#3a6073', '#0a1116'], ['#1f4037', '#99f2c8', '#0c1f1a'],
+            ['#4b6cb7', '#182848', '#0a1428'], ['#642b73', '#c6426e', '#2c1230'],
+            ['#0b486b', '#f56217', '#04222f'], ['#2c3e50', '#fd746c', '#161f27'],
+            ['#355c7d', '#6c5b7b', '#c06c84'], ['#556270', '#4ecdc4', '#242b32'],
+            ['#001510', '#00bfa5', '#000806'], ['#41295a', '#2f0743', '#180322'],
+            ['#334d50', '#cbcaa5', '#1a2628'], ['#870000', '#190a05', '#0a0402'],
+            ['#004e92', '#000428', '#00020f'], ['#6a3093', '#a044ff', '#2b1240'],
+            ['#2b5876', '#4e4376', '#141c26'], ['#493240', '#f09819', '#241920'],
+            ['#0f0c29', '#302b63', '#24243e'], ['#8a2387', '#e94057', '#f27121'],
+            ['#26d0ce', '#1a2980', '#0d1440'], ['#5f2c82', '#49a09d', '#2c1540'],
+            ['#3c1053', '#ad5389', '#1c0827'], ['#136a8a', '#267871', '#0a353f'],
+            ['#f7971e', '#ffd200', '#7a4b0f'], ['#4776e6', '#8e54e9', '#233b73'],
+            ['#c04848', '#480048', '#240024'], ['#1d976c', '#93f9b9', '#0e4b36'],
+            ['#eb3349', '#f45c43', '#751a24'], ['#283048', '#859398', '#141824'],
+            ['#5c258d', '#4389a2', '#2e1246'], ['#ba5370', '#f4e2d8', '#5d2a38']
+        ];
+        const shareAngles = [0, 45, 90, 135, 160, 200, 270, 315];
+
+        function hexToRgba(hex, alpha) {
+            const n = parseInt(hex.replace('#', ''), 16);
+            return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
         }
-        function downloadFallback(blob, fileName) { const link = document.createElement('a'); link.download = fileName; link.href = URL.createObjectURL(blob); link.click(); }
+
+        function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+        // Busca a foto como data URL: evita "canvas contaminado" e garante que já carregou.
+        async function fetchImageAsDataUrl(url, timeoutMs = 7000) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+            try {
+                const res = await fetch(url, { signal: controller.signal, mode: 'cors' });
+                if (!res.ok) throw new Error('resposta inválida');
+                const blob = await res.blob();
+                return await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(blob);
+                });
+            } finally { clearTimeout(timer); }
+        }
+
+        async function buildShareBackground() {
+            const palette = pickRandom(sharePalettes);
+            const angle = pickRandom(shareAngles);
+            const tint = `linear-gradient(${angle}deg, ${hexToRgba(palette[0], 0.88)}, ${hexToRgba(palette[1], 0.72)}, ${hexToRgba(palette[2], 0.92)})`;
+
+            try {
+                const seed = Math.floor(Math.random() * 1000000);
+                const photo = await fetchImageAsDataUrl(`https://picsum.photos/seed/${seed}/1080/1350`);
+                // Pré-carrega para o html2canvas nunca capturar o cartão sem o fundo.
+                await new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = resolve; img.onerror = reject; img.src = photo;
+                });
+                return `${tint}, url('${photo}')`;
+            } catch (e) {
+                // Sem internet ou foto indisponível: o degradê sozinho já fica bonito.
+                return `linear-gradient(${angle}deg, ${palette[0]}, ${palette[1]}, ${palette[2]})`;
+            }
+        }
+
+        async function shareVerse() {
+            const btn = document.getElementById('btnShare');
+            const originalHTML = btn.innerHTML;
+            const shareText = `"${currentDevo.verse}"\n\n${currentDevo.ref}\n\n${currentDevo.devo}`;
+            const fileName = `Devocional-${currentDevo.ref.replace(/[:\s]/g, '-')}.jpg`;
+
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Preparando...';
+
+            try {
+                document.getElementById('share-verse').textContent = `"${currentDevo.verse}"`;
+                document.getElementById('share-ref').textContent = currentDevo.ref;
+                document.getElementById('share-devo').innerHTML = `<strong>Reflexão:</strong> ${currentDevo.devo}`;
+                document.getElementById('share-card').style.backgroundImage = await buildShareBackground();
+
+                const canvas = await html2canvas(document.getElementById('share-card'), {
+                    useCORS: true, scale: 2, backgroundColor: '#0b0d14', logging: false
+                });
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
+                if (!blob) throw new Error('imagem não gerada');
+
+                const file = new File([blob], fileName, { type: 'image/jpeg' });
+
+                // 1ª opção: compartilhar a imagem.
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({ title: 'Versículo do Dia', text: shareText, files: [file] });
+                        return;
+                    } catch (e) {
+                        if (e.name === 'AbortError') return;
+                    }
+                }
+                // 2ª opção: compartilhar só a imagem, sem texto (alguns apps recusam os dois juntos).
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({ files: [file] });
+                        return;
+                    } catch (e) {
+                        if (e.name === 'AbortError') return;
+                    }
+                }
+                // 3ª opção: compartilhar o texto do versículo.
+                if (navigator.share) {
+                    try {
+                        await navigator.share({ title: 'Versículo do Dia', text: shareText });
+                        return;
+                    } catch (e) {
+                        if (e.name === 'AbortError') return;
+                    }
+                }
+                // Sem suporte a compartilhamento (navegador de computador): copia o texto.
+                await copyShareText(shareText);
+            } catch (error) {
+                // A imagem falhou, mas o compartilhamento continua funcionando com o texto.
+                if (navigator.share) {
+                    try {
+                        await navigator.share({ title: 'Versículo do Dia', text: shareText });
+                        return;
+                    } catch (e) {
+                        if (e.name === 'AbortError') return;
+                    }
+                }
+                await copyShareText(shareText);
+            } finally {
+                btn.innerHTML = originalHTML;
+            }
+        }
+
+        async function copyShareText(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                customAlert("Versículo copiado. É só colar onde quiser compartilhar.");
+            } catch (e) {
+                const area = document.createElement('textarea');
+                area.value = text; area.style.position = 'fixed'; area.style.left = '-9999px';
+                document.body.appendChild(area); area.select();
+                try { document.execCommand('copy'); customAlert("Versículo copiado. É só colar onde quiser compartilhar."); }
+                catch (err) { customAlert("Não foi possível compartilhar por aqui. Tente pelo aplicativo no celular."); }
+                document.body.removeChild(area);
+            }
+        }
 
         const presets = {
             dark: { bg: '#0b0d14', text: '#f0ece0', accent: '#c9a24d', secBg: '#161925', itemBg: '#1f2333' },
@@ -2491,6 +2677,470 @@
         function closeFormatPopup() { document.getElementById('formatPopupOverlay').classList.remove('open'); activeEditVerseNodes = []; }
 
         // ==========================================
+        //  BUSCA INTELIGENTE (LEITURA E HARPA)
+        //  Ignora acentos, maiúsculas e erros de digitação.
+        // ==========================================
+        function normalizeSearch(str) {
+            return String(str || '')
+                .toLowerCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9\s]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function levenshtein(a, b) {
+            if (a === b) return 0;
+            if (!a.length) return b.length;
+            if (!b.length) return a.length;
+            let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+            for (let i = 1; i <= a.length; i++) {
+                let cur = [i];
+                for (let j = 1; j <= b.length; j++) {
+                    cur[j] = Math.min(
+                        prev[j] + 1,
+                        cur[j - 1] + 1,
+                        prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+                    );
+                }
+                prev = cur;
+            }
+            return prev[b.length];
+        }
+
+        // Tolera digitação errada comparando a busca com cada palavra do alvo.
+        function typoScore(q, t) {
+            let best = 0;
+            for (const word of t.split(' ')) {
+                if (!word || Math.abs(word.length - q.length) > 3) continue;
+                const dist = levenshtein(q, word);
+                const similarity = 1 - dist / Math.max(q.length, word.length);
+                if (similarity >= 0.65) best = Math.max(best, Math.round(similarity * 320));
+            }
+            return best;
+        }
+
+        // Pontuação: 0 = não achou. Quanto maior, mais relevante.
+        function fuzzyScore(query, target) {
+            const q = normalizeSearch(query);
+            const t = normalizeSearch(target);
+            if (!q || !t) return 0;
+            if (t === q) return 1000;
+            if (t.startsWith(q)) return 900;
+            const idx = t.indexOf(q);
+            if (idx > -1) return Math.max(600, 850 - idx);
+
+            const tokens = q.split(' ').filter(Boolean);
+            if (tokens.length > 1 && tokens.every(tok => t.includes(tok))) return 700;
+
+            // Letras na ordem certa, mesmo com sobras no meio ("gnss" acha "Gênesis").
+            const compact = q.replace(/\s/g, '');
+            let pos = 0, gaps = 0, first = -1, ok = true;
+            for (const ch of compact) {
+                const found = t.indexOf(ch, pos);
+                if (found === -1) { ok = false; break; }
+                if (first === -1) first = found; else gaps += found - pos;
+                pos = found + 1;
+            }
+            if (ok && compact.length >= 2) return Math.max(120, 500 - gaps * 3 - first * 2);
+
+            return typoScore(q, t);
+        }
+
+        const bookAbbrev = {
+            'gn': 'Gênesis', 'ex': 'Êxodo', 'lv': 'Levítico', 'nm': 'Números', 'dt': 'Deuteronômio',
+            'js': 'Josué', 'jz': 'Juízes', 'rt': 'Rute', '1sm': '1 Samuel', '2sm': '2 Samuel',
+            '1rs': '1 Reis', '2rs': '2 Reis', '1cr': '1 Crônicas', '2cr': '2 Crônicas',
+            'ed': 'Esdras', 'ne': 'Neemias', 'et': 'Ester', 'job': 'Jó', 'sl': 'Salmos', 'slm': 'Salmos',
+            'pv': 'Provérbios', 'ec': 'Eclesiastes', 'ct': 'Cânticos', 'is': 'Isaías', 'jr': 'Jeremias',
+            'lm': 'Lamentações', 'ez': 'Ezequiel', 'dn': 'Daniel', 'os': 'Oséias', 'jl': 'Joel',
+            'am': 'Amós', 'ob': 'Obadias', 'jn': 'Jonas', 'mq': 'Miquéias', 'na': 'Naum',
+            'hc': 'Habacuque', 'sf': 'Sofonias', 'ag': 'Ageu', 'zc': 'Zacarias', 'ml': 'Malaquias',
+            'mt': 'Mateus', 'mc': 'Marcos', 'lc': 'Lucas', 'jo': 'João', 'at': 'Atos', 'rm': 'Romanos',
+            '1co': '1 Coríntios', '2co': '2 Coríntios', 'gl': 'Gálatas', 'ef': 'Efésios',
+            'fp': 'Filipenses', 'cl': 'Colossenses', '1ts': '1 Tessalonicenses', '2ts': '2 Tessalonicenses',
+            '1tm': '1 Timóteo', '2tm': '2 Timóteo', 'tt': 'Tito', 'fm': 'Filemom', 'hb': 'Hebreus',
+            'tg': 'Tiago', '1pe': '1 Pedro', '2pe': '2 Pedro', '1jo': '1 João', '2jo': '2 João',
+            '3jo': '3 João', 'jd': 'Judas', 'ap': 'Apocalipse'
+        };
+
+        // Entende "jo 3 16", "joão 3:16", "gn1", "1 co 13", "salmo 23".
+        function parseReference(raw) {
+            const q = normalizeSearch(raw);
+            if (!q) return null;
+            const m = q.match(/^([1-3]?\s*[a-z]+(?:\s+[a-z]+)*?)\s*(\d+)?(?:\s*[:\s]\s*(\d+))?$/);
+            if (!m || !m[1]) return null;
+            return {
+                bookQuery: m[1].replace(/\s+/g, ' ').trim(),
+                chapter: m[2] ? parseInt(m[2]) : null,
+                verse: m[3] ? parseInt(m[3]) : null
+            };
+        }
+
+        function matchBooks(bookQuery, limit = 4) {
+            const compact = bookQuery.replace(/\s/g, '');
+            const results = [];
+            booksStandard.forEach(name => {
+                let score = fuzzyScore(bookQuery, name);
+                if (bookAbbrev[compact] === name) score = Math.max(score, 1100);
+                if (score > 0) results.push({ name, score });
+            });
+            return results.sort((a, b) => b.score - a.score).slice(0, limit).filter(r => r.score >= 120);
+        }
+
+        function chaptersOf(bookName) {
+            const found = bibleStructureChronological.find(b => b.name === bookName);
+            return found ? found.chapters : 150;
+        }
+
+        function escapeRegex(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+        // Normaliza mantendo um mapa de volta para as posições do texto original,
+        // para o realce não sair desalinhado por causa de acentos e pontuação.
+        function normalizeWithMap(text) {
+            let norm = ''; const map = [];
+            for (let i = 0; i < text.length; i++) {
+                const converted = text[i].toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                for (const c of converted) { norm += c; map.push(i); }
+            }
+            return { norm, map };
+        }
+
+        // Realça os trechos encontrados, ignorando acentos do original.
+        function highlightMatch(text, query) {
+            const raw = String(text || '');
+            const tokens = normalizeSearch(query).split(' ').filter(t => t.length >= 2);
+            if (!tokens.length) return escapeHtml(raw);
+
+            const { norm, map } = normalizeWithMap(raw);
+            const ranges = [];
+            tokens.forEach(tok => {
+                let from = 0, at;
+                while ((at = norm.indexOf(tok, from)) !== -1) {
+                    ranges.push([map[at], map[at + tok.length - 1] + 1]);
+                    from = at + tok.length;
+                }
+            });
+            if (!ranges.length) return escapeHtml(raw);
+
+            ranges.sort((a, b) => a[0] - b[0]);
+            const merged = [ranges[0]];
+            for (let i = 1; i < ranges.length; i++) {
+                const last = merged[merged.length - 1];
+                if (ranges[i][0] <= last[1]) last[1] = Math.max(last[1], ranges[i][1]);
+                else merged.push(ranges[i]);
+            }
+
+            let out = '', cursor = 0;
+            merged.forEach(([s, e]) => {
+                out += escapeHtml(raw.slice(cursor, s)) + '<mark>' + escapeHtml(raw.slice(s, e)) + '</mark>';
+                cursor = e;
+            });
+            return out + escapeHtml(raw.slice(cursor));
+        }
+
+        // ---------- Índice de texto completo (só para versões em arquivo .json) ----------
+        const bibleIndexCache = {};
+
+        async function ensureFullTextIndex(version) {
+            if (!version || !version.endsWith('.json')) return null;
+            if (bibleIndexCache[version]) return bibleIndexCache[version];
+            try {
+                const res = await fetch(version);
+                if (!res.ok) return null;
+                const data = await res.json();
+                const index = [];
+                data.forEach((bookData, bookIdx) => {
+                    const bookName = booksStandard[bookIdx] || bookData.name || `Livro ${bookIdx + 1}`;
+                    (bookData.chapters || []).forEach((chapterVerses, cIdx) => {
+                        chapterVerses.forEach((text, vIdx) => {
+                            index.push({
+                                book: bookName, chapter: cIdx + 1, verse: vIdx + 1,
+                                text: text, norm: normalizeSearch(text)
+                            });
+                        });
+                    });
+                });
+                bibleIndexCache[version] = index;
+                return index;
+            } catch (e) { return null; }
+        }
+
+        function searchInIndex(index, query, limit = 25) {
+            const tokens = normalizeSearch(query).split(' ').filter(t => t.length >= 2);
+            if (!tokens.length) return [];
+            const phrase = normalizeSearch(query);
+            const hits = [];
+            for (const entry of index) {
+                let score = 0;
+                if (entry.norm.includes(phrase)) score = 900;
+                else if (tokens.every(t => entry.norm.includes(t))) score = 600;
+                else continue;
+                score -= Math.min(entry.text.length / 40, 60);
+                hits.push({ entry, score });
+                if (hits.length > 900) break;
+            }
+            return hits.sort((a, b) => b.score - a.score).slice(0, limit).map(h => h.entry);
+        }
+
+        // ---------- Busca da tela de Leitura ----------
+        let readerSearchTimer = null;
+
+        function setupSmartSearch(inputId, wrapId, handler) {
+            const input = document.getElementById(inputId);
+            const wrap = document.getElementById(wrapId);
+            input.addEventListener('input', () => {
+                wrap.classList.toggle('has-text', input.value.length > 0);
+                handler(input.value);
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') { input.value = ''; wrap.classList.remove('has-text'); handler(''); input.blur(); }
+                if (e.key === 'Enter') {
+                    const first = document.querySelector(`#${inputId === 'readerSearch' ? 'readerSearchResults' : 'harpaSearchResults'} .search-result-item`);
+                    if (first) { first.click(); input.blur(); }
+                }
+            });
+        }
+
+        function clearReaderSearch() {
+            const input = document.getElementById('readerSearch');
+            input.value = '';
+            document.getElementById('readerSearchWrap').classList.remove('has-text');
+            document.getElementById('readerSearchResults').classList.remove('open');
+            input.focus();
+        }
+
+        function onReaderSearch(value) {
+            clearTimeout(readerSearchTimer);
+            readerSearchTimer = setTimeout(() => runReaderSearch(value), 180);
+        }
+
+        async function runReaderSearch(rawQuery) {
+            const panel = document.getElementById('readerSearchResults');
+            const query = rawQuery.trim();
+            if (query.length < 2) { panel.classList.remove('open'); panel.innerHTML = ''; return; }
+
+            let html = '';
+
+            // 1. Referências ("jo 3 16")
+            const ref = parseReference(query);
+            if (ref) {
+                const books = matchBooks(ref.bookQuery);
+                if (books.length) {
+                    html += `<div class="search-group-label"><i class="fa-solid fa-location-arrow"></i> Ir para</div>`;
+                    books.forEach(b => {
+                        const maxCh = chaptersOf(b.name);
+                        const ch = ref.chapter && ref.chapter <= maxCh ? ref.chapter : 1;
+                        const label = ref.verse ? `${b.name} ${ch}:${ref.verse}` : `${b.name} ${ch}`;
+                        html += `<button class="search-result-item search-jump-item" onclick="goToReference('${b.name.replace(/'/g, "\\'")}', ${ch}, ${ref.verse || 'null'})">
+                                    <i class="fa-solid fa-book-open"></i> ${escapeHtml(label)}
+                                 </button>`;
+                    });
+                }
+            }
+
+            // 2. Dentro do capítulo aberto
+            if (currentChapterData && currentChapterData.verses) {
+                const tokens = normalizeSearch(query).split(' ').filter(t => t.length >= 2);
+                const local = currentChapterData.verses.filter(v => {
+                    const norm = normalizeSearch(v.text);
+                    return norm.includes(normalizeSearch(query)) || tokens.every(t => norm.includes(t));
+                }).slice(0, 8);
+
+                if (local.length) {
+                    html += `<div class="search-group-label"><i class="fa-solid fa-file-lines"></i> Neste capítulo (${currentChapterData.reference})</div>`;
+                    local.forEach(v => {
+                        const n = v.verse || v.number;
+                        html += `<button class="search-result-item" onclick="jumpToVerse(${n})">
+                                    <span class="search-result-ref">Versículo ${n}</span>
+                                    <span class="search-result-text">${highlightMatch(v.text, query)}</span>
+                                 </button>`;
+                    });
+                }
+            }
+
+            // 3. Em toda a Bíblia (versões em arquivo)
+            const version = document.getElementById('versionSelect').value;
+            if (version && version.endsWith('.json') && query.length >= 3) {
+                if (!bibleIndexCache[version]) {
+                    panel.innerHTML = html + `<div class="search-status"><i class="fa-solid fa-circle-notch fa-spin"></i> Preparando a busca completa...</div>`;
+                    panel.classList.add('open');
+                }
+                const index = await ensureFullTextIndex(version);
+                if (document.getElementById('readerSearch').value.trim() !== query) return; // digitou de novo
+                if (index) {
+                    const hits = searchInIndex(index, query, 25);
+                    if (hits.length) {
+                        html += `<div class="search-group-label"><i class="fa-solid fa-book-bible"></i> Em toda a Bíblia</div>`;
+                        hits.forEach(h => {
+                            html += `<button class="search-result-item" onclick="goToReference('${h.book.replace(/'/g, "\\'")}', ${h.chapter}, ${h.verse})">
+                                        <span class="search-result-ref">${escapeHtml(h.book)} ${h.chapter}:${h.verse}</span>
+                                        <span class="search-result-text">${highlightMatch(h.text, query)}</span>
+                                     </button>`;
+                        });
+                    }
+                }
+            } else if (!html && query.length >= 3) {
+                html += `<div class="search-status">Para buscar em toda a Bíblia, escolha uma versão em arquivo no seletor de versões.<br>Por aqui dá para buscar referências e o capítulo aberto.</div>`;
+            }
+
+            if (!html) html = `<div class="search-status">Nada encontrado para "${escapeHtml(query)}".</div>`;
+            panel.innerHTML = html;
+            panel.classList.add('open');
+        }
+
+        function jumpToVerse(verseNumber) {
+            const el = document.querySelector(`.verse[data-verse="${verseNumber}"]`);
+            if (!el) return;
+            document.getElementById('readerSearchResults').classList.remove('open');
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.remove('search-hit');
+            void el.offsetWidth;
+            el.classList.add('search-hit');
+        }
+
+        async function goToReference(book, chapter, verse) {
+            document.getElementById('readerSearchResults').classList.remove('open');
+            document.getElementById('bookSelect').value = book;
+            document.getElementById('chapterSelect').value = chapter;
+            document.getElementById('verseSelect').value = '';
+            switchView('reader');
+            await loadChapter();
+            if (verse) setTimeout(() => jumpToVerse(verse), 200);
+        }
+
+        // ---------- Busca da Harpa ----------
+        let harpaSearchTimer = null;
+
+        function clearHarpaSearch() {
+            const input = document.getElementById('harpaSearch');
+            input.value = '';
+            document.getElementById('harpaSearchWrap').classList.remove('has-text');
+            document.getElementById('harpaSearchResults').classList.remove('open');
+            toggleHarpaBrowseVisible(true);
+            input.focus();
+        }
+
+        function toggleHarpaBrowseVisible(visible) {
+            const grid = document.getElementById('harpa-grid-container');
+            const list = document.getElementById('harpa-list-container');
+            const hymn = document.getElementById('harpa-hymn-container');
+            if (visible) {
+                if (hymn.style.display === 'block') return;
+                if (currentHarpaViewMode === 'grid') grid.style.display = 'block';
+                else list.style.display = 'block';
+            } else {
+                grid.style.display = 'none';
+                list.style.display = 'none';
+            }
+        }
+
+        async function ensureHarpaData(versionKey) {
+            if (harpaDataCache[versionKey]) return harpaDataCache[versionKey];
+            const info = harpaVersions[versionKey];
+            try {
+                const res = await fetch('./' + info.file);
+                if (!res.ok) return null;
+                const raw = JSON.parse(await res.text());
+                const hinos = normalizeHymns(raw);
+                harpaDataCache[versionKey] = hinos;
+                return hinos;
+            } catch (e) { return null; }
+        }
+
+        function onHarpaSearch(value) {
+            clearTimeout(harpaSearchTimer);
+            harpaSearchTimer = setTimeout(() => runHarpaSearch(value), 180);
+        }
+
+        async function runHarpaSearch(rawQuery) {
+            const panel = document.getElementById('harpaSearchResults');
+            const query = rawQuery.trim();
+
+            if (query.length < 1) {
+                panel.classList.remove('open'); panel.innerHTML = '';
+                toggleHarpaBrowseVisible(true);
+                return;
+            }
+
+            panel.innerHTML = `<div class="search-status"><i class="fa-solid fa-circle-notch fa-spin"></i> Procurando...</div>`;
+            panel.classList.add('open');
+            toggleHarpaBrowseVisible(false);
+            document.getElementById('harpa-hymn-container').style.display = 'none';
+            document.getElementById('btnBackHarpa').style.display = 'none';
+
+            const hinos = await ensureHarpaData(currentHarpaVersion);
+            if (document.getElementById('harpaSearch').value.trim() !== query) return;
+
+            if (!hinos) {
+                panel.innerHTML = `<div class="search-status">Não foi possível ler o arquivo de hinos desta versão.</div>`;
+                return;
+            }
+
+            const normQuery = normalizeSearch(query);
+            const tokens = normQuery.split(' ').filter(t => t.length >= 2);
+            const asNumber = query.replace(/\D/g, '');
+            const scored = [];
+
+            hinos.forEach((h, i) => {
+                const number = String(h.id || i + 1);
+                const title = String(h.title || '');
+                const lyrics = String(h.lyrics || '');
+                let score = 0;
+                let snippetSource = title;
+
+                if (asNumber && number === asNumber) score = 1200;
+                else if (asNumber && number.startsWith(asNumber)) score = Math.max(score, 1000);
+
+                const titleScore = fuzzyScore(query, title);
+                if (titleScore > score) { score = titleScore; snippetSource = title; }
+
+                const normLyrics = normalizeSearch(lyrics);
+                if (normLyrics.includes(normQuery)) {
+                    if (score < 580) { score = 580; }
+                    snippetSource = lyrics;
+                } else if (tokens.length && tokens.every(t => normLyrics.includes(t))) {
+                    if (score < 480) { score = 480; }
+                    snippetSource = lyrics;
+                }
+
+                if (score >= 200) scored.push({ h, number, title, score, snippetSource, lyrics });
+            });
+
+            const results = scored.sort((a, b) => b.score - a.score).slice(0, 40);
+
+            if (!results.length) {
+                panel.innerHTML = `<div class="search-status">Nenhum hino encontrado para "${escapeHtml(query)}".</div>`;
+                return;
+            }
+
+            let html = `<div class="search-group-label"><i class="fa-solid fa-music"></i> ${results.length} hino${results.length > 1 ? 's' : ''} encontrado${results.length > 1 ? 's' : ''}</div>`;
+            results.forEach(r => {
+                let snippet = r.snippetSource === r.title ? r.title : buildLyricSnippet(r.lyrics, normQuery);
+                html += `<button class="search-result-item" onclick="openHymnFromSearch('${r.number}')">
+                            <span class="search-result-ref">${highlightMatch('Hino ' + r.number, query)}${r.title ? ' — ' + highlightMatch(r.title, query) : ''}</span>
+                            <span class="search-result-text">${highlightMatch(snippet, query)}</span>
+                         </button>`;
+            });
+            panel.innerHTML = html;
+        }
+
+        // Recorta o trecho da letra em volta da palavra encontrada.
+        function buildLyricSnippet(lyrics, normQuery) {
+            const plain = lyrics.replace(/\s+/g, ' ').trim();
+            const norm = normalizeSearch(plain);
+            const at = norm.indexOf(normQuery.split(' ')[0]);
+            if (at === -1) return plain.slice(0, 120);
+            const start = Math.max(0, at - 45);
+            return (start > 0 ? '... ' : '') + plain.slice(start, start + 140);
+        }
+
+        function openHymnFromSearch(number) {
+            document.getElementById('harpaSearchResults').classList.remove('open');
+            loadHymn(number);
+        }
+
+        // ==========================================
         //  LÓGICA DOS POST-ITS 
         // ==========================================
         function loadPostIts() { postItsData = JSON.parse(localStorage.getItem('biblePostIts') || '[]'); postItsData = postItsData.filter(p => p.text && p.text.trim() !== ''); savePostIts(); renderAllPostIts(); }
@@ -2639,13 +3289,17 @@
 
         function changeHarpaVersion(val) {
             currentHarpaVersion = val;
+            const searchInput = document.getElementById('harpaSearch');
+            if (searchInput && searchInput.value.trim()) { runHarpaSearch(searchInput.value); return; }
             renderHarpaView();
         }
 
         function renderHarpaView() {
             document.getElementById('harpa-hymn-container').style.display = 'none';
             document.getElementById('btnBackHarpa').style.display = 'none';
-            
+            const searchPanel = document.getElementById('harpaSearchResults');
+            if (searchPanel) searchPanel.classList.remove('open');
+
             document.getElementById('btnHarpaViewMode').style.display = 'block';
 
             if (currentHarpaViewMode === 'grid') {
@@ -2845,6 +3499,14 @@
         }
 
         function backToHarpaGrid() {
+            const searchInput = document.getElementById('harpaSearch');
+            if (searchInput && searchInput.value.trim()) {
+                document.getElementById('harpa-hymn-container').style.display = 'none';
+                document.getElementById('btnBackHarpa').style.display = 'none';
+                document.getElementById('btnHarpaViewMode').style.display = 'block';
+                runHarpaSearch(searchInput.value);
+                return;
+            }
             renderHarpaView(); 
         }
     </script>
