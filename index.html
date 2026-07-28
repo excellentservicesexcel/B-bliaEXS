@@ -304,9 +304,29 @@
         }
         .verse-text { transition: background 0.2s; border-radius: 4px; }
 
-        /* A área do texto é marcada como editável só para desligar a barra de
-           pesquisa do Chrome; o cursor piscante e o contorno ficam invisíveis. */
-        #bible-content { caret-color: transparent; outline: none; -webkit-user-modify: read-only; }
+        /* O app desenha a própria seleção; o realce do navegador fica invisível
+           para não aparecer duplicado. */
+        #bible-content { outline: none; -webkit-touch-callout: none; }
+        #bible-content ::selection { background: transparent; }
+        .verse-highlight-bg { cursor: pointer; transition: filter 0.15s, box-shadow 0.15s; }
+        .verse-highlight-bg:active { filter: brightness(0.9); box-shadow: 0 0 0 2px rgba(0,0,0,0.25); }
+        #bible-content ::-moz-selection { background: transparent; }
+        #bible-content.selecting { touch-action: none; }
+
+        #selection-layer { position: absolute; top: 0; left: 0; width: 100%; height: 0; overflow: visible; z-index: 600; pointer-events: none; }
+        .sel-rect {
+            position: absolute; border-radius: 3px; pointer-events: none;
+            background: color-mix(in srgb, var(--accent-color) 34%, transparent);
+            box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-color) 22%, transparent);
+        }
+        .sel-handle {
+            position: absolute; width: 18px; height: 18px; border-radius: 50%;
+            background: var(--accent-color); border: 2px solid var(--bg-color);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.45); pointer-events: auto; cursor: grab;
+            touch-action: none; z-index: 2;
+        }
+        .sel-handle-start { transform: translate(-50%, -2px); }
+        .sel-handle-end { transform: translate(-50%, -2px); }
 
         .chapter-title-heading {
             font-family: var(--font-display); font-size: 2rem; font-weight: 700; font-style: italic;
@@ -1316,6 +1336,7 @@
             setupSmartSearch('readerSearch', 'readerSearchWrap', onReaderSearch);
             setupSmartSearch('harpaSearch', 'harpaSearchWrap', onHarpaSearch);
             loadSearchScope();
+            sanitizeStoredFormats();
             preloadShareBackground();
         }
 
@@ -2443,7 +2464,7 @@
                     let vParts = String(h.verse).split('-');
                     let isMultiVerse = (vParts.length > 1 && vParts[0] !== vParts[1]);
                     
-                    let wrapStart = `<span class="verse-highlight-bg" style="background-color: ${h.color}; color: #121212; border-radius: 4px; padding: 2px;">`;
+                    let wrapStart = `<span class="verse-highlight-bg" data-hl-id="${h.id}" title="Toque para remover a marcação" style="background-color: ${h.color}; color: #121212; border-radius: 4px; padding: 2px;">`;
                     let wrapEnd = `</span>`;
 
                     if (isMultiVerse) {
@@ -2601,45 +2622,42 @@
         // LIMPEZA CIRÚRGICA DE MARCAÇÕES (O ASPIRADOR DE CORES)
         function deleteHighlight(id) {
             let highlights = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
-            const hlToDelete = highlights.find(h => h.id === id);
-            highlights = highlights.filter(h => h.id !== id);
+            const hlToDelete = highlights.find(h => String(h.id) === String(id));
+            highlights = highlights.filter(h => String(h.id) !== String(id));
             localStorage.setItem('bibleHighlights', JSON.stringify(highlights));
 
-            if(hlToDelete) {
-                let db = JSON.parse(localStorage.getItem('bibleFormats') || '[]');
-                let vParts = String(hlToDelete.verse).split('-');
-                let vStart = parseInt(vParts[0]); let vEnd = parseInt(vParts[1] || vParts[0]);
-                
-                for (let vNum = vStart; vNum <= vEnd; vNum++) {
-                    let formatObj = db.find(f => f.book === hlToDelete.book && f.chapter == hlToDelete.chapter && f.verse == vNum);
-                    if(formatObj) {
-                        let tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = formatObj.html;
-                        
-                        let allEls = tempDiv.querySelectorAll('*');
-                        let targetText = hlToDelete.text.replace(/\s+/g, '').toLowerCase();
-                        
-                        allEls.forEach(el => {
-                            if (el.style && (el.style.backgroundColor || el.style.background)) {
-                                let elText = el.textContent.replace(/\s+/g, '').toLowerCase();
-                                if(elText && (targetText.includes(elText) || elText.includes(targetText))) {
-                                    el.style.backgroundColor = '';
-                                    el.style.background = '';
-                                    el.style.color = '';
-                                    el.removeAttribute('color');
-                                    if (el.getAttribute('style') === '') el.removeAttribute('style');
-                                }
-                            }
-                        });
-                        formatObj.html = tempDiv.innerHTML;
-                    }
-                }
-                localStorage.setItem('bibleFormats', JSON.stringify(db));
+            if (hlToDelete) {
+                // Limpa qualquer resquício de cor gravado no versículo.
+                const db = JSON.parse(localStorage.getItem('bibleFormats') || '[]');
+                const parts = String(hlToDelete.verse).split('-');
+                const vStart = parseInt(parts[0]);
+                const vEnd = parseInt(parts[1] || parts[0]);
+                let changed = false;
+
+                db.forEach(entry => {
+                    if (entry.book !== hlToDelete.book) return;
+                    if (entry.chapter != hlToDelete.chapter) return;
+                    const vNum = parseInt(entry.verse);
+                    if (isNaN(vNum) || vNum < vStart || vNum > vEnd) return;
+                    const cleaned = stripHighlightSpans(entry.html || '');
+                    if (cleaned !== entry.html) { entry.html = cleaned; changed = true; }
+                });
+
+                if (changed) localStorage.setItem('bibleFormats', JSON.stringify(db));
             }
 
             updateSidebarList();
-            
-            if(document.getElementById('view-reader').classList.contains('active')) renderContent();
+            if (currentChapterData) renderContent();
+        }
+
+        // Toque numa marcação do texto para removê-la.
+        function requestRemoveHighlight(hlId) {
+            const highlights = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
+            const hl = highlights.find(h => String(h.id) === String(hlId));
+            if (!hl) return;
+            const preview = String(hl.text || '').trim().slice(0, 70);
+            const message = preview ? `Remover a marcação de "${preview}"?` : 'Remover esta marcação?';
+            customConfirm(message, (confirmed) => { if (confirmed) deleteHighlight(hl.id); });
         }
 
         // ==========================================
@@ -2691,6 +2709,16 @@
             translateBtn.classList.remove('visible');
             dictBtn.classList.remove('visible');
             fabHighlight.classList.remove('visible');
+        });
+
+        // Quando outra parte do app limpa a seleção (após grifar, traduzir ou
+        // formatar), o realce desenhado também precisa sumir.
+        document.addEventListener('selectionchange', () => {
+            const sel = window.getSelection();
+            if ((sel.isCollapsed || sel.rangeCount === 0) && appSelRange) {
+                appSelRange = null;
+                drawAppSelection();
+            }
         });
 
         // Funções do Dicionário Contextual (Bíblia) Organizado
@@ -2848,31 +2876,237 @@
         // e desligamos o teclado virtual. A seleção continua funcionando igual.
         let allowVerseEditing = false;
 
+        // ==========================================
+        //  SELEÇÃO PRÓPRIA DO APP
+        //  O Android só mostra a barra preta e a barra do Google quando ELE
+        //  inicia a seleção. Bloqueamos esse gesto e fazemos a seleção por conta
+        //  própria, com realce desenhado pelo app.
+        // ==========================================
+        let appSelRange = null;
+        let selAnchorPoint = null;
+        let selFocusPoint = null;
+        let selActive = false;
+        let selLongPressTimer = null;
+        let selStartXY = null;
+        let selDownTarget = null;
+        let selHandleDrag = null;
+
         function protectBibleContent() {
             const container = document.getElementById('bible-content');
             if (!container) return;
-            container.setAttribute('contenteditable', 'true');
-            container.setAttribute('inputmode', 'none');
             container.setAttribute('spellcheck', 'false');
-            container.setAttribute('autocorrect', 'off');
-            container.setAttribute('autocapitalize', 'off');
             if (container.dataset.guarded) return;
             container.dataset.guarded = '1';
-            const block = (e) => { if (!allowVerseEditing) { e.preventDefault(); return false; } };
-            container.addEventListener('beforeinput', block);
-            container.addEventListener('paste', block);
-            container.addEventListener('drop', block);
-            container.addEventListener('dragstart', block);
-            container.addEventListener('cut', block);
-            container.addEventListener('keydown', (e) => {
-                if (allowVerseEditing) return;
-                // Deixa passar apenas atalhos de cópia e navegação.
-                const allowed = ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End','PageUp','PageDown','Tab','Shift','Control','Meta','Alt','Escape'];
-                if (allowed.includes(e.key)) return;
-                if ((e.ctrlKey || e.metaKey) && ['c','a','x'].includes(e.key.toLowerCase())) return;
-                e.preventDefault();
-            });
+
+            // Impede o Android de iniciar a seleção (é isso que abre as barras).
+            container.addEventListener('selectstart', (e) => { if (!allowVerseEditing) e.preventDefault(); });
+            container.addEventListener('contextmenu', (e) => e.preventDefault());
+            container.addEventListener('dragstart', (e) => e.preventDefault());
+            container.addEventListener('pointerdown', onSelPointerDown);
         }
+
+        function getSelectionLayer() {
+            let layer = document.getElementById('selection-layer');
+            if (!layer) {
+                layer = document.createElement('div');
+                layer.id = 'selection-layer';
+                document.body.appendChild(layer);
+            }
+            return layer;
+        }
+
+        function caretPointFrom(x, y) {
+            let range = null;
+            if (document.caretRangeFromPoint) {
+                range = document.caretRangeFromPoint(x, y);
+            } else if (document.caretPositionFromPoint) {
+                const pos = document.caretPositionFromPoint(x, y);
+                if (pos) { range = document.createRange(); range.setStart(pos.offsetNode, pos.offset); }
+            }
+            if (!range || !range.startContainer) return null;
+            if (!range.startContainer.parentElement || !range.startContainer.parentElement.closest('#bible-content')) return null;
+            return { node: range.startContainer, offset: range.startOffset };
+        }
+
+        const isWordChar = (ch) => ch && /[\p{L}\p{N}'\-]/u.test(ch);
+
+        function wordRangeAt(x, y) {
+            const point = caretPointFrom(x, y);
+            if (!point || point.node.nodeType !== 3) return null;
+            const text = point.node.textContent;
+            let start = point.offset, end = point.offset;
+            while (start > 0 && isWordChar(text[start - 1])) start--;
+            while (end < text.length && isWordChar(text[end])) end++;
+            if (start === end) return null;
+            const range = document.createRange();
+            range.setStart(point.node, start);
+            range.setEnd(point.node, end);
+            return range;
+        }
+
+        function buildRange(a, b) {
+            try {
+                const probe = document.createRange();
+                probe.setStart(a.node, a.offset);
+                const order = probe.comparePoint(b.node, b.offset);
+                const range = document.createRange();
+                if (order >= 0) { range.setStart(a.node, a.offset); range.setEnd(b.node, b.offset); }
+                else { range.setStart(b.node, b.offset); range.setEnd(a.node, a.offset); }
+                return range;
+            } catch (e) { return null; }
+        }
+
+        function applyAppSelection(range) {
+            appSelRange = (range && !range.collapsed) ? range : null;
+            drawAppSelection();
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            // Espelha na seleção do navegador para grifo, dicionário e tradução
+            // continuarem funcionando exatamente como antes.
+            if (appSelRange) { try { sel.addRange(appSelRange.cloneRange()); } catch (e) {} }
+        }
+
+        function clearAppSelection() {
+            appSelRange = null;
+            drawAppSelection();
+            const sel = window.getSelection();
+            if (sel.rangeCount) sel.removeAllRanges();
+        }
+
+        function drawAppSelection() {
+            const layer = getSelectionLayer();
+            layer.innerHTML = '';
+            if (!appSelRange) return;
+
+            const rects = Array.from(appSelRange.getClientRects());
+            rects.forEach(r => {
+                if (r.width <= 0 || r.height <= 0) return;
+                const box = document.createElement('div');
+                box.className = 'sel-rect';
+                box.style.left = (r.left + window.scrollX) + 'px';
+                box.style.top = (r.top + window.scrollY) + 'px';
+                box.style.width = r.width + 'px';
+                box.style.height = r.height + 'px';
+                layer.appendChild(box);
+            });
+
+            if (!rects.length) return;
+            const first = rects[0], last = rects[rects.length - 1];
+            layer.appendChild(makeHandle('start', first.left + window.scrollX, first.bottom + window.scrollY));
+            layer.appendChild(makeHandle('end', last.right + window.scrollX, last.bottom + window.scrollY));
+        }
+
+        function makeHandle(side, x, y) {
+            const handle = document.createElement('div');
+            handle.className = 'sel-handle sel-handle-' + side;
+            handle.style.left = x + 'px';
+            handle.style.top = y + 'px';
+            handle.addEventListener('pointerdown', (e) => {
+                e.preventDefault(); e.stopPropagation();
+                selHandleDrag = side;
+                document.addEventListener('pointermove', onHandleMove, { passive: false });
+                document.addEventListener('pointerup', onHandleUp);
+            });
+            return handle;
+        }
+
+        function onHandleMove(e) {
+            if (!selHandleDrag || !appSelRange) return;
+            e.preventDefault();
+            const point = caretPointFrom(e.clientX, e.clientY);
+            if (!point) return;
+            const fixed = selHandleDrag === 'start'
+                ? { node: appSelRange.endContainer, offset: appSelRange.endOffset }
+                : { node: appSelRange.startContainer, offset: appSelRange.startOffset };
+            const range = buildRange(fixed, point);
+            if (range && !range.collapsed) applyAppSelection(range);
+        }
+
+        function onHandleUp() {
+            selHandleDrag = null;
+            document.removeEventListener('pointermove', onHandleMove);
+            document.removeEventListener('pointerup', onHandleUp);
+        }
+
+        function onSelPointerDown(e) {
+            if (e.target.closest('.post-it-note') || e.target.closest('.sel-handle')) return;
+            if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+            clearTimeout(selLongPressTimer);
+            selStartXY = { x: e.clientX, y: e.clientY };
+            selDownTarget = e.target;
+            selActive = false;
+
+            if (e.pointerType === 'mouse') {
+                const point = caretPointFrom(e.clientX, e.clientY);
+                if (point) { selAnchorPoint = point; selActive = true; clearAppSelection(); }
+            } else {
+                // No toque: pressione e segure para começar a selecionar.
+                selLongPressTimer = setTimeout(() => {
+                    const wordRange = wordRangeAt(selStartXY.x, selStartXY.y);
+                    if (!wordRange) return;
+                    selActive = true;
+                    selAnchorPoint = { node: wordRange.startContainer, offset: wordRange.startOffset };
+                    selFocusPoint = { node: wordRange.endContainer, offset: wordRange.endOffset };
+                    applyAppSelection(wordRange);
+                    document.getElementById('bible-content').classList.add('selecting');
+                    if (navigator.vibrate) { try { navigator.vibrate(12); } catch (err) {} }
+                }, 320);
+            }
+
+            document.addEventListener('pointermove', onSelPointerMove, { passive: false });
+            document.addEventListener('pointerup', onSelPointerUp);
+            document.addEventListener('pointercancel', onSelPointerCancel);
+        }
+
+        function onSelPointerCancel() {
+            clearTimeout(selLongPressTimer);
+            document.removeEventListener('pointermove', onSelPointerMove);
+            document.removeEventListener('pointerup', onSelPointerUp);
+            document.removeEventListener('pointercancel', onSelPointerCancel);
+            const container = document.getElementById('bible-content');
+            if (container) container.classList.remove('selecting');
+            selActive = false;
+        }
+
+        function onSelPointerMove(e) {
+            if (!selActive) {
+                // Se deslizou sem segurar, é rolagem: cancela a seleção.
+                if (selStartXY && (Math.abs(e.clientX - selStartXY.x) > 12 || Math.abs(e.clientY - selStartXY.y) > 12)) {
+                    clearTimeout(selLongPressTimer);
+                }
+                return;
+            }
+            if (e.cancelable) e.preventDefault();
+            const point = caretPointFrom(e.clientX, e.clientY);
+            if (!point || !selAnchorPoint) return;
+            const range = buildRange(selAnchorPoint, point);
+            if (range && !range.collapsed) applyAppSelection(range);
+        }
+
+        function onSelPointerUp(e) {
+            clearTimeout(selLongPressTimer);
+            document.removeEventListener('pointermove', onSelPointerMove);
+            document.removeEventListener('pointerup', onSelPointerUp);
+            document.removeEventListener('pointercancel', onSelPointerCancel);
+            document.getElementById('bible-content').classList.remove('selecting');
+
+            const moved = selStartXY && (Math.abs(e.clientX - selStartXY.x) > 12 || Math.abs(e.clientY - selStartXY.y) > 12);
+
+            if (!selActive && !moved) {
+                // Toque simples numa marcação: oferece removê-la.
+                const marked = selDownTarget && selDownTarget.closest ? selDownTarget.closest('.verse-highlight-bg') : null;
+                clearAppSelection();
+                if (marked && marked.dataset.hlId) {
+                    requestRemoveHighlight(marked.dataset.hlId);
+                }
+            }
+            selActive = false;
+            selDownTarget = null;
+        }
+
+        window.addEventListener('scroll', () => { if (appSelRange) drawAppSelection(); }, { passive: true });
+        window.addEventListener('resize', () => { if (appSelRange) drawAppSelection(); });
 
         // ESTILIZAÇÃO BLINDADA
         function applyFormatCommand(cmd) {
@@ -2881,12 +3115,53 @@
             
             const container = document.getElementById('bible-content');
             allowVerseEditing = true;
-            container.contentEditable = "true"; document.execCommand(cmd);
+            container.contentEditable = "true";
+            document.execCommand(cmd);
+            container.contentEditable = "false";
             allowVerseEditing = false;
-            protectBibleContent();
             
             activeEditVerseNodes.forEach(v => { let vNum = v.querySelector('.verse-num'); if(vNum) { vNum.style.fontWeight = ''; vNum.style.fontStyle = ''; vNum.style.textDecoration = ''; } saveFormatHTML(v.querySelector('.verse-text')); });
             savedSelectionRange = sel.getRangeAt(0); sel.removeAllRanges(); renderContent(); 
+        }
+
+        // As marcações coloridas são desenhadas na hora de exibir, a partir da lista
+        // de marcações. Elas NUNCA devem ser gravadas junto com a formatação,
+        // senão a cor gruda no versículo e sobrevive à exclusão da marcação.
+        function stripHighlightSpans(html) {
+            const temp = document.createElement('div');
+            temp.innerHTML = html;
+            temp.querySelectorAll('.verse-highlight-bg').forEach(span => {
+                const parent = span.parentNode;
+                while (span.firstChild) parent.insertBefore(span.firstChild, span);
+                parent.removeChild(span);
+            });
+            temp.querySelectorAll('*').forEach(el => {
+                if (!el.style) return;
+                if (el.style.backgroundColor || el.style.background) {
+                    el.style.backgroundColor = '';
+                    el.style.background = '';
+                    el.style.color = '';
+                    el.removeAttribute('color');
+                }
+                if (el.getAttribute && el.getAttribute('style') === '') el.removeAttribute('style');
+            });
+            temp.normalize();
+            return temp.innerHTML;
+        }
+
+        // Repara marcações que ficaram "coladas" em versículos formatados
+        // por causa do comportamento antigo.
+        function sanitizeStoredFormats() {
+            try {
+                const db = JSON.parse(localStorage.getItem('bibleFormats') || '[]');
+                let changed = false;
+                db.forEach(entry => {
+                    if (!entry || typeof entry.html !== 'string') return;
+                    const cleaned = stripHighlightSpans(entry.html);
+                    if (cleaned !== entry.html) { entry.html = cleaned; changed = true; }
+                });
+                if (changed) localStorage.setItem('bibleFormats', JSON.stringify(db));
+            } catch (e) { /* dados antigos ilegíveis: segue sem reparar */ }
         }
 
         function saveFormatHTML(verseTextEl) {
@@ -2894,7 +3169,7 @@
             const version = document.getElementById('versionSelect').value; const book = document.getElementById('bookSelect').value; const chapter = document.getElementById('chapterSelect').value;
             let db = JSON.parse(localStorage.getItem('bibleFormats') || '[]');
             db = db.filter(f => !(f.version === version && f.book === book && f.chapter == chapter && f.verse == vNum));
-            db.push({ id: Date.now(), version, book, chapter, verse: vNum, html: verseTextEl.innerHTML });
+            db.push({ id: Date.now(), version, book, chapter, verse: vNum, html: stripHighlightSpans(verseTextEl.innerHTML) });
             localStorage.setItem('bibleFormats', JSON.stringify(db));
         }
 
