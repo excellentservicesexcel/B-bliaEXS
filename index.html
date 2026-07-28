@@ -94,12 +94,6 @@
             100% { transform: translate3d(2%, -1%, 0) scale(1.02); }
         }
 
-        header, main, #sidebar, .fab-container, #contextualFormatBtn, #contextualTranslateBtn, #contextualDictionaryBtn,
-        #settingsModal, .custom-alert-overlay, .format-modal-overlay, .tts-player-box, #sidebar-overlay {
-            position: relative;
-            z-index: 1;
-        }
-
         /* ----- BARRA SUPERIOR (HEADER) ----- */
         header {
             width: 100%;
@@ -287,13 +281,18 @@
         .btn-read:active { transform: scale(0.96); }
         .btn-share { background-color: var(--item-bg); color: var(--text-color); border: 1px solid rgba(255,255,255,0.1); width: auto; box-shadow: none; }
 
+        @keyframes fadeInVerse {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
         .verse {
             margin-bottom: 10px; line-height: 1.85; font-size: 1.12rem; font-family: var(--font-display); font-size: 1.28rem;
             padding: 10px 14px; border-radius: var(--radius-sm); outline: none; border-left: 3px solid transparent;
-            transition: background-color 0.25s, border-color 0.25s, transform 0.2s;
-            animation: fadeInUp 0.5s var(--ease-spring) both;
+            transition: background-color 0.25s, border-color 0.25s;
+            animation: fadeInVerse 0.4s ease both;
         }
-        .verse:hover { background-color: color-mix(in srgb, var(--item-bg) 80%, var(--accent-color)); border-left-color: var(--accent-color); transform: translateX(3px); }
+        .verse:hover { background-color: color-mix(in srgb, var(--item-bg) 80%, var(--accent-color)); border-left-color: var(--accent-color); }
 
         .verse-num {
             font-family: var(--font-body);
