@@ -1163,7 +1163,6 @@
                 <i class="fa-solid fa-music"></i>
                 <select id="harpaVersionSelect" onchange="changeHarpaVersion(this.value)">
                     <option value="crista">Harpa Cristã</option>
-                    <option value="ccb">Hinário CCB</option>
                 </select>
             </div>
             <button id="btnHarpaViewMode" class="btn-read" onclick="toggleHarpaViewMode()" style="flex: 0.5; background-color: var(--item-bg); color: var(--text-color); border: 1px solid rgba(255,255,255,0.05); margin-left: 10px;" title="Alternar Visualização">
@@ -1300,6 +1299,7 @@
             { name: "Efésios", chapters: 6 }, { name: "Filipenses", chapters: 4 }, { name: "Colossenses", chapters: 4 },
             { name: "Filemom", chapters: 1 }, { name: "1 Timóteo", chapters: 6 }, { name: "Tito", chapters: 3 },
             { name: "1 Pedro", chapters: 5 }, { name: "2 Pedro", chapters: 3 }, { name: "2 Timóteo", chapters: 4 },
+            { name: "Hebreus", chapters: 13 },
             { name: "1 João", chapters: 5 }, { name: "2 João", chapters: 1 }, { name: "3 João", chapters: 1 },
             { name: "Judas", chapters: 1 }, { name: "Apocalipse", chapters: 22 }
         ];
@@ -1752,9 +1752,24 @@
         function darkenColor(color, percent) { return lightenColor(color, -percent); }
 
         function initSelects() {
-            const bookSelect = document.getElementById('bookSelect'); const chapterSelect = document.getElementById('chapterSelect');
+            const bookSelect = document.getElementById('bookSelect');
             booksStandard.forEach(book => { const option = document.createElement('option'); option.value = book; option.textContent = book; bookSelect.appendChild(option); });
-            for(let i = 1; i <= 150; i++) { const option = document.createElement('option'); option.value = i; option.textContent = `Cap. ${i}`; chapterSelect.appendChild(option); }
+            updateChapterOptions();
+            // Ao trocar de livro, a lista de capítulos se ajusta na hora.
+            bookSelect.addEventListener('change', () => updateChapterOptions());
+        }
+
+        // Mostra apenas os capítulos que o livro realmente tem.
+        function updateChapterOptions(keepChapter) {
+            const bookSelect = document.getElementById('bookSelect');
+            const chapterSelect = document.getElementById('chapterSelect');
+            const total = chaptersOf(bookSelect.value);
+            const desired = parseInt(keepChapter || chapterSelect.value || 1);
+
+            let html = '';
+            for (let i = 1; i <= total; i++) html += `<option value="${i}">Cap. ${i}</option>`;
+            chapterSelect.innerHTML = html;
+            chapterSelect.value = (desired >= 1 && desired <= total) ? desired : 1;
         }
 
         async function loadChapter() {
@@ -2272,7 +2287,7 @@
             if (markToo) { setChapterReadState(`${bookName}-${chapterNum}`, true); refreshPlanStats(); }
 
             document.getElementById('bookSelect').value = bookName;
-            document.getElementById('chapterSelect').value = chapterNum;
+            updateChapterOptions(chapterNum);
             document.getElementById('verseSelect').value = "";
 
             switchView('reader');
@@ -2463,7 +2478,7 @@
 
         async function focusHighlight(book, chapter, verseRef) {
             document.getElementById('sidebar').classList.remove('open');
-            document.getElementById('bookSelect').value = book; document.getElementById('chapterSelect').value = chapter; document.getElementById('verseSelect').value = ""; 
+            document.getElementById('bookSelect').value = book; updateChapterOptions(chapter); document.getElementById('verseSelect').value = ""; 
             switchView('reader'); await loadChapter(); 
 
             let vParts = String(verseRef).split('-'); let vStart = parseInt(vParts[0]); let vEnd = parseInt(vParts[1] || vParts[0]);
@@ -3242,7 +3257,7 @@
         async function goToReference(book, chapter, verse) {
             document.getElementById('readerSearchResults').classList.remove('open');
             document.getElementById('bookSelect').value = book;
-            document.getElementById('chapterSelect').value = chapter;
+            updateChapterOptions(chapter);
             document.getElementById('verseSelect').value = '';
             switchView('reader');
             await loadChapter();
@@ -3520,14 +3535,13 @@
         }
         
         // ==========================================
-        //  INICIALIZAÇÃO HARPA CRISTÃ E CCB (LISTA E GRID)
+        //  INICIALIZAÇÃO DA HARPA CRISTÃ (LISTA E GRADE)
         // ==========================================
         let harpaDataCache = {};
         let currentHarpaVersion = 'crista';
         let currentHarpaViewMode = 'grid'; 
         const harpaVersions = {
-            'crista': { name: 'Harpa Cristã', file: 'harpa_crista.json', count: 640 },
-            'ccb': { name: 'Hinário CCB', file: 'hinario_ccb.json', count: 480 }
+            'crista': { name: 'Harpa Cristã', file: 'harpa_crista.json', count: 640 }
         };
 
         function initHarpa() {
