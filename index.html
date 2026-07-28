@@ -373,6 +373,31 @@
             100% { background-color: transparent; }
         }
         .verse.search-hit { animation: searchPulse 2.2s ease forwards; }
+
+        /* Seletor de onde buscar */
+        .search-scope { display: flex; gap: 6px; margin-top: 10px; }
+        .scope-btn {
+            flex: 1; background: var(--item-bg); border: 1px solid rgba(255,255,255,0.06);
+            color: var(--text-color); opacity: 0.6; font-family: var(--font-body); font-size: 0.76rem;
+            font-weight: 700; padding: 9px 10px; border-radius: 999px; cursor: pointer;
+            transition: all 0.25s var(--ease-spring); display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .scope-btn:hover:not(:disabled) { opacity: 0.9; }
+        .scope-btn.active {
+            opacity: 1; color: #16150f; border-color: transparent;
+            background: linear-gradient(135deg, var(--accent-color), color-mix(in srgb, var(--accent-color) 65%, #fff));
+            box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-color) 35%, transparent);
+        }
+        .scope-btn:disabled { cursor: not-allowed; opacity: 0.28; }
+
+        /* Prévia da imagem de compartilhamento */
+        #sharePreviewOverlay .custom-alert-box { max-width: 340px; padding: 20px; }
+        #sharePreviewImg {
+            width: 100%; border-radius: var(--radius-sm); display: block; margin-bottom: 16px;
+            box-shadow: var(--shadow-elevated); max-height: 50vh; object-fit: contain; background: #000;
+        }
+        #sharePreviewOverlay .actions { flex-direction: column; gap: 8px; }
+
         @keyframes liftOffPage {
             from { transform: scale(1); letter-spacing: 0; text-shadow: none; }
             to   { transform: scale(1.13); letter-spacing: 0.4px; }
@@ -935,6 +960,18 @@
         <div class="custom-alert-box" id="musicPopupContent" style="max-width: 350px;"></div>
     </div>
 
+    <div id="sharePreviewOverlay" class="custom-alert-overlay">
+        <div class="custom-alert-box">
+            <h3><i class="fa-solid fa-image" style="color: var(--accent-color);"></i> Sua imagem está pronta</h3>
+            <img id="sharePreviewImg" alt="Prévia do versículo do dia">
+            <div class="actions">
+                <button class="btn-ok" onclick="sharePreviewImage()"><i class="fa-solid fa-share-nodes"></i> Compartilhar imagem</button>
+                <button class="btn-cancelar" onclick="downloadPreviewImage()"><i class="fa-solid fa-download"></i> Salvar no aparelho</button>
+                <button class="btn-cancelar" style="border: none; opacity: 0.6;" onclick="closeSharePreview()">Fechar</button>
+            </div>
+        </div>
+    </div>
+
     <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
     <div id="sidebar">
         <div class="sidebar-header">
@@ -1062,6 +1099,11 @@
                 <i class="fa-solid fa-magnifying-glass"></i>
                 <input type="text" id="readerSearch" autocomplete="off" placeholder="Buscar versículo, palavra ou referência (ex: jo 3 16)">
                 <button class="search-clear" onclick="clearReaderSearch()" title="Limpar busca"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="search-scope" id="searchScope">
+                <button class="scope-btn active" id="scopeAll" onclick="setSearchScope('all')"><i class="fa-solid fa-book-bible"></i> Bíblia toda</button>
+                <button class="scope-btn" id="scopeChapter" onclick="setSearchScope('chapter')"><i class="fa-solid fa-file-lines"></i> Este capítulo</button>
             </div>
         </div>
 
@@ -1268,6 +1310,8 @@
             initReadingPlan(); 
             setupSmartSearch('readerSearch', 'readerSearchWrap', onReaderSearch);
             setupSmartSearch('harpaSearch', 'harpaSearchWrap', onHarpaSearch);
+            loadSearchScope();
+            preloadShareBackground();
         }
 
         async function scanLocalVersions() {
@@ -1434,6 +1478,12 @@
 
         function pickRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
+        function buildGradientBackground() {
+            const palette = pickRandom(sharePalettes);
+            const angle = pickRandom(shareAngles);
+            return `linear-gradient(${angle}deg, ${palette[0]}, ${palette[1]}, ${palette[2]})`;
+        }
+
         // Busca a foto como data URL: evita "canvas contaminado" e garante que já carregou.
         async function fetchImageAsDataUrl(url, timeoutMs = 7000) {
             const controller = new AbortController();
@@ -1451,25 +1501,33 @@
             } finally { clearTimeout(timer); }
         }
 
-        async function buildShareBackground() {
+        // O fundo é preparado ANTES do toque no botão. Assim, ao compartilhar,
+        // a imagem é gerada na hora e o navegador ainda aceita abrir a janela de envio.
+        let shareBgCache = null;
+        let shareBgLoading = false;
+
+        async function preloadShareBackground() {
+            if (shareBgLoading || shareBgCache) return;
+            shareBgLoading = true;
             const palette = pickRandom(sharePalettes);
             const angle = pickRandom(shareAngles);
             const tint = `linear-gradient(${angle}deg, ${hexToRgba(palette[0], 0.88)}, ${hexToRgba(palette[1], 0.72)}, ${hexToRgba(palette[2], 0.92)})`;
-
             try {
                 const seed = Math.floor(Math.random() * 1000000);
                 const photo = await fetchImageAsDataUrl(`https://picsum.photos/seed/${seed}/1080/1350`);
-                // Pré-carrega para o html2canvas nunca capturar o cartão sem o fundo.
                 await new Promise((resolve, reject) => {
                     const img = new Image();
                     img.onload = resolve; img.onerror = reject; img.src = photo;
                 });
-                return `${tint}, url('${photo}')`;
+                shareBgCache = `${tint}, url('${photo}')`;
             } catch (e) {
-                // Sem internet ou foto indisponível: o degradê sozinho já fica bonito.
-                return `linear-gradient(${angle}deg, ${palette[0]}, ${palette[1]}, ${palette[2]})`;
-            }
+                shareBgCache = null; // sem internet: usaremos o degradê na hora
+            } finally { shareBgLoading = false; }
         }
+
+        let lastShareBlob = null;
+        let lastShareFile = null;
+        let lastShareUrl = null;
 
         async function shareVerse() {
             const btn = document.getElementById('btnShare');
@@ -1477,65 +1535,87 @@
             const shareText = `"${currentDevo.verse}"\n\n${currentDevo.ref}\n\n${currentDevo.devo}`;
             const fileName = `Devocional-${currentDevo.ref.replace(/[:\s]/g, '-')}.jpg`;
 
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Preparando...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
 
+            let file = null;
             try {
                 document.getElementById('share-verse').textContent = `"${currentDevo.verse}"`;
                 document.getElementById('share-ref').textContent = currentDevo.ref;
                 document.getElementById('share-devo').innerHTML = `<strong>Reflexão:</strong> ${currentDevo.devo}`;
-                document.getElementById('share-card').style.backgroundImage = await buildShareBackground();
+                // Usa a foto já baixada; se ainda não chegou, um degradê instantâneo.
+                document.getElementById('share-card').style.backgroundImage = shareBgCache || buildGradientBackground();
+                shareBgCache = null;
 
                 const canvas = await html2canvas(document.getElementById('share-card'), {
-                    useCORS: true, scale: 2, backgroundColor: '#0b0d14', logging: false
+                    useCORS: true, scale: 1, backgroundColor: '#0b0d14', logging: false
                 });
                 const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.92));
                 if (!blob) throw new Error('imagem não gerada');
 
-                const file = new File([blob], fileName, { type: 'image/jpeg' });
-
-                // 1ª opção: compartilhar a imagem.
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    try {
-                        await navigator.share({ title: 'Versículo do Dia', text: shareText, files: [file] });
-                        return;
-                    } catch (e) {
-                        if (e.name === 'AbortError') return;
-                    }
-                }
-                // 2ª opção: compartilhar só a imagem, sem texto (alguns apps recusam os dois juntos).
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    try {
-                        await navigator.share({ files: [file] });
-                        return;
-                    } catch (e) {
-                        if (e.name === 'AbortError') return;
-                    }
-                }
-                // 3ª opção: compartilhar o texto do versículo.
-                if (navigator.share) {
-                    try {
-                        await navigator.share({ title: 'Versículo do Dia', text: shareText });
-                        return;
-                    } catch (e) {
-                        if (e.name === 'AbortError') return;
-                    }
-                }
-                // Sem suporte a compartilhamento (navegador de computador): copia o texto.
-                await copyShareText(shareText);
+                file = new File([blob], fileName, { type: 'image/jpeg' });
+                lastShareBlob = blob; lastShareFile = file;
             } catch (error) {
-                // A imagem falhou, mas o compartilhamento continua funcionando com o texto.
-                if (navigator.share) {
-                    try {
-                        await navigator.share({ title: 'Versículo do Dia', text: shareText });
-                        return;
-                    } catch (e) {
-                        if (e.name === 'AbortError') return;
-                    }
-                }
-                await copyShareText(shareText);
+                file = null;
             } finally {
                 btn.innerHTML = originalHTML;
+                preloadShareBackground(); // já deixa a próxima foto pronta
             }
+
+            if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({ title: 'Versículo do Dia', files: [file] });
+                    return;
+                } catch (e) {
+                    if (e.name === 'AbortError') return;
+                    // O navegador recusou por tempo/permissão: mostra a imagem com um botão próprio.
+                    openSharePreview(); return;
+                }
+            }
+
+            if (file) { openSharePreview(); return; }
+
+            // Sem imagem (falha na geração): ao menos o texto vai.
+            if (navigator.share) {
+                try { await navigator.share({ title: 'Versículo do Dia', text: shareText }); return; }
+                catch (e) { if (e.name === 'AbortError') return; }
+            }
+            await copyShareText(shareText);
+        }
+
+        function openSharePreview() {
+            if (!lastShareBlob) return;
+            if (lastShareUrl) URL.revokeObjectURL(lastShareUrl);
+            lastShareUrl = URL.createObjectURL(lastShareBlob);
+            document.getElementById('sharePreviewImg').src = lastShareUrl;
+            document.getElementById('sharePreviewOverlay').classList.add('open');
+        }
+
+        function closeSharePreview() {
+            document.getElementById('sharePreviewOverlay').classList.remove('open');
+        }
+
+        // Chamado por um toque novo: o navegador aceita abrir a janela de envio.
+        async function sharePreviewImage() {
+            if (!lastShareFile) return;
+            try {
+                if (navigator.canShare && navigator.canShare({ files: [lastShareFile] })) {
+                    await navigator.share({ title: 'Versículo do Dia', files: [lastShareFile] });
+                    closeSharePreview();
+                    return;
+                }
+            } catch (e) {
+                if (e.name === 'AbortError') return;
+            }
+            downloadPreviewImage();
+        }
+
+        function downloadPreviewImage() {
+            if (!lastShareBlob) return;
+            const link = document.createElement('a');
+            link.download = `Devocional-${currentDevo.ref.replace(/[:\s]/g, '-')}.jpg`;
+            link.href = lastShareUrl || URL.createObjectURL(lastShareBlob);
+            link.click();
+            closeSharePreview();
         }
 
         async function copyShareText(text) {
@@ -1603,6 +1683,7 @@
                 const verseSelect = document.getElementById('verseSelect'); verseSelect.innerHTML = '<option value="">Todos</option>';
                 for(let i = 1; i <= currentChapterData.verses.length; i++) { verseSelect.innerHTML += `<option value="${i}">V. ${i}</option>`; }
                 renderContent();
+                applyScopeButtons();
             } catch (error) { contentDiv.innerHTML = `<div style="text-align:center;color:var(--danger-color);">${error.message}</div>`; }
         }
 
@@ -2885,6 +2966,33 @@
 
         // ---------- Busca da tela de Leitura ----------
         let readerSearchTimer = null;
+        let searchScope = 'all'; // 'all' = Bíblia toda | 'chapter' = capítulo aberto
+
+        function loadSearchScope() {
+            searchScope = localStorage.getItem('bibleSearchScope') || 'all';
+            if (searchScope === 'chapter' && !currentChapterData) searchScope = 'all';
+            applyScopeButtons();
+        }
+
+        function applyScopeButtons() {
+            const all = document.getElementById('scopeAll');
+            const chapter = document.getElementById('scopeChapter');
+            if (!all || !chapter) return;
+            all.classList.toggle('active', searchScope === 'all');
+            chapter.classList.toggle('active', searchScope === 'chapter');
+            // Sem capítulo aberto não há o que buscar "neste capítulo".
+            chapter.disabled = !currentChapterData;
+            chapter.title = currentChapterData ? '' : 'Carregue um capítulo primeiro';
+        }
+
+        function setSearchScope(scope) {
+            if (scope === 'chapter' && !currentChapterData) return;
+            searchScope = scope;
+            localStorage.setItem('bibleSearchScope', scope);
+            applyScopeButtons();
+            const value = document.getElementById('readerSearch').value;
+            if (value.trim().length >= 2) runReaderSearch(value);
+        }
 
         function setupSmartSearch(inputId, wrapId, handler) {
             const input = document.getElementById(inputId);
@@ -2940,15 +3048,15 @@
             }
 
             // 2. Dentro do capítulo aberto
-            if (currentChapterData && currentChapterData.verses) {
+            if (searchScope === 'chapter' && currentChapterData && currentChapterData.verses) {
                 const tokens = normalizeSearch(query).split(' ').filter(t => t.length >= 2);
                 const local = currentChapterData.verses.filter(v => {
                     const norm = normalizeSearch(v.text);
                     return norm.includes(normalizeSearch(query)) || tokens.every(t => norm.includes(t));
-                }).slice(0, 8);
+                }).slice(0, 40);
 
                 if (local.length) {
-                    html += `<div class="search-group-label"><i class="fa-solid fa-file-lines"></i> Neste capítulo (${currentChapterData.reference})</div>`;
+                    html += `<div class="search-group-label"><i class="fa-solid fa-file-lines"></i> ${currentChapterData.reference} — ${local.length} resultado${local.length > 1 ? 's' : ''}</div>`;
                     local.forEach(v => {
                         const n = v.verse || v.number;
                         html += `<button class="search-result-item" onclick="jumpToVerse(${n})">
@@ -2956,12 +3064,14 @@
                                     <span class="search-result-text">${highlightMatch(v.text, query)}</span>
                                  </button>`;
                     });
+                } else if (query.length >= 2) {
+                    html += `<div class="search-status">Nada encontrado em ${escapeHtml(currentChapterData.reference)}.<br>Toque em <strong>Bíblia toda</strong> para procurar em todos os livros.</div>`;
                 }
             }
 
             // 3. Em toda a Bíblia (versões em arquivo)
             const version = document.getElementById('versionSelect').value;
-            if (version && version.endsWith('.json') && query.length >= 3) {
+            if (searchScope === 'all' && version && version.endsWith('.json') && query.length >= 3) {
                 if (!bibleIndexCache[version]) {
                     panel.innerHTML = html + `<div class="search-status"><i class="fa-solid fa-circle-notch fa-spin"></i> Preparando a busca completa...</div>`;
                     panel.classList.add('open');
@@ -2969,7 +3079,7 @@
                 const index = await ensureFullTextIndex(version);
                 if (document.getElementById('readerSearch').value.trim() !== query) return; // digitou de novo
                 if (index) {
-                    const hits = searchInIndex(index, query, 25);
+                    const hits = searchInIndex(index, query, 30);
                     if (hits.length) {
                         html += `<div class="search-group-label"><i class="fa-solid fa-book-bible"></i> Em toda a Bíblia</div>`;
                         hits.forEach(h => {
@@ -2980,8 +3090,8 @@
                         });
                     }
                 }
-            } else if (!html && query.length >= 3) {
-                html += `<div class="search-status">Para buscar em toda a Bíblia, escolha uma versão em arquivo no seletor de versões.<br>Por aqui dá para buscar referências e o capítulo aberto.</div>`;
+            } else if (searchScope === 'all' && !html && query.length >= 3) {
+                html += `<div class="search-status">Para buscar em toda a Bíblia, escolha uma versão em arquivo no seletor de versões.<br>Por aqui dá para buscar referências e, com um capítulo aberto, dentro dele.</div>`;
             }
 
             if (!html) html = `<div class="search-status">Nada encontrado para "${escapeHtml(query)}".</div>`;
