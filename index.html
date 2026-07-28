@@ -16,8 +16,14 @@
             --bg-color-2: #12141f;
             --text-color: #f0ece0;
             --accent-color: #c9a24d;
+            --accent-2: #e8cf90;
+            --btn-text: var(--btn-text);
             --secondary-bg: #161925;
             --item-bg: #1f2333;
+            --accent-gradient: linear-gradient(135deg, var(--accent-color), var(--accent-2));
+            --bg-gradient: none;
+            --bg-image: none;
+            --bg-image-opacity: 0.35;
             --danger-color: #e2685c;
             --highlight-default: #ffeb3b;
 
@@ -59,6 +65,19 @@
             position: relative;
             scroll-behavior: smooth;
         }
+
+        /* ----- FUNDO PERSONALIZADO (DEGRADÊ E IMAGEM) ----- */
+        body { background-image: var(--bg-gradient); background-attachment: fixed; }
+
+        #bg-image-layer {
+            position: fixed; inset: 0; z-index: -2; pointer-events: none;
+            background-image: var(--bg-image);
+            background-size: cover; background-position: center; background-repeat: no-repeat;
+            opacity: var(--bg-image-opacity);
+            transition: opacity 0.4s ease;
+        }
+        /* Com imagem de fundo, as manchas animadas saem para não sujar a foto. */
+        body.has-bg-image::before { opacity: 0.15; }
 
         /* ----- FUNDO ATMOSFÉRICO ANIMADO ----- */
         body::before {
@@ -190,7 +209,7 @@
         .nav-tab.active {
             opacity: 1;
             color: #14151b;
-            background: linear-gradient(135deg, var(--accent-color), color-mix(in srgb, var(--accent-color) 65%, #fff));
+            background: var(--accent-gradient);
             box-shadow: 0 6px 16px color-mix(in srgb, var(--accent-color) 45%, transparent);
             transform: translateY(-1px);
         }
@@ -276,7 +295,7 @@
         .control-group i { color: var(--accent-color); font-size: 0.9rem; }
         select { border: none; background: transparent; color: var(--text-color); font-size: 0.9rem; outline: none; font-family: var(--font-body); cursor: pointer; width: 100%; padding: 8px 0; -webkit-appearance: none; -moz-appearance: none; appearance: none; }
 
-        .btn-read { background: linear-gradient(135deg, var(--accent-color), color-mix(in srgb, var(--accent-color) 70%, #8a5f00)); color: #16150f; border: none; border-radius: var(--radius-sm); padding: 12px 20px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: filter 0.2s, transform 0.15s var(--ease-spring), box-shadow 0.2s; width: 100%; box-shadow: 0 6px 16px color-mix(in srgb, var(--accent-color) 35%, transparent); }
+        .btn-read { background: var(--accent-gradient); color: var(--btn-text); border: none; border-radius: var(--radius-sm); padding: 12px 20px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: filter 0.2s, transform 0.15s var(--ease-spring), box-shadow 0.2s; width: 100%; box-shadow: 0 6px 16px color-mix(in srgb, var(--accent-color) 35%, transparent); }
         .btn-read:hover { filter: brightness(1.08); transform: translateY(-2px); box-shadow: 0 10px 22px color-mix(in srgb, var(--accent-color) 45%, transparent); }
         .btn-read:active { transform: scale(0.96); }
         .btn-share { background-color: var(--item-bg); color: var(--text-color); border: 1px solid rgba(255,255,255,0.1); width: auto; box-shadow: none; }
@@ -296,7 +315,7 @@
 
         .verse-num {
             font-family: var(--font-body);
-            font-weight: 700 !important; color: #16150f !important; margin-right: 8px;
+            font-weight: 700 !important; color: var(--btn-text) !important; margin-right: 8px;
             font-size: 0.72rem !important; vertical-align: middle; opacity: 1;
             display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%;
             background: linear-gradient(135deg, var(--accent-color), color-mix(in srgb, var(--accent-color) 60%, #fff)) !important;
@@ -408,8 +427,8 @@
         }
         .scope-btn:hover:not(:disabled) { opacity: 0.9; }
         .scope-btn.active {
-            opacity: 1; color: #16150f; border-color: transparent;
-            background: linear-gradient(135deg, var(--accent-color), color-mix(in srgb, var(--accent-color) 65%, #fff));
+            opacity: 1; color: var(--btn-text); border-color: transparent;
+            background: var(--accent-gradient);
             box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-color) 35%, transparent);
         }
         .scope-btn:disabled { cursor: not-allowed; opacity: 0.28; }
@@ -522,14 +541,14 @@
         .chapter-square:hover { transform: translateY(-3px); box-shadow: 0 5px 12px rgba(0,0,0,0.2); background-color: rgba(255,255,255,0.1); }
         .chapter-square:active, .chapter-square.pop { transform: scale(0.88); }
         .chapter-square.read {
-            background: linear-gradient(135deg, var(--accent-color), color-mix(in srgb, var(--accent-color) 60%, #fff));
-            color: #16150f; border-color: var(--accent-color);
+            background: var(--accent-gradient);
+            color: var(--btn-text); border-color: var(--accent-color);
             box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-color) 45%, transparent), inset 0 -2px 5px rgba(0,0,0,0.1);
         }
         .chapter-square.drag-hover { transform: scale(1.12); box-shadow: 0 0 0 2px var(--accent-color), var(--shadow-elevated); z-index: 2; }
         .chapter-square .chapter-check {
             position: absolute; top: -5px; right: -5px; width: 16px; height: 16px; border-radius: 50%;
-            background: #16150f; color: var(--accent-color); font-size: 0.5rem; display: flex; align-items: center; justify-content: center;
+            background: var(--btn-text); color: var(--accent-color); font-size: 0.5rem; display: flex; align-items: center; justify-content: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.3); opacity: 0; transform: scale(0.4); transition: all 0.25s var(--ease-spring);
         }
         .chapter-square.read .chapter-check { opacity: 1; transform: scale(1); }
@@ -540,7 +559,7 @@
             opacity: 0; transform: scale(0.6); transition: all 0.2s var(--ease-spring); box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
         .chapter-square:hover .chapter-open-btn { opacity: 0.9; transform: scale(1); }
-        .chapter-open-btn:hover { opacity: 1 !important; background: var(--accent-color); color: #16150f; transform: scale(1.15) !important; }
+        .chapter-open-btn:hover { opacity: 1 !important; background: var(--accent-color); color: var(--btn-text); transform: scale(1.15) !important; }
 
         /* ----- TELA HARPA (NOVOS ESTILOS) ----- */
         .harpa-grid { 
@@ -651,10 +670,86 @@
         .sidebar-empty i { font-size: 2.6rem; margin-bottom: 14px; color: var(--accent-color); opacity: 0.5; display: block; }
         .sidebar-empty p { margin: 0 0 18px; font-size: 0.9rem; line-height: 1.5; }
         .sidebar-empty button {
-            background: var(--accent-color); color: #16150f; border: none; padding: 10px 20px; border-radius: 999px;
+            background: var(--accent-color); color: var(--btn-text); border: none; padding: 10px 20px; border-radius: 999px;
             font-weight: 700; cursor: pointer; font-size: 0.85rem; transition: transform 0.2s;
         }
         .sidebar-empty button:hover { transform: translateY(-2px) scale(1.03); }
+
+        /* ----- CONFIGURAÇÕES AVANÇADAS ----- */
+        .settings-scroll { max-height: 72vh; overflow-y: auto; padding-right: 6px; margin-right: -6px; }
+        .theme-section label { display: block; font-size: 0.72rem; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase; opacity: 0.65; margin-bottom: 10px; }
+        .color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .color-picker-group {
+            display: flex; align-items: center; justify-content: space-between; gap: 8px;
+            background: var(--item-bg); border: 1px solid rgba(255,255,255,0.05);
+            padding: 9px 12px; border-radius: var(--radius-sm); font-size: 0.8rem;
+        }
+        .color-picker-group input[type="color"] {
+            -webkit-appearance: none; appearance: none; border: none; background: none;
+            width: 30px; height: 30px; padding: 0; border-radius: 8px; cursor: pointer; flex-shrink: 0;
+        }
+        .color-picker-group input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        .color-picker-group input[type="color"]::-webkit-color-swatch { border: 2px solid rgba(255,255,255,0.25); border-radius: 8px; }
+
+        .switch-row {
+            display: flex; align-items: center; justify-content: space-between; gap: 10px;
+            background: var(--item-bg); border: 1px solid rgba(255,255,255,0.05);
+            padding: 11px 14px; border-radius: var(--radius-sm); font-size: 0.85rem; margin-bottom: 8px;
+        }
+
+        .saved-list { display: flex; flex-direction: column; gap: 8px; }
+        .saved-theme-item {
+            display: flex; align-items: center; gap: 10px; background: var(--item-bg);
+            border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-sm);
+            padding: 9px 12px; cursor: pointer; transition: all 0.2s var(--ease-spring);
+        }
+        .saved-theme-item:hover { transform: translateX(3px); border-color: color-mix(in srgb, var(--accent-color) 45%, transparent); }
+        .theme-swatches { display: flex; gap: 3px; flex-shrink: 0; }
+        .theme-swatches span { width: 15px; height: 15px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.18); }
+        .saved-theme-name { flex: 1; font-size: 0.85rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .btn-tiny-del {
+            background: none; border: none; color: var(--danger-color); cursor: pointer;
+            font-size: 0.85rem; padding: 6px; border-radius: 50%; opacity: 0.7; transition: all 0.2s;
+        }
+        .btn-tiny-del:hover { opacity: 1; background: color-mix(in srgb, var(--danger-color) 18%, transparent); }
+
+        .swatch-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        .swatch-chip { position: relative; width: 38px; height: 38px; border-radius: 10px; cursor: pointer; border: 2px solid rgba(255,255,255,0.2); transition: transform 0.2s var(--ease-spring); }
+        .swatch-chip:hover { transform: scale(1.12); }
+        .swatch-chip .chip-del {
+            position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%;
+            background: var(--danger-color); color: #fff; border: none; font-size: 0.55rem; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s;
+        }
+        .swatch-chip:hover .chip-del { opacity: 1; }
+
+        .settings-row { display: flex; gap: 8px; }
+        .text-input-mini {
+            flex: 1; background: var(--item-bg); border: 1px solid rgba(255,255,255,0.06);
+            color: var(--text-color); border-radius: var(--radius-sm); padding: 10px 12px;
+            font-family: var(--font-body); font-size: 0.85rem; outline: none; min-width: 0;
+        }
+        .btn-mini {
+            background: var(--accent-gradient); color: var(--btn-text); border: none;
+            border-radius: var(--radius-sm); padding: 10px 14px; font-weight: 700;
+            font-size: 0.8rem; cursor: pointer; white-space: nowrap; transition: transform 0.2s var(--ease-spring);
+        }
+        .btn-mini:hover { transform: translateY(-2px); }
+        .btn-mini.ghost { background: var(--item-bg); color: var(--text-color); border: 1px solid rgba(255,255,255,0.08); }
+        .empty-hint { font-size: 0.78rem; opacity: 0.45; text-align: center; padding: 10px 0; }
+
+        input[type="range"] { width: 100%; accent-color: var(--accent-color); }
+
+        /* Paleta rápida de marca-texto */
+        .quick-swatches { display: flex; flex-direction: column; gap: 6px; align-items: center; max-height: 40vh; overflow-y: auto; }
+        .quick-swatches::-webkit-scrollbar { width: 0; }
+        .quick-swatch {
+            width: 26px; height: 26px; border-radius: 50%; cursor: pointer;
+            border: 2px solid rgba(255,255,255,0.35); box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            transition: transform 0.2s var(--ease-spring); flex-shrink: 0;
+        }
+        .quick-swatch:hover { transform: scale(1.18); }
+        .quick-swatch.selected { border-color: var(--accent-color); transform: scale(1.12); box-shadow: 0 0 0 2px var(--accent-color); }
 
         /* ----- MODAL DE CONFIGURAÇÕES ----- */
         #settingsModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 3000; backdrop-filter: blur(6px); }
@@ -680,7 +775,7 @@
         .custom-alert-box p { color: var(--text-color); opacity: 0.8; font-size: 0.95rem; line-height: 1.5; margin-bottom: 25px; }
         .custom-alert-box .actions { display: flex; gap: 10px; justify-content: center; }
         .custom-alert-box button { flex: 1; padding: 12px; border-radius: var(--radius-sm); font-weight: 700; cursor: pointer; transition: all 0.2s var(--ease-spring); border: none; font-family: var(--font-body); }
-        .custom-alert-box .btn-ok { background: linear-gradient(135deg, var(--accent-color), color-mix(in srgb, var(--accent-color) 70%, #8a5f00)); color: #16150f; box-shadow: 0 6px 14px color-mix(in srgb, var(--accent-color) 35%, transparent); }
+        .custom-alert-box .btn-ok { background: var(--accent-gradient); color: var(--btn-text); box-shadow: 0 6px 14px color-mix(in srgb, var(--accent-color) 35%, transparent); }
         .custom-alert-box .btn-ok:hover { transform: translateY(-2px); }
         .custom-alert-box .btn-ok:active { transform: scale(0.95); }
         .custom-alert-box .btn-cancelar { background: transparent; border: 2px solid rgba(255,255,255,0.1); color: var(--text-color); }
@@ -725,7 +820,7 @@
 
         /* ----- BOTÃO FLUTUANTE DE AÇÕES (FAB) E HIGHLIGHT INVISÍVEL ----- */
         .fab-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; align-items: center; gap: 12px; z-index: 950; transition: opacity 0.3s ease; }
-        .fab-btn { width: 58px; height: 58px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-color), color-mix(in srgb, var(--accent-color) 65%, #fff)); color: #16150f; border: none; box-shadow: 0 8px 20px color-mix(in srgb, var(--accent-color) 40%, transparent); font-size: 1.4rem; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: transform 0.25s var(--ease-spring), filter 0.2s, box-shadow 0.25s; animation: fadeInUp 0.5s var(--ease-spring); }
+        .fab-btn { width: 58px; height: 58px; border-radius: 50%; background: var(--accent-gradient); color: var(--btn-text); border: none; box-shadow: 0 8px 20px color-mix(in srgb, var(--accent-color) 40%, transparent); font-size: 1.4rem; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: transform 0.25s var(--ease-spring), filter 0.2s, box-shadow 0.25s; animation: fadeInUp 0.5s var(--ease-spring); }
         .fab-btn:hover { transform: scale(1.1) rotate(-4deg); filter: brightness(1.08); box-shadow: 0 12px 28px color-mix(in srgb, var(--accent-color) 55%, transparent); }
         .fab-btn:active { transform: scale(0.93); }
         .fab-container input[type="color"] { -webkit-appearance: none; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; padding: 0; background: transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: transform 0.2s; }
@@ -1018,21 +1113,81 @@
                 <h2><i class="fa-solid fa-palette"></i> Temas e Cores</h2>
                 <button class="icon-btn" onclick="toggleSettings()"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="theme-section">
-                <label>Temas Prontos</label>
-                <div class="preset-themes">
-                    <button id="btn-theme-dark" class="preset-btn" onclick="applyPreset('dark')">Dark</button>
-                    <button id="btn-theme-light" class="preset-btn" onclick="applyPreset('light')">Light</button>
-                    <button id="btn-theme-clean" class="preset-btn" onclick="applyPreset('clean')">Clean</button>
+
+            <div class="settings-scroll">
+                <div class="theme-section">
+                    <label>Temas prontos</label>
+                    <div class="preset-themes">
+                        <button id="btn-theme-dark" class="preset-btn" onclick="applyPreset('dark')">Escuro</button>
+                        <button id="btn-theme-light" class="preset-btn" onclick="applyPreset('light')">Claro</button>
+                        <button id="btn-theme-clean" class="preset-btn" onclick="applyPreset('clean')">Suave</button>
+                    </div>
+                </div>
+
+                <div class="theme-section">
+                    <label>Meus temas salvos</label>
+                    <div class="saved-list" id="savedThemesList"></div>
+                    <div class="settings-row" style="margin-top: 10px;">
+                        <input type="text" class="text-input-mini" id="newThemeName" placeholder="Nome do tema" maxlength="28">
+                        <button class="btn-mini" onclick="saveCurrentThemeAs()"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
+                    </div>
+                </div>
+
+                <div class="theme-section">
+                    <label>Cores</label>
+                    <div class="color-grid">
+                        <div class="color-picker-group"><span>Fundo</span><input type="color" id="customBg" value="#0b0d14" oninput="onColorInput()"></div>
+                        <div class="color-picker-group"><span>Fundo 2</span><input type="color" id="customBg2" value="#12141f" oninput="onColorInput()"></div>
+                        <div class="color-picker-group"><span>Texto</span><input type="color" id="customText" value="#f0ece0" oninput="onColorInput()"></div>
+                        <div class="color-picker-group"><span>Destaque</span><input type="color" id="customAccent" value="#c9a24d" oninput="onColorInput()"></div>
+                        <div class="color-picker-group"><span>Destaque 2</span><input type="color" id="customAccent2" value="#e8cf90" oninput="onColorInput()"></div>
+                        <div class="color-picker-group"><span>Letra do botão</span><input type="color" id="customBtnText" value="#16150f" oninput="onColorInput()"></div>
+                        <div class="color-picker-group"><span>Painéis</span><input type="color" id="customSecBg" value="#161925" oninput="onColorInput()"></div>
+                        <div class="color-picker-group"><span>Itens</span><input type="color" id="customItemBg" value="#1f2333" oninput="onColorInput()"></div>
+                    </div>
+                </div>
+
+                <div class="theme-section">
+                    <label>Degradês</label>
+                    <div class="switch-row">
+                        <span><i class="fa-solid fa-fill-drip" style="color: var(--accent-color); margin-right: 6px;"></i> Degradê no fundo</span>
+                        <label class="switch-toggle">
+                            <input type="checkbox" id="toggleBgGradient" onchange="onColorInput()">
+                            <span class="slider-toggle"></span>
+                        </label>
+                    </div>
+                    <div class="switch-row">
+                        <span><i class="fa-solid fa-wand-magic-sparkles" style="color: var(--accent-color); margin-right: 6px;"></i> Degradê nos botões</span>
+                        <label class="switch-toggle">
+                            <input type="checkbox" id="toggleBtnGradient" checked onchange="onColorInput()">
+                            <span class="slider-toggle"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="theme-section">
+                    <label>Imagem de fundo</label>
+                    <div class="settings-row">
+                        <button class="btn-mini" onclick="document.getElementById('bgImageInput').click()"><i class="fa-solid fa-image"></i> Escolher</button>
+                        <button class="btn-mini ghost" onclick="removeBgImage()"><i class="fa-solid fa-trash-can"></i> Remover</button>
+                    </div>
+                    <input type="file" id="bgImageInput" accept="image/*" style="display: none;" onchange="onBgImageChosen(event)">
+                    <div id="bgImageControls" style="display: none; margin-top: 12px;">
+                        <span style="font-size: 0.78rem; opacity: 0.7;">Intensidade da imagem</span>
+                        <input type="range" id="bgImageOpacity" min="5" max="100" value="35" oninput="onColorInput()">
+                    </div>
+                    <div class="empty-hint" id="bgImageHint">Nenhuma imagem escolhida</div>
+                </div>
+
+                <div class="theme-section">
+                    <label>Minhas cores de marca-texto</label>
+                    <div class="swatch-grid" id="highlightSwatchList"></div>
+                    <div class="settings-row" style="margin-top: 10px;">
+                        <div class="color-picker-group" style="flex: 1;"><span>Nova cor</span><input type="color" id="newHighlightColor" value="#a3e4d7"></div>
+                        <button class="btn-mini" onclick="addHighlightColor()"><i class="fa-solid fa-plus"></i> Adicionar</button>
+                    </div>
                 </div>
             </div>
-            <div class="theme-section">
-                <label>Criar Novo Padrão</label>
-                <div class="color-picker-group"><span>Fundo</span><input type="color" id="customBg" value="#0b0d14"></div>
-                <div class="color-picker-group"><span>Texto</span><input type="color" id="customText" value="#f0ece0"></div>
-                <div class="color-picker-group"><span>Detalhes</span><input type="color" id="customAccent" value="#c9a24d"></div>
-            </div>
-            <button class="btn-save" onclick="saveCustomTheme()"><i class="fa-solid fa-floppy-disk"></i> Salvar Meu Padrão</button>
         </div>
     </div>
 
@@ -1146,7 +1301,8 @@
                 <i class="fa-solid fa-sticky-note"></i>
             </button>
             <div id="fabHighlightTool" class="fab-highlight-tool">
-                <input type="color" id="highlightColor" value="#a3e4d7" title="Cor da marcação">
+                <div class="quick-swatches" id="quickSwatches"></div>
+                <input type="color" id="highlightColor" value="#a3e4d7" title="Cor da marcação" onchange="pickHighlightColor(this.value)">
                 <button class="fab-btn" onmousedown="event.preventDefault(); applyColorHighlight()" ontouchstart="event.preventDefault(); applyColorHighlight()" title="Grifar texto selecionado">
                     <i class="fa-solid fa-highlighter"></i>
                 </button>
@@ -1337,6 +1493,9 @@
             setupSmartSearch('harpaSearch', 'harpaSearchWrap', onHarpaSearch);
             loadSearchScope();
             sanitizeStoredFormats();
+            const lastColor = localStorage.getItem('bibleLastHighlightColor');
+            if (lastColor) document.getElementById('highlightColor').value = lastColor;
+            renderHighlightSwatches();
             preloadShareBackground();
         }
 
@@ -1585,37 +1744,59 @@
         // O fundo é preparado ANTES do toque no botão. Assim, ao compartilhar,
         // a imagem é gerada na hora e o navegador ainda aceita abrir a janela de envio.
         let shareBgCache = null;
-        let shareBgLoading = false;
+        let shareBgPromise = null;
 
-        async function preloadShareBackground() {
-            if (shareBgLoading || shareBgCache) return;
-            shareBgLoading = true;
+        // Monta a lista de fontes de foto, da mais temática para a mais genérica.
+        async function collectPhotoCandidates() {
+            const urls = [];
+            for (let attempt = 0; attempt < 2; attempt++) {
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), 8000);
+                try {
+                    const url = await fetchThemedPhotoUrl(controller.signal);
+                    if (url && !urls.includes(url)) urls.push(url);
+                } catch (e) { /* tenta outro tema */ }
+                finally { clearTimeout(timer); }
+            }
+            // Reserva: acervo genérico, mas ainda uma fotografia de verdade.
+            urls.push(`https://picsum.photos/seed/${Math.floor(Math.random() * 1000000)}/1400/1050`);
+            urls.push(`https://picsum.photos/seed/${Math.floor(Math.random() * 1000000)}/1200/900`);
+            return urls;
+        }
+
+        async function loadShareBackground() {
             const palette = pickRandom(sharePalettes);
             const angle = pickRandom(shareAngles);
             const tint = `linear-gradient(${angle}deg, ${hexToRgba(palette[0], 0.62)}, ${hexToRgba(palette[1], 0.45)}, ${hexToRgba(palette[2], 0.68)})`;
 
-            const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), 12000);
+            const candidates = await collectPhotoCandidates();
 
-            try {
-                let photoUrl = null;
-                // 1º: paisagem temática (ovelhas, céu, montanhas, deserto...)
-                try { photoUrl = await fetchThemedPhotoUrl(controller.signal); } catch (e) { photoUrl = null; }
-                // 2º: se o acervo temático falhar, ainda assim uma foto de verdade.
-                if (!photoUrl) photoUrl = `https://picsum.photos/seed/${Math.floor(Math.random() * 1000000)}/1400/1050`;
-
-                const photo = await fetchImageAsDataUrl(photoUrl, 10000);
-                await new Promise((resolve, reject) => {
-                    const img = new Image();
-                    img.onload = resolve; img.onerror = reject; img.src = photo;
-                });
-                shareBgCache = `${SHARE_DARKEN}, ${tint}, url('${photo}')`;
-            } catch (e) {
-                shareBgCache = null; // sem internet: só nesse caso usaremos o degradê
-            } finally {
-                clearTimeout(timer);
-                shareBgLoading = false;
+            // Tenta baixar cada uma até conseguir; só assim garantimos uma foto.
+            for (const url of candidates) {
+                try {
+                    const photo = await fetchImageAsDataUrl(url, 12000);
+                    await new Promise((resolve, reject) => {
+                        const img = new Image();
+                        img.onload = resolve; img.onerror = reject; img.src = photo;
+                    });
+                    shareBgCache = `${SHARE_DARKEN}, ${tint}, url('${photo}')`;
+                    return;
+                } catch (e) { /* tenta a próxima fonte */ }
             }
+            throw new Error('nenhuma foto disponível');
+        }
+
+        // Retorna uma promessa; se já houver um carregamento em andamento,
+        // aproveita o mesmo em vez de iniciar outro.
+        function preloadShareBackground() {
+            if (shareBgCache) return Promise.resolve(true);
+            if (!shareBgPromise) {
+                shareBgPromise = loadShareBackground()
+                    .then(() => true)
+                    .catch(() => { shareBgCache = null; return false; })
+                    .finally(() => { shareBgPromise = null; });
+            }
+            return shareBgPromise;
         }
 
         let lastShareBlob = null;
@@ -1634,7 +1815,6 @@
 
             btn.disabled = true;
             btn.style.opacity = '0.7';
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
 
             let file = null;
             try {
@@ -1642,7 +1822,14 @@
                 document.getElementById('share-ref').textContent = currentDevo.ref;
                 document.getElementById('share-devo').innerHTML = `<strong>Reflexão:</strong> ${currentDevo.devo}`;
                 styleShareRef();
-                // Usa a foto já baixada; se ainda não chegou, um degradê instantâneo.
+
+                // Se a foto ainda não chegou, espera por ela em vez de usar cor lisa.
+                if (!shareBgCache) {
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Buscando imagem...';
+                    await preloadShareBackground();
+                }
+
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Gerando...';
                 document.getElementById('share-card').style.backgroundImage = shareBgCache || buildGradientBackground();
                 shareBgCache = null;
 
@@ -1748,27 +1935,294 @@
             }
         }
 
-        const presets = {
-            dark: { bg: '#0b0d14', text: '#f0ece0', accent: '#c9a24d', secBg: '#161925', itemBg: '#1f2333' },
-            light: { bg: '#f7f1e3', text: '#2e2a22', accent: '#9c6b30', secBg: '#ffffff', itemBg: '#efe6d3' },
-            clean: { bg: '#f4f5f7', text: '#20242b', accent: '#3f7f6b', secBg: '#ffffff', itemBg: '#e8eaed' }
+        // ==========================================
+        //  MOTOR DE TEMAS
+        // ==========================================
+        const THEME_DEFAULTS = {
+            bg: '#0b0d14', bg2: '#12141f', text: '#f0ece0',
+            accent: '#c9a24d', accent2: '#e8cf90', btnText: '#16150f',
+            secBg: '#161925', itemBg: '#1f2333',
+            bgGradient: false, btnGradient: true,
+            bgImage: null, bgImageOpacity: 35
         };
 
-        function applyTheme(colors) {
-            const doc = document.documentElement;
-            doc.style.setProperty('--bg-color', colors.bg); doc.style.setProperty('--text-color', colors.text); doc.style.setProperty('--accent-color', colors.accent); doc.style.setProperty('--secondary-bg', colors.secBg); doc.style.setProperty('--item-bg', colors.itemBg);
-            document.getElementById('customBg').value = colors.bg; document.getElementById('customText').value = colors.text; document.getElementById('customAccent').value = colors.accent;
+        const presets = {
+            dark:  { bg: '#0b0d14', bg2: '#12141f', text: '#f0ece0', accent: '#c9a24d', accent2: '#e8cf90', btnText: '#16150f', secBg: '#161925', itemBg: '#1f2333', bgGradient: false, btnGradient: true },
+            light: { bg: '#f7f1e3', bg2: '#efe6d3', text: '#2e2a22', accent: '#9c6b30', accent2: '#c79a5c', btnText: '#fff8ec', secBg: '#ffffff', itemBg: '#efe6d3', bgGradient: false, btnGradient: true },
+            clean: { bg: '#f4f5f7', bg2: '#e8eaed', text: '#20242b', accent: '#3f7f6b', accent2: '#6bb39a', btnText: '#f2fbf7', secBg: '#ffffff', itemBg: '#e8eaed', bgGradient: false, btnGradient: true }
+        };
+
+        let currentTheme = { ...THEME_DEFAULTS };
+
+        function normalizeTheme(obj) {
+            const t = { ...THEME_DEFAULTS, ...(obj || {}) };
+            // Temas antigos só tinham 3 cores: completa o que falta.
+            if (!obj || !obj.accent2) t.accent2 = lightenColor(t.accent, 18);
+            if (!obj || !obj.btnText) t.btnText = isLightColor(t.accent) ? '#16150f' : '#ffffff';
+            if (!obj || !obj.bg2) t.bg2 = lightenColor(t.bg, 5);
+            return t;
         }
 
-        function updateActiveThemeButton(presetName) { document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active-theme')); const activeBtn = document.getElementById(`btn-theme-${presetName}`); if(activeBtn) activeBtn.classList.add('active-theme'); }
-        function applyPreset(presetName) { applyTheme(presets[presetName]); updateActiveThemeButton(presetName); localStorage.setItem('bibleTheme', JSON.stringify(presets[presetName])); localStorage.setItem('bibleThemeName', presetName); }
-        function saveCustomTheme() {
-            const bg = document.getElementById('customBg').value; const text = document.getElementById('customText').value; const accent = document.getElementById('customAccent').value;
-            const isDark = (parseInt(bg.replace('#', ''), 16) < 0xffffff/2); const secBg = isDark ? lightenColor(bg, 8) : darkenColor(bg, 4); const itemBg = isDark ? lightenColor(bg, 16) : darkenColor(bg, 8);
-            const customTheme = { bg, text, accent, secBg, itemBg };
-            applyTheme(customTheme); updateActiveThemeButton('custom'); localStorage.setItem('bibleTheme', JSON.stringify(customTheme)); localStorage.setItem('bibleThemeName', 'custom'); toggleSettings();
+        function applyTheme(theme) {
+            currentTheme = normalizeTheme(theme);
+            const doc = document.documentElement;
+            doc.style.setProperty('--bg-color', currentTheme.bg);
+            doc.style.setProperty('--bg-color-2', currentTheme.bg2);
+            doc.style.setProperty('--text-color', currentTheme.text);
+            doc.style.setProperty('--accent-color', currentTheme.accent);
+            doc.style.setProperty('--accent-2', currentTheme.accent2);
+            doc.style.setProperty('--btn-text', currentTheme.btnText);
+            doc.style.setProperty('--secondary-bg', currentTheme.secBg);
+            doc.style.setProperty('--item-bg', currentTheme.itemBg);
+
+            doc.style.setProperty('--accent-gradient', currentTheme.btnGradient
+                ? `linear-gradient(135deg, ${currentTheme.accent}, ${currentTheme.accent2})`
+                : currentTheme.accent);
+
+            doc.style.setProperty('--bg-gradient', currentTheme.bgGradient
+                ? `linear-gradient(160deg, ${currentTheme.bg}, ${currentTheme.bg2})`
+                : 'none');
+
+            applyBgImageLayer();
+            syncThemeInputs();
         }
-        function loadTheme() { const savedTheme = localStorage.getItem('bibleTheme'); const savedThemeName = localStorage.getItem('bibleThemeName') || 'dark'; if (savedTheme) applyTheme(JSON.parse(savedTheme)); updateActiveThemeButton(savedThemeName); }
+
+        function applyBgImageLayer() {
+            let layer = document.getElementById('bg-image-layer');
+            if (!layer) {
+                layer = document.createElement('div');
+                layer.id = 'bg-image-layer';
+                document.body.appendChild(layer);
+            }
+            const doc = document.documentElement;
+            if (currentTheme.bgImage) {
+                doc.style.setProperty('--bg-image', `url('${currentTheme.bgImage}')`);
+                doc.style.setProperty('--bg-image-opacity', (currentTheme.bgImageOpacity || 35) / 100);
+                document.body.classList.add('has-bg-image');
+            } else {
+                doc.style.setProperty('--bg-image', 'none');
+                document.body.classList.remove('has-bg-image');
+            }
+            const controls = document.getElementById('bgImageControls');
+            const hint = document.getElementById('bgImageHint');
+            if (controls) controls.style.display = currentTheme.bgImage ? 'block' : 'none';
+            if (hint) hint.style.display = currentTheme.bgImage ? 'none' : 'block';
+        }
+
+        function syncThemeInputs() {
+            const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+            set('customBg', currentTheme.bg);
+            set('customBg2', currentTheme.bg2);
+            set('customText', currentTheme.text);
+            set('customAccent', currentTheme.accent);
+            set('customAccent2', currentTheme.accent2);
+            set('customBtnText', currentTheme.btnText);
+            set('customSecBg', currentTheme.secBg);
+            set('customItemBg', currentTheme.itemBg);
+            const bgG = document.getElementById('toggleBgGradient');
+            const btnG = document.getElementById('toggleBtnGradient');
+            if (bgG) bgG.checked = !!currentTheme.bgGradient;
+            if (btnG) btnG.checked = !!currentTheme.btnGradient;
+            const op = document.getElementById('bgImageOpacity');
+            if (op) op.value = currentTheme.bgImageOpacity || 35;
+        }
+
+        function persistTheme() {
+            try { localStorage.setItem('bibleTheme', JSON.stringify(currentTheme)); }
+            catch (e) { customAlert('Não foi possível salvar: a imagem de fundo pode ser grande demais.'); }
+        }
+
+        // Mexeu em qualquer cor: aplica na hora e guarda.
+        function onColorInput() {
+            const val = (id, fallback) => { const el = document.getElementById(id); return el ? el.value : fallback; };
+            const theme = {
+                ...currentTheme,
+                bg: val('customBg', currentTheme.bg),
+                bg2: val('customBg2', currentTheme.bg2),
+                text: val('customText', currentTheme.text),
+                accent: val('customAccent', currentTheme.accent),
+                accent2: val('customAccent2', currentTheme.accent2),
+                btnText: val('customBtnText', currentTheme.btnText),
+                secBg: val('customSecBg', currentTheme.secBg),
+                itemBg: val('customItemBg', currentTheme.itemBg),
+                bgGradient: document.getElementById('toggleBgGradient').checked,
+                btnGradient: document.getElementById('toggleBtnGradient').checked,
+                bgImageOpacity: parseInt(val('bgImageOpacity', currentTheme.bgImageOpacity)) || 35
+            };
+            applyTheme(theme);
+            updateActiveThemeButton('custom');
+            localStorage.setItem('bibleThemeName', 'custom');
+            persistTheme();
+        }
+
+        function updateActiveThemeButton(presetName) {
+            document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active-theme'));
+            const activeBtn = document.getElementById(`btn-theme-${presetName}`);
+            if (activeBtn) activeBtn.classList.add('active-theme');
+        }
+
+        function applyPreset(presetName) {
+            const base = { ...presets[presetName], bgImage: currentTheme.bgImage, bgImageOpacity: currentTheme.bgImageOpacity };
+            applyTheme(base);
+            updateActiveThemeButton(presetName);
+            localStorage.setItem('bibleThemeName', presetName);
+            persistTheme();
+        }
+
+        function loadTheme() {
+            const saved = localStorage.getItem('bibleTheme');
+            const savedName = localStorage.getItem('bibleThemeName') || 'dark';
+            applyTheme(saved ? JSON.parse(saved) : presets.dark);
+            updateActiveThemeButton(savedName);
+            renderSavedThemes();
+            renderHighlightSwatches();
+        }
+
+        // ---------- Imagem de fundo ----------
+        function onBgImageChosen(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                const img = new Image();
+                img.onload = () => {
+                    // Reduz antes de guardar: imagem grande estoura o espaço do navegador.
+                    const maxSide = 1400;
+                    let w = img.width, h = img.height;
+                    if (w > maxSide || h > maxSide) {
+                        const scale = maxSide / Math.max(w, h);
+                        w = Math.round(w * scale); h = Math.round(h * scale);
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+                    applyTheme({ ...currentTheme, bgImage: dataUrl });
+                    persistTheme();
+                };
+                img.onerror = () => customAlert('Não foi possível ler essa imagem.');
+                img.src = reader.result;
+            };
+            reader.onerror = () => customAlert('Não foi possível ler o arquivo.');
+            reader.readAsDataURL(file);
+            event.target.value = '';
+        }
+
+        function removeBgImage() {
+            applyTheme({ ...currentTheme, bgImage: null });
+            persistTheme();
+        }
+
+        // ---------- Temas salvos ----------
+        function getSavedThemes() {
+            try { return JSON.parse(localStorage.getItem('bibleCustomThemes') || '[]'); }
+            catch (e) { return []; }
+        }
+
+        function saveCurrentThemeAs() {
+            const input = document.getElementById('newThemeName');
+            const name = input.value.trim();
+            if (!name) { customAlert('Dê um nome ao tema antes de salvar.'); return; }
+            const themes = getSavedThemes();
+            themes.push({ id: Date.now(), name, colors: { ...currentTheme } });
+            localStorage.setItem('bibleCustomThemes', JSON.stringify(themes));
+            input.value = '';
+            renderSavedThemes();
+        }
+
+        function applySavedTheme(id) {
+            const theme = getSavedThemes().find(t => String(t.id) === String(id));
+            if (!theme) return;
+            applyTheme(theme.colors);
+            updateActiveThemeButton('custom');
+            localStorage.setItem('bibleThemeName', 'custom');
+            persistTheme();
+        }
+
+        function deleteSavedTheme(id) {
+            customConfirm('Excluir este tema salvo?', (ok) => {
+                if (!ok) return;
+                const themes = getSavedThemes().filter(t => String(t.id) !== String(id));
+                localStorage.setItem('bibleCustomThemes', JSON.stringify(themes));
+                renderSavedThemes();
+            });
+        }
+
+        function renderSavedThemes() {
+            const list = document.getElementById('savedThemesList');
+            if (!list) return;
+            const themes = getSavedThemes();
+            if (!themes.length) {
+                list.innerHTML = '<div class="empty-hint">Nenhum tema salvo ainda</div>';
+                return;
+            }
+            list.innerHTML = themes.map(t => `
+                <div class="saved-theme-item" onclick="applySavedTheme('${t.id}')">
+                    <div class="theme-swatches">
+                        <span style="background:${t.colors.bg}"></span>
+                        <span style="background:${t.colors.accent}"></span>
+                        <span style="background:${t.colors.text}"></span>
+                    </div>
+                    <span class="saved-theme-name">${escapeHtml(t.name)}</span>
+                    <button class="btn-tiny-del" onclick="event.stopPropagation(); deleteSavedTheme('${t.id}')" title="Excluir"><i class="fa-solid fa-trash-can"></i></button>
+                </div>`).join('');
+        }
+
+        // ---------- Cores de marca-texto ----------
+        function getHighlightColors() {
+            try {
+                const saved = JSON.parse(localStorage.getItem('bibleHighlightColors') || 'null');
+                if (Array.isArray(saved)) return saved;
+            } catch (e) {}
+            return ['#a3e4d7', '#ffeb3b', '#ffb3ba', '#bae1ff', '#c8e6c9'];
+        }
+
+        function saveHighlightColors(colors) {
+            localStorage.setItem('bibleHighlightColors', JSON.stringify(colors));
+            renderHighlightSwatches();
+        }
+
+        function addHighlightColor() {
+            const color = document.getElementById('newHighlightColor').value;
+            const colors = getHighlightColors();
+            if (colors.includes(color)) { customAlert('Essa cor já está na sua paleta.'); return; }
+            colors.push(color);
+            saveHighlightColors(colors);
+        }
+
+        function deleteHighlightColor(color) {
+            saveHighlightColors(getHighlightColors().filter(c => c !== color));
+        }
+
+        function pickHighlightColor(color) {
+            const input = document.getElementById('highlightColor');
+            if (input) input.value = color;
+            localStorage.setItem('bibleLastHighlightColor', color);
+            renderHighlightSwatches();
+        }
+
+        function renderHighlightSwatches() {
+            const colors = getHighlightColors();
+            const active = (document.getElementById('highlightColor') || {}).value;
+
+            const list = document.getElementById('highlightSwatchList');
+            if (list) {
+                list.innerHTML = colors.length
+                    ? colors.map(c => `
+                        <div class="swatch-chip" style="background:${c}" title="${c}" onclick="pickHighlightColor('${c}')">
+                            <button class="chip-del" onclick="event.stopPropagation(); deleteHighlightColor('${c}')" title="Excluir cor"><i class="fa-solid fa-xmark"></i></button>
+                        </div>`).join('')
+                    : '<div class="empty-hint">Nenhuma cor salva</div>';
+            }
+
+            const quick = document.getElementById('quickSwatches');
+            if (quick) {
+                quick.innerHTML = colors.map(c =>
+                    `<div class="quick-swatch ${c === active ? 'selected' : ''}" style="background:${c}" title="${c}" onclick="pickHighlightColor('${c}')"></div>`
+                ).join('');
+            }
+        }
+
         function lightenColor(color, percent) { let num = parseInt(color.replace("#",""),16), amt = Math.round(2.55 * percent), R = (num >> 16) + amt, B = (num >> 8 & 0x00FF) + amt, G = (num & 0x0000FF) + amt; return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 + (B<255?B<1?0:B:255)*0x100 + (G<255?G<1?0:G:255)).toString(16).slice(1); }
         function darkenColor(color, percent) { return lightenColor(color, -percent); }
 
