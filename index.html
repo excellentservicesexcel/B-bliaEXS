@@ -22,6 +22,9 @@
             --item-bg: #1f2333;
             --accent-gradient: linear-gradient(135deg, var(--accent-color), var(--accent-2));
             --bg-stack: none;
+            --bg-image: none;
+            --bg-image-opacity: 0.35;
+            --bg-glow: 0.9;
             --danger-color: #e2685c;
             --highlight-default: #ffeb3b;
 
@@ -71,29 +74,40 @@
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            background-attachment: fixed;
         }
         /* O corpo fica transparente para o fundo da raiz aparecer. */
         body { background-color: transparent; }
+
+        /* A imagem fica numa camada fixa própria. Usar "background-attachment: fixed"
+           fazia o celular redesenhar a foto a cada rolagem, causando o tremor. */
+        #bg-image-layer {
+            position: fixed; inset: 0; z-index: -2; pointer-events: none;
+            background-image: var(--bg-image);
+            background-size: cover; background-position: center; background-repeat: no-repeat;
+            opacity: var(--bg-image-opacity, 0.35);
+            transform: translateZ(0);
+            will-change: transform;
+            transition: opacity 0.3s ease;
+        }
         /* Com imagem de fundo, as manchas animadas recuam para não sujar a foto. */
-        body.has-bg-image::before { opacity: 0.15; }
+        body.has-bg-image::before { opacity: calc(var(--bg-glow, 0.9) * 0.2); }
 
         /* ----- FUNDO ATMOSFÉRICO ANIMADO ----- */
         body::before {
             content: '';
             position: fixed;
             inset: -10%;
-            z-index: -1;
+            z-index: -3;
             pointer-events: none;
             background:
-                radial-gradient(38vmax 38vmax at 12% 8%, color-mix(in srgb, var(--accent-color) 20%, transparent), transparent 65%),
-                radial-gradient(42vmax 42vmax at 88% 18%, color-mix(in srgb, #6a5acd 16%, transparent), transparent 60%),
-                radial-gradient(46vmax 46vmax at 25% 92%, color-mix(in srgb, var(--accent-color) 12%, transparent), transparent 65%),
-                radial-gradient(40vmax 40vmax at 95% 95%, color-mix(in srgb, #3f7f6b 14%, transparent), transparent 60%);
-            filter: blur(10px) saturate(115%);
+                radial-gradient(38vmax 38vmax at 12% 8%, color-mix(in srgb, var(--accent-color) 16%, transparent), transparent 65%),
+                radial-gradient(42vmax 42vmax at 88% 18%, color-mix(in srgb, var(--bg-color-2) 70%, transparent), transparent 60%),
+                radial-gradient(46vmax 46vmax at 25% 92%, color-mix(in srgb, var(--accent-2) 12%, transparent), transparent 65%),
+                radial-gradient(40vmax 40vmax at 95% 95%, color-mix(in srgb, var(--bg-color-2) 60%, transparent), transparent 60%);
+            filter: blur(10px);
             animation: driftBg 32s ease-in-out infinite alternate;
-            opacity: 0.9;
-            transition: opacity 0.5s ease;
+            opacity: var(--bg-glow, 0.9);
+            transition: opacity 0.4s ease;
         }
         body::after {
             content: '';
@@ -299,15 +313,15 @@
         .btn-read:active { transform: scale(0.96); }
         /* Botões secundários: fundo mais discreto, mas a letra segue a configuração. */
         .btn-secondary {
-            background: color-mix(in srgb, var(--accent-color) 72%, var(--secondary-bg)) !important;
+            background: var(--accent-gradient) !important;
             color: var(--btn-text) !important;
-            border: 1px solid color-mix(in srgb, var(--accent-color) 45%, transparent) !important;
+            border: none !important;
             box-shadow: none !important;
+            filter: brightness(0.86) saturate(0.92);
         }
         .btn-secondary i { color: var(--btn-text) !important; }
         .btn-secondary.is-active {
-            background: var(--accent-gradient) !important;
-            border-color: transparent !important;
+            filter: none;
             box-shadow: 0 6px 16px color-mix(in srgb, var(--accent-color) 35%, transparent) !important;
         }
         .btn-share { width: auto; }
@@ -1175,6 +1189,13 @@
                             <span class="slider-toggle"></span>
                         </label>
                     </div>
+                    <div class="switch-row">
+                        <span><i class="fa-solid fa-wind" style="color: var(--accent-color); margin-right: 6px;"></i> Brilho animado no fundo</span>
+                        <label class="switch-toggle">
+                            <input type="checkbox" id="toggleBgGlow" checked onchange="onColorInput()">
+                            <span class="slider-toggle"></span>
+                        </label>
+                    </div>
                 </div>
 
                 <div class="theme-section">
@@ -1954,14 +1975,14 @@
             bg: '#0b0d14', bg2: '#12141f', text: '#f0ece0',
             accent: '#c9a24d', accent2: '#e8cf90', btnText: '#16150f',
             secBg: '#161925', itemBg: '#1f2333',
-            bgGradient: false, btnGradient: true,
+            bgGradient: false, btnGradient: true, bgGlow: true,
             bgImage: null, bgImageOpacity: 35
         };
 
         const presets = {
-            dark:  { bg: '#0b0d14', bg2: '#12141f', text: '#f0ece0', accent: '#c9a24d', accent2: '#e8cf90', btnText: '#16150f', secBg: '#161925', itemBg: '#1f2333', bgGradient: false, btnGradient: true },
-            light: { bg: '#f7f1e3', bg2: '#efe6d3', text: '#2e2a22', accent: '#9c6b30', accent2: '#c79a5c', btnText: '#fff8ec', secBg: '#ffffff', itemBg: '#efe6d3', bgGradient: false, btnGradient: true },
-            clean: { bg: '#f4f5f7', bg2: '#e8eaed', text: '#20242b', accent: '#3f7f6b', accent2: '#6bb39a', btnText: '#f2fbf7', secBg: '#ffffff', itemBg: '#e8eaed', bgGradient: false, btnGradient: true }
+            dark:  { bg: '#0b0d14', bg2: '#12141f', text: '#f0ece0', accent: '#c9a24d', accent2: '#e8cf90', btnText: '#16150f', secBg: '#161925', itemBg: '#1f2333', bgGradient: false, btnGradient: true, bgGlow: true },
+            light: { bg: '#f7f1e3', bg2: '#efe6d3', text: '#2e2a22', accent: '#9c6b30', accent2: '#c79a5c', btnText: '#fff8ec', secBg: '#ffffff', itemBg: '#efe6d3', bgGradient: false, btnGradient: true, bgGlow: true },
+            clean: { bg: '#f4f5f7', bg2: '#e8eaed', text: '#20242b', accent: '#3f7f6b', accent2: '#6bb39a', btnText: '#f2fbf7', secBg: '#ffffff', itemBg: '#e8eaed', bgGradient: false, btnGradient: true, bgGlow: true }
         };
 
         let currentTheme = { ...THEME_DEFAULTS };
@@ -1995,28 +2016,26 @@
             syncThemeInputs();
         }
 
-        // Monta o fundo da página: imagem, degradê ou cor lisa.
+        // Monta o fundo da página: degradê na raiz e a foto numa camada fixa própria.
         function applyBgImageLayer() {
             const doc = document.documentElement;
-            const antigo = document.getElementById('bg-image-layer');
-            if (antigo) antigo.remove(); // resquício da versão anterior
 
-            const temImagem = !!currentTheme.bgImage;
-            const temDegrade = !!currentTheme.bgGradient;
-            let stack = 'none';
-
-            if (temImagem) {
-                // Um véu da cor de fundo por cima controla a intensidade da foto.
-                const opacidade = Math.min(100, Math.max(0, currentTheme.bgImageOpacity || 35)) / 100;
-                const veu = Number((1 - opacidade).toFixed(2));
-                const corA = hexToRgba(currentTheme.bg, veu);
-                const corB = hexToRgba(temDegrade ? currentTheme.bg2 : currentTheme.bg, veu);
-                stack = `linear-gradient(160deg, ${corA}, ${corB}), url('${currentTheme.bgImage}')`;
-            } else if (temDegrade) {
-                stack = `linear-gradient(160deg, ${currentTheme.bg}, ${currentTheme.bg2})`;
+            let layer = document.getElementById('bg-image-layer');
+            if (!layer) {
+                layer = document.createElement('div');
+                layer.id = 'bg-image-layer';
+                document.body.appendChild(layer);
             }
 
-            doc.style.setProperty('--bg-stack', stack);
+            const temImagem = !!currentTheme.bgImage;
+            doc.style.setProperty('--bg-stack', currentTheme.bgGradient
+                ? `linear-gradient(160deg, ${currentTheme.bg}, ${currentTheme.bg2})`
+                : 'none');
+            doc.style.setProperty('--bg-image', temImagem ? `url('${currentTheme.bgImage}')` : 'none');
+            doc.style.setProperty('--bg-image-opacity',
+                Math.min(100, Math.max(0, currentTheme.bgImageOpacity ?? 35)) / 100);
+            doc.style.setProperty('--bg-glow', currentTheme.bgGlow === false ? '0' : '0.9');
+
             document.body.classList.toggle('has-bg-image', temImagem);
 
             const controls = document.getElementById('bgImageControls');
@@ -2037,8 +2056,10 @@
             set('customItemBg', currentTheme.itemBg);
             const bgG = document.getElementById('toggleBgGradient');
             const btnG = document.getElementById('toggleBtnGradient');
+            const glow = document.getElementById('toggleBgGlow');
             if (bgG) bgG.checked = !!currentTheme.bgGradient;
             if (btnG) btnG.checked = !!currentTheme.btnGradient;
+            if (glow) glow.checked = currentTheme.bgGlow !== false;
             const op = document.getElementById('bgImageOpacity');
             if (op) op.value = currentTheme.bgImageOpacity || 35;
         }
@@ -2063,6 +2084,7 @@
                 itemBg: val('customItemBg', currentTheme.itemBg),
                 bgGradient: document.getElementById('toggleBgGradient').checked,
                 btnGradient: document.getElementById('toggleBtnGradient').checked,
+                bgGlow: document.getElementById('toggleBgGlow').checked,
                 bgImageOpacity: parseInt(val('bgImageOpacity', currentTheme.bgImageOpacity)) || 35
             };
             applyTheme(theme);
