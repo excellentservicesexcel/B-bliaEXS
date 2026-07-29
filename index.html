@@ -21,9 +21,7 @@
             --secondary-bg: #161925;
             --item-bg: #1f2333;
             --accent-gradient: linear-gradient(135deg, var(--accent-color), var(--accent-2));
-            --bg-gradient: none;
-            --bg-image: none;
-            --bg-image-opacity: 0.35;
+            --bg-stack: none;
             --danger-color: #e2685c;
             --highlight-default: #ffeb3b;
 
@@ -66,17 +64,18 @@
             scroll-behavior: smooth;
         }
 
-        /* ----- FUNDO PERSONALIZADO (DEGRADÊ E IMAGEM) ----- */
-        body { background-image: var(--bg-gradient); background-attachment: fixed; }
-
-        #bg-image-layer {
-            position: fixed; inset: 0; z-index: -2; pointer-events: none;
-            background-image: var(--bg-image);
-            background-size: cover; background-position: center; background-repeat: no-repeat;
-            opacity: var(--bg-image-opacity);
-            transition: opacity 0.4s ease;
+        /* ----- FUNDO PERSONALIZADO (DEGRADÊ E IMAGEM) -----
+           Vai na raiz da página: é a primeira coisa pintada, então nada a cobre. */
+        html {
+            background-image: var(--bg-stack);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
         }
-        /* Com imagem de fundo, as manchas animadas saem para não sujar a foto. */
+        /* O corpo fica transparente para o fundo da raiz aparecer. */
+        body { background-color: transparent; }
+        /* Com imagem de fundo, as manchas animadas recuam para não sujar a foto. */
         body.has-bg-image::before { opacity: 0.15; }
 
         /* ----- FUNDO ATMOSFÉRICO ANIMADO ----- */
@@ -298,7 +297,20 @@
         .btn-read { background: var(--accent-gradient); color: var(--btn-text); border: none; border-radius: var(--radius-sm); padding: 12px 20px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: filter 0.2s, transform 0.15s var(--ease-spring), box-shadow 0.2s; width: 100%; box-shadow: 0 6px 16px color-mix(in srgb, var(--accent-color) 35%, transparent); }
         .btn-read:hover { filter: brightness(1.08); transform: translateY(-2px); box-shadow: 0 10px 22px color-mix(in srgb, var(--accent-color) 45%, transparent); }
         .btn-read:active { transform: scale(0.96); }
-        .btn-share { background-color: var(--item-bg); color: var(--text-color); border: 1px solid rgba(255,255,255,0.1); width: auto; box-shadow: none; }
+        /* Botões secundários: fundo mais discreto, mas a letra segue a configuração. */
+        .btn-secondary {
+            background: color-mix(in srgb, var(--accent-color) 72%, var(--secondary-bg)) !important;
+            color: var(--btn-text) !important;
+            border: 1px solid color-mix(in srgb, var(--accent-color) 45%, transparent) !important;
+            box-shadow: none !important;
+        }
+        .btn-secondary i { color: var(--btn-text) !important; }
+        .btn-secondary.is-active {
+            background: var(--accent-gradient) !important;
+            border-color: transparent !important;
+            box-shadow: 0 6px 16px color-mix(in srgb, var(--accent-color) 35%, transparent) !important;
+        }
+        .btn-share { width: auto; }
 
         @keyframes fadeInVerse {
             from { opacity: 0; }
@@ -1242,7 +1254,7 @@
             <h2>Versículo do Dia</h2>
             <div id="daily-content"></div>
             <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px; flex-wrap: wrap;">
-                <button class="btn-read btn-share" id="btnShare" onclick="shareVerse()">
+                <button class="btn-read btn-share btn-secondary" id="btnShare" onclick="shareVerse()">
                     <i class="fa-solid fa-share-nodes"></i> Compartilhar
                 </button>
                 <button class="btn-read" style="width: auto;" onclick="switchView('reader')">
@@ -1272,7 +1284,7 @@
             
             <div style="display: flex; gap: 10px; width: 100%;">
                 <button class="btn-read" onclick="loadChapter()" style="flex: 2;"><i class="fa-solid fa-magnifying-glass"></i> Carregar Capítulo</button>
-                <button id="btnTranslateToggle" class="btn-read" onclick="toggleTranslation()" style="flex: 1; background-color: var(--item-bg); color: var(--text-color); border: 1px solid rgba(255,255,255,0.05);"><i class="fa-solid fa-language"></i> Legenda</button>
+                <button id="btnTranslateToggle" class="btn-read btn-secondary" onclick="toggleTranslation()" style="flex: 1;"><i class="fa-solid fa-language"></i> Legenda</button>
             </div>
 
             <div class="smart-search" id="readerSearchWrap">
@@ -1341,10 +1353,10 @@
                     <option value="crista">Harpa Cristã</option>
                 </select>
             </div>
-            <button id="btnHarpaViewMode" class="btn-read" onclick="toggleHarpaViewMode()" style="flex: 0.5; background-color: var(--item-bg); color: var(--text-color); border: 1px solid rgba(255,255,255,0.05); margin-left: 10px;" title="Alternar Visualização">
+            <button id="btnHarpaViewMode" class="btn-read btn-secondary" onclick="toggleHarpaViewMode()" style="flex: 0.5; margin-left: 10px;" title="Alternar Visualização">
                 <i class="fa-solid fa-list-ul"></i>
             </button>
-            <button id="btnBackHarpa" class="btn-read" onclick="backToHarpaGrid()" style="display: none; flex: 1; background-color: var(--item-bg); color: var(--text-color); border: 1px solid rgba(255,255,255,0.05); margin-left: 10px;">
+            <button id="btnBackHarpa" class="btn-read btn-secondary" onclick="backToHarpaGrid()" style="display: none; flex: 1; margin-left: 10px;">
                 <i class="fa-solid fa-arrow-left"></i> Voltar
             </button>
         </div>
@@ -1979,34 +1991,38 @@
                 ? `linear-gradient(135deg, ${currentTheme.accent}, ${currentTheme.accent2})`
                 : currentTheme.accent);
 
-            doc.style.setProperty('--bg-gradient', currentTheme.bgGradient
-                ? `linear-gradient(160deg, ${currentTheme.bg}, ${currentTheme.bg2})`
-                : 'none');
-
             applyBgImageLayer();
             syncThemeInputs();
         }
 
+        // Monta o fundo da página: imagem, degradê ou cor lisa.
         function applyBgImageLayer() {
-            let layer = document.getElementById('bg-image-layer');
-            if (!layer) {
-                layer = document.createElement('div');
-                layer.id = 'bg-image-layer';
-                document.body.appendChild(layer);
-            }
             const doc = document.documentElement;
-            if (currentTheme.bgImage) {
-                doc.style.setProperty('--bg-image', `url('${currentTheme.bgImage}')`);
-                doc.style.setProperty('--bg-image-opacity', (currentTheme.bgImageOpacity || 35) / 100);
-                document.body.classList.add('has-bg-image');
-            } else {
-                doc.style.setProperty('--bg-image', 'none');
-                document.body.classList.remove('has-bg-image');
+            const antigo = document.getElementById('bg-image-layer');
+            if (antigo) antigo.remove(); // resquício da versão anterior
+
+            const temImagem = !!currentTheme.bgImage;
+            const temDegrade = !!currentTheme.bgGradient;
+            let stack = 'none';
+
+            if (temImagem) {
+                // Um véu da cor de fundo por cima controla a intensidade da foto.
+                const opacidade = Math.min(100, Math.max(0, currentTheme.bgImageOpacity || 35)) / 100;
+                const veu = Number((1 - opacidade).toFixed(2));
+                const corA = hexToRgba(currentTheme.bg, veu);
+                const corB = hexToRgba(temDegrade ? currentTheme.bg2 : currentTheme.bg, veu);
+                stack = `linear-gradient(160deg, ${corA}, ${corB}), url('${currentTheme.bgImage}')`;
+            } else if (temDegrade) {
+                stack = `linear-gradient(160deg, ${currentTheme.bg}, ${currentTheme.bg2})`;
             }
+
+            doc.style.setProperty('--bg-stack', stack);
+            document.body.classList.toggle('has-bg-image', temImagem);
+
             const controls = document.getElementById('bgImageControls');
             const hint = document.getElementById('bgImageHint');
-            if (controls) controls.style.display = currentTheme.bgImage ? 'block' : 'none';
-            if (hint) hint.style.display = currentTheme.bgImage ? 'none' : 'block';
+            if (controls) controls.style.display = temImagem ? 'block' : 'none';
+            if (hint) hint.style.display = temImagem ? 'none' : 'block';
         }
 
         function syncThemeInputs() {
@@ -2474,8 +2490,7 @@
             if (isTranslationActive) {
                 isTranslationActive = false;
                 const btn = document.getElementById('btnTranslateToggle');
-                btn.style.backgroundColor = 'var(--item-bg)';
-                btn.style.color = 'var(--text-color)';
+                btn.classList.remove('is-active');
                 btn.innerHTML = '<i class="fa-solid fa-language"></i> Legenda';
                 document.querySelectorAll('.verse-translation').forEach(el => el.remove());
                 stopTts();
@@ -2492,8 +2507,7 @@
             
             isTranslationActive = true;
             const btn = document.getElementById('btnTranslateToggle');
-            btn.style.backgroundColor = 'var(--accent-color)';
-            btn.style.color = '#fff';
+            btn.classList.add('is-active');
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Traduzindo...';
             
             await applyTranslationToCurrentChapter();
