@@ -924,6 +924,12 @@
         .post-it-header { width: 100%; height: 40px; background: rgba(0,0,0,0.06); cursor: grab; display: flex; justify-content: flex-end; align-items: center; padding: 0 8px; box-sizing: border-box; border-top-left-radius: 2px; border-top-right-radius: 2px; flex-shrink: 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
         .post-it-note.dragging .post-it-header { cursor: grabbing; }
         .post-it-content-wrapper { flex: 1; padding: 10px 15px 30px 15px; overflow: hidden; display: flex; justify-content: center; align-items: center; position: relative; transition: opacity 0.3s ease 0.1s; opacity: 1; }
+
+        /* Crescimento automático: o adesivo se estende para baixo conforme o texto. */
+        .post-it-note.auto-grow { height: auto !important; max-height: none; min-height: 180px; resize: horizontal; }
+        .post-it-note.auto-grow .post-it-content-wrapper { flex: none; align-items: flex-start; }
+        .post-it-note.auto-grow .post-it-content { height: auto; overflow-y: hidden; min-height: 100px; }
+        .post-it-note.auto-grow.folded { height: 46px !important; min-height: 0; }
         .post-it-content { width: 100%; height: 100%; font-family: 'Kalam', cursive; font-size: 1.1rem; color: rgba(0,0,0,0.8); outline: none; border: none; background: transparent; resize: none; line-height: 1.3; overflow-y: auto; text-align: center; text-shadow: 0px 1px 0px rgba(255,255,255,0.2); padding: 0; box-sizing: border-box; }
         .post-it-content::-webkit-scrollbar { width: 4px; }
         .post-it-content::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 2px; }
@@ -1668,8 +1674,22 @@
             if(viewName === 'harpa' && Object.keys(harpaDataCache).length === 0) {
                 initHarpa();
             }
-            
-            renderAllPostIts(); 
+
+            // A animação de entrada começa com a tela deslocada 100% para o lado.
+            // Medir a posição dos versículos agora jogaria os adesivos fora da tela,
+            // então esperamos a animação terminar.
+            schedulePostItRender(newView);
+        }
+
+        function schedulePostItRender(viewEl) {
+            let feito = false;
+            const executar = () => {
+                if (feito) return;
+                feito = true;
+                requestAnimationFrame(renderAllPostIts);
+            };
+            if (viewEl) viewEl.addEventListener('animationend', executar, { once: true });
+            setTimeout(executar, 420); // rede de segurança se a animação não disparar
         }
 
         function toggleSidebar() {
@@ -4605,7 +4625,7 @@
                 if(targetVerse) { anchorVerse = targetVerse.dataset.verse; const vRect = targetVerse.getBoundingClientRect(); x = (window.innerWidth / 2) - 90 - vRect.left; y = (window.innerHeight / 2) - 90 - vRect.top; if (x < 10) x = 10; if (y < -50) y = -50; }
             } else { const scrollY = window.scrollY || document.documentElement.scrollTop; x = (window.innerWidth / 2) - 90; y = scrollY + (window.innerHeight / 2) - 90; }
 
-            const newPostIt = { id: Date.now(), view: activeViewId, book: loadedBook, chapter: loadedChapter, anchorVerse: anchorVerse, x: x, y: y, w: 180, h: 180, color: '#ffeb3b', text: '', folded: false };
+            const newPostIt = { id: Date.now(), view: activeViewId, book: loadedBook, chapter: loadedChapter, anchorVerse: anchorVerse, x: x, y: y, w: 180, h: 180, color: '#ffeb3b', text: '', folded: false, autoGrow: true };
             postItsData.push(newPostIt); savePostIts(); renderAllPostIts();
         }
 
@@ -4619,7 +4639,23 @@
             const header = document.createElement('div'); header.className = 'post-it-header'; const controls = document.createElement('div'); controls.className = 'post-it-controls';
 
             const foldBtn = document.createElement('button'); foldBtn.className = 'post-it-btn'; foldBtn.title = 'Dobrar / Desdobrar'; foldBtn.innerHTML = data.folded ? '<i class="fa-solid fa-expand"></i>' : '<i class="fa-solid fa-compress"></i>';
-            foldBtn.onclick = () => { data.folded = !data.folded; if(data.folded) { postIt.classList.add('folded'); foldBtn.innerHTML = '<i class="fa-solid fa-expand"></i>'; } else { postIt.classList.remove('folded'); foldBtn.innerHTML = '<i class="fa-solid fa-compress"></i>'; } savePostIts(); };
+            foldBtn.onclick = () => { data.folded = !data.folded; if(data.folded) { postIt.classList.add('folded'); foldBtn.innerHTML = '<i class="fa-solid fa-expand"></i>'; } else { postIt.classList.remove('folded'); foldBtn.innerHTML = '<i class="fa-solid fa-compress"></i>'; applyPostItSizing(postIt, textArea, data); } savePostIts(); };
+
+            // Alterna entre "estica conforme o texto" e "tamanho fixo com rolagem".
+            const growBtn = document.createElement('button'); growBtn.className = 'post-it-btn';
+            const atualizaGrowBtn = () => {
+                const auto = data.autoGrow !== false;
+                growBtn.innerHTML = auto ? '<i class="fa-solid fa-arrows-up-down"></i>' : '<i class="fa-solid fa-ruler-vertical"></i>';
+                growBtn.title = auto ? 'Estica conforme o texto (toque para fixar o tamanho)' : 'Tamanho fixo com rolagem (toque para esticar)';
+            };
+            growBtn.onclick = () => {
+                data.autoGrow = (data.autoGrow === false);
+                if (data.autoGrow === false) data.h = Math.max(180, postIt.offsetHeight);
+                atualizaGrowBtn();
+                applyPostItSizing(postIt, textArea, data);
+                savePostIts();
+            };
+            atualizaGrowBtn();
 
             const colorInput = document.createElement('input'); colorInput.type = 'color'; colorInput.className = 'post-it-color'; colorInput.value = data.color;
             colorInput.addEventListener('input', (e) => { data.color = e.target.value; postIt.style.backgroundColor = data.color; savePostIts(); });
@@ -4627,11 +4663,15 @@
             const deleteBtn = document.createElement('button'); deleteBtn.className = 'post-it-btn'; deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
             deleteBtn.onclick = () => { customConfirm("Deseja amassar e jogar fora esta anotação?", (res) => { if(res) { postIt.remove(); postItsData = postItsData.filter(p => p.id !== data.id); savePostIts(); } }); };
 
-            controls.appendChild(foldBtn); controls.appendChild(colorInput); controls.appendChild(deleteBtn); header.appendChild(controls); postIt.appendChild(header);
+            controls.appendChild(foldBtn); controls.appendChild(growBtn); controls.appendChild(colorInput); controls.appendChild(deleteBtn); header.appendChild(controls); postIt.appendChild(header);
 
             const contentWrapper = document.createElement('div'); contentWrapper.className = 'post-it-content-wrapper';
             const textArea = document.createElement('textarea'); textArea.className = 'post-it-content'; textArea.placeholder = 'Sua anotação...'; textArea.value = data.text;
-            textArea.addEventListener('input', (e) => { data.text = e.target.value; savePostIts(); });
+            textArea.addEventListener('input', (e) => {
+                data.text = e.target.value;
+                applyPostItSizing(postIt, textArea, data);
+                savePostIts();
+            });
             // Só descarta o adesivo se, um instante depois, ele continuar vazio
             // e realmente sem foco (evita sumir enquanto o teclado abre).
             textArea.addEventListener('blur', () => {
@@ -4649,7 +4689,25 @@
             contentWrapper.appendChild(textArea); postIt.appendChild(contentWrapper); parent.appendChild(postIt);
             
             makeDraggableAndResizable(postIt, data, offset);
+            applyPostItSizing(postIt, textArea, data);
             if(data.text === '') textArea.focus();
+        }
+
+        // Define a altura do adesivo conforme o modo escolhido.
+        function applyPostItSizing(postIt, textArea, data) {
+            const auto = data.autoGrow !== false;
+            postIt.classList.toggle('auto-grow', auto);
+
+            if (data.folded) return;
+
+            if (auto) {
+                postIt.style.height = 'auto';
+                textArea.style.height = 'auto';
+                textArea.style.height = Math.max(100, textArea.scrollHeight) + 'px';
+            } else {
+                postIt.style.height = `${data.h || 180}px`;
+                textArea.style.height = '';
+            }
         }
 
         function makeDraggableAndResizable(element, data, offset) {
@@ -4659,7 +4717,15 @@
             function drag(e) { if (!isDragging) return; if(e.cancelable) e.preventDefault(); const event = e.type.includes('touch') ? e.touches[0] : e; element.style.left = (initialX + (event.clientX - startX)) + 'px'; element.style.top = (initialY + (event.clientY - startY)) + 'px'; }
             function stopDrag(e) { if (!isDragging) return; isDragging = false; element.classList.remove('dragging'); document.removeEventListener('mousemove', drag); document.removeEventListener('mouseup', stopDrag); document.removeEventListener('touchmove', drag); document.removeEventListener('touchend', stopDrag); data.x = parseInt(element.style.left) - offset.left; data.y = parseInt(element.style.top) - offset.top; savePostIts(); }
             header.addEventListener('mousedown', startDrag); header.addEventListener('touchstart', startDrag, { passive: false });
-            const resizeObserver = new ResizeObserver(entries => { for (let entry of entries) { if(!isDragging && !data.folded && entry.contentRect.width > 0) { data.w = element.offsetWidth; data.h = element.offsetHeight; savePostIts(); } } });
+            const resizeObserver = new ResizeObserver(entries => {
+                for (let entry of entries) {
+                    if (isDragging || data.folded || entry.contentRect.width <= 0) continue;
+                    data.w = element.offsetWidth;
+                    // No modo automático a altura muda sozinha: não sobrescreve a fixa.
+                    if (data.autoGrow === false) data.h = element.offsetHeight;
+                    savePostIts();
+                }
+            });
             resizeObserver.observe(element);
         }
         
