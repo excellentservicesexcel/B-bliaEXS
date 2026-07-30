@@ -467,6 +467,34 @@
         }
         .scope-btn:disabled { cursor: not-allowed; opacity: 0.28; }
 
+        /* Pop-up de escolha da cor do marca-texto */
+        .picker-swatches { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+        .picker-swatch {
+            aspect-ratio: 1; border-radius: 12px; cursor: pointer; border: 2px solid rgba(255,255,255,0.22);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.28); transition: transform 0.2s var(--ease-spring);
+            position: relative; display: flex; align-items: center; justify-content: center;
+        }
+        .picker-swatch:hover { transform: scale(1.12); border-color: rgba(255,255,255,0.55); }
+        .picker-swatch:active { transform: scale(0.94); }
+
+        .picker-custom {
+            display: flex; align-items: center; gap: 8px;
+            background: var(--item-bg); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius-sm); padding: 8px 10px;
+        }
+        .picker-custom-label { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; opacity: 0.8; flex: 1; cursor: pointer; }
+        .picker-custom input[type="color"] {
+            -webkit-appearance: none; appearance: none; border: none; background: none;
+            width: 32px; height: 32px; padding: 0; border-radius: 8px; cursor: pointer; flex-shrink: 0;
+        }
+        .picker-custom input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        .picker-custom input[type="color"]::-webkit-color-swatch { border: 2px solid rgba(255,255,255,0.25); border-radius: 8px; }
+
+        #colorPickerPreview {
+            font-family: var(--font-display); font-style: italic; font-size: 1rem;
+            opacity: 0.85; max-height: 70px; overflow: hidden; line-height: 1.4; margin-bottom: 18px;
+        }
+
         /* Prévia da imagem de compartilhamento */
         #sharePreviewOverlay .custom-alert-box { max-width: 340px; padding: 20px; }
         #sharePreviewImg {
@@ -1182,6 +1210,24 @@
         <div class="custom-alert-box" id="musicPopupContent" style="max-width: 350px;"></div>
     </div>
 
+    <div id="colorPickerOverlay" class="custom-alert-overlay" onclick="if(event.target === this) closeHighlightColors()">
+        <div class="custom-alert-box" style="max-width: 330px;">
+            <h3><i class="fa-solid fa-highlighter" style="color: var(--accent-color);"></i> Escolha a cor</h3>
+            <p id="colorPickerPreview" style="margin-bottom: 18px;"></p>
+            <div class="picker-swatches" id="pickerSwatches"></div>
+            <div class="picker-custom">
+                <label class="picker-custom-label">
+                    <input type="color" id="pickerCustomColor" value="#a3e4d7" oninput="updatePickerCustomPreview(this.value)">
+                    <span>Outra cor</span>
+                </label>
+                <button class="btn-mini" onclick="applyPickedColor(document.getElementById('pickerCustomColor').value, true)">Grifar e salvar</button>
+            </div>
+            <div class="actions" style="margin-top: 16px;">
+                <button class="btn-cancelar" onclick="closeHighlightColors()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <div id="sharePreviewOverlay" class="custom-alert-overlay">
         <div class="custom-alert-box">
             <h3><i class="fa-solid fa-image" style="color: var(--accent-color);"></i> Sua imagem está pronta</h3>
@@ -1433,9 +1479,8 @@
                 <i class="fa-solid fa-sticky-note"></i>
             </button>
             <div id="fabHighlightTool" class="fab-highlight-tool">
-                <div class="quick-swatches" id="quickSwatches"></div>
-                <input type="color" id="highlightColor" value="#a3e4d7" title="Cor da marcação" onchange="pickHighlightColor(this.value)">
-                <button class="fab-btn" onmousedown="event.preventDefault(); applyColorHighlight()" ontouchstart="event.preventDefault(); applyColorHighlight()" title="Grifar texto selecionado">
+                <input type="color" id="highlightColor" value="#a3e4d7" style="display: none;">
+                <button class="fab-btn" onmousedown="event.preventDefault(); openHighlightColors()" ontouchstart="event.preventDefault(); openHighlightColors()" title="Grifar texto selecionado">
                     <i class="fa-solid fa-highlighter"></i>
                 </button>
             </div>
@@ -3287,6 +3332,68 @@
             return segments;
         }
 
+        // ---------- Pop-up de cores do marca-texto ----------
+        let pendingHighlightRange = null;
+
+        function openHighlightColors() {
+            // Guarda a seleção: abrir o pop-up não pode fazê-la se perder.
+            const sel = window.getSelection();
+            if (appSelRange && !appSelRange.collapsed) pendingHighlightRange = appSelRange.cloneRange();
+            else if (sel.rangeCount && !sel.isCollapsed) pendingHighlightRange = sel.getRangeAt(0).cloneRange();
+            else pendingHighlightRange = null;
+
+            if (!pendingHighlightRange) {
+                customAlert("Selecione uma palavra ou frase primeiro antes de clicar em grifar.");
+                return;
+            }
+
+            const trecho = pendingHighlightRange.toString().trim();
+            document.getElementById('colorPickerPreview').textContent = trecho.length > 120 ? '"' + trecho.slice(0, 120) + '..."' : '"' + trecho + '"';
+
+            const cores = getHighlightColors();
+            const grid = document.getElementById('pickerSwatches');
+            grid.innerHTML = cores.length
+                ? cores.map(c => `<div class="picker-swatch" style="background:${c}" title="${c}" onclick="applyPickedColor('${c}')"></div>`).join('')
+                : '<div class="empty-hint" style="grid-column: 1 / -1;">Nenhuma cor salva. Use "Outra cor" abaixo.</div>';
+
+            const custom = document.getElementById('pickerCustomColor');
+            custom.value = localStorage.getItem('bibleLastHighlightColor') || '#a3e4d7';
+
+            document.getElementById('colorPickerOverlay').classList.add('open');
+        }
+
+        function closeHighlightColors() {
+            document.getElementById('colorPickerOverlay').classList.remove('open');
+            pendingHighlightRange = null;
+        }
+
+        function updatePickerCustomPreview(color) {
+            document.getElementById('pickerCustomColor').value = color;
+        }
+
+        // Escolheu a cor: grifa na hora.
+        function applyPickedColor(color, salvarNaPaleta) {
+            if (salvarNaPaleta) {
+                const cores = getHighlightColors();
+                if (!cores.includes(color)) { cores.push(color); saveHighlightColors(cores); }
+            }
+            document.getElementById('highlightColor').value = color;
+            localStorage.setItem('bibleLastHighlightColor', color);
+
+            const range = pendingHighlightRange;
+            document.getElementById('colorPickerOverlay').classList.remove('open');
+            pendingHighlightRange = null;
+
+            // Devolve a seleção guardada antes de grifar.
+            if (range) {
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                try { sel.addRange(range.cloneRange()); } catch (e) {}
+                appSelRange = range;
+            }
+            applyColorHighlight();
+        }
+
         function applyColorHighlight() {
             const sel = window.getSelection();
             if(sel.isCollapsed) { customAlert("Selecione uma palavra ou frase primeiro antes de clicar em grifar."); return; }
@@ -3807,6 +3914,7 @@
         let selLongPressTimer = null;
         let selStartXY = null;
         let selDownTarget = null;
+        let selDidSelect = false;
         let selHandleDrag = null;
 
         function protectBibleContent() {
@@ -3954,6 +4062,7 @@
             selStartXY = { x: e.clientX, y: e.clientY };
             selDownTarget = e.target;
             selActive = false;
+            selDidSelect = false;
 
             if (e.pointerType === 'mouse') {
                 const point = caretPointFrom(e.clientX, e.clientY);
@@ -3967,6 +4076,7 @@
                     selAnchorPoint = { node: wordRange.startContainer, offset: wordRange.startOffset };
                     selFocusPoint = { node: wordRange.endContainer, offset: wordRange.endOffset };
                     applyAppSelection(wordRange);
+                    selDidSelect = true;
                     document.getElementById('bible-content').classList.add('selecting');
                     if (navigator.vibrate) { try { navigator.vibrate(12); } catch (err) {} }
                 }, 320);
@@ -3999,7 +4109,7 @@
             const point = caretPointFrom(e.clientX, e.clientY);
             if (!point || !selAnchorPoint) return;
             const range = buildRange(selAnchorPoint, point);
-            if (range && !range.collapsed) applyAppSelection(range);
+            if (range && !range.collapsed) { applyAppSelection(range); selDidSelect = true; }
         }
 
         function onSelPointerUp(e) {
@@ -4011,8 +4121,8 @@
 
             const moved = selStartXY && (Math.abs(e.clientX - selStartXY.x) > 12 || Math.abs(e.clientY - selStartXY.y) > 12);
 
-            if (!selActive && !moved) {
-                // Toque simples numa marcação: oferece removê-la.
+            // Clique ou toque simples, sem ter selecionado nada: age como um clique.
+            if (!selDidSelect && !moved) {
                 const marked = selDownTarget && selDownTarget.closest ? selDownTarget.closest('.verse-highlight-bg') : null;
                 clearAppSelection();
                 if (marked && marked.dataset.hlId) {
@@ -4020,6 +4130,7 @@
                 }
             }
             selActive = false;
+            selDidSelect = false;
             selDownTarget = null;
         }
 
