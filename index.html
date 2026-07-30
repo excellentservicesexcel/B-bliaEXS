@@ -778,6 +778,37 @@
         }
         .btn-tiny-del:hover { opacity: 1; background: color-mix(in srgb, var(--danger-color) 18%, transparent); }
 
+        .font-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; max-height: 290px; overflow-y: auto; padding-right: 4px; }
+        .font-card {
+            background: var(--item-bg); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius-sm); padding: 12px 10px; cursor: pointer; text-align: center;
+            color: var(--text-color); transition: all 0.22s var(--ease-spring);
+            display: flex; flex-direction: column; gap: 6px; align-items: center;
+        }
+        .font-card:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--accent-color) 45%, transparent); }
+        .font-card.active {
+            border-color: var(--accent-color);
+            background: color-mix(in srgb, var(--accent-color) 16%, var(--item-bg));
+            box-shadow: 0 0 0 1px var(--accent-color);
+        }
+        .font-sample { font-size: 1.25rem; line-height: 1.2; }
+        .font-name { font-family: var(--font-body); font-size: 0.66rem; font-weight: 600; opacity: 0.7; display: flex; flex-direction: column; gap: 2px; }
+        .font-cat { font-size: 0.58rem; opacity: 0.55; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .font-preview {
+            margin-top: 10px; padding: 14px; border-radius: var(--radius-sm);
+            background: color-mix(in srgb, var(--accent-color) 8%, var(--secondary-bg));
+            border: 1px solid rgba(255,255,255,0.05);
+            font-family: var(--font-display); font-size: 1.15rem; line-height: 1.6;
+            text-align: center; font-style: italic;
+        }
+
+        .full-select {
+            width: 100%; background: var(--item-bg); color: var(--text-color);
+            border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius-sm);
+            padding: 11px 13px; font-size: 0.85rem; outline: none; cursor: pointer;
+        }
+
         .swatch-grid { display: flex; flex-wrap: wrap; gap: 8px; }
         .swatch-chip { position: relative; width: 38px; height: 38px; border-radius: 10px; cursor: pointer; border: 2px solid rgba(255,255,255,0.2); transition: transform 0.2s var(--ease-spring); }
         .swatch-chip:hover { transform: scale(1.12); }
@@ -1209,6 +1240,17 @@
                         <input type="text" class="text-input-mini" id="newThemeName" placeholder="Nome do tema" maxlength="28">
                         <button class="btn-mini" onclick="saveCurrentThemeAs()"><i class="fa-solid fa-floppy-disk"></i> Salvar</button>
                     </div>
+                </div>
+
+                <div class="theme-section">
+                    <label>Fonte da leitura</label>
+                    <div class="font-grid" id="fontReadingGrid"></div>
+                    <div class="font-preview" id="fontPreview">"No princípio criou Deus os céus e a terra."</div>
+                </div>
+
+                <div class="theme-section">
+                    <label>Fonte da interface</label>
+                    <select id="fontBodySelect" class="full-select" onchange="setFont('body', this.value)"></select>
                 </div>
 
                 <div class="theme-section">
@@ -1697,7 +1739,10 @@
             document.getElementById('sidebar-overlay').classList.toggle('open', isOpen);
             if (isOpen) updateSidebarList();
         }
-        function toggleSettings() { document.getElementById('settingsModal').classList.toggle('open'); }
+        function toggleSettings() {
+            const aberto = document.getElementById('settingsModal').classList.toggle('open');
+            if (aberto) { loadAllFontsForPreview(); renderFontPickers(); }
+        }
 
         async function loadDevotional() {
             const today = new Date().toDateString(); 
@@ -2041,6 +2086,96 @@
         }
 
         // ==========================================
+        //  FONTES
+        // ==========================================
+        const FONT_OPTIONS = [
+            // Serifadas — boas para leitura corrida
+            { name: 'Cormorant Garamond', cat: 'Serifada', stack: "'Cormorant Garamond', Georgia, serif" },
+            { name: 'EB Garamond',        cat: 'Serifada', stack: "'EB Garamond', Georgia, serif" },
+            { name: 'Lora',               cat: 'Serifada', stack: "'Lora', Georgia, serif" },
+            { name: 'Merriweather',       cat: 'Serifada', stack: "'Merriweather', Georgia, serif" },
+            { name: 'Playfair Display',   cat: 'Serifada', stack: "'Playfair Display', Georgia, serif" },
+            { name: 'Crimson Text',       cat: 'Serifada', stack: "'Crimson Text', Georgia, serif" },
+            { name: 'Libre Baskerville',  cat: 'Serifada', stack: "'Libre Baskerville', Georgia, serif" },
+            { name: 'Spectral',           cat: 'Serifada', stack: "'Spectral', Georgia, serif" },
+            { name: 'PT Serif',           cat: 'Serifada', stack: "'PT Serif', Georgia, serif" },
+            { name: 'Noto Serif',         cat: 'Serifada', stack: "'Noto Serif', Georgia, serif" },
+            { name: 'Source Serif 4',     cat: 'Serifada', stack: "'Source Serif 4', Georgia, serif" },
+            { name: 'Vollkorn',           cat: 'Serifada', stack: "'Vollkorn', Georgia, serif" },
+            { name: 'Cardo',              cat: 'Serifada', stack: "'Cardo', Georgia, serif" },
+            { name: 'Alegreya',           cat: 'Serifada', stack: "'Alegreya', Georgia, serif" },
+            { name: 'Bitter',             cat: 'Serifada', stack: "'Bitter', Georgia, serif" },
+            { name: 'Literata',           cat: 'Serifada', stack: "'Literata', Georgia, serif" },
+            { name: 'Gelasio',            cat: 'Serifada', stack: "'Gelasio', Georgia, serif" },
+            // Sem serifa — visual mais moderno
+            { name: 'Inter',              cat: 'Sem serifa', stack: "'Inter', system-ui, sans-serif" },
+            { name: 'Open Sans',          cat: 'Sem serifa', stack: "'Open Sans', system-ui, sans-serif" },
+            { name: 'Lato',               cat: 'Sem serifa', stack: "'Lato', system-ui, sans-serif" },
+            { name: 'Nunito',             cat: 'Sem serifa', stack: "'Nunito', system-ui, sans-serif" },
+            { name: 'Work Sans',          cat: 'Sem serifa', stack: "'Work Sans', system-ui, sans-serif" },
+            { name: 'Rubik',              cat: 'Sem serifa', stack: "'Rubik', system-ui, sans-serif" },
+            { name: 'Mulish',             cat: 'Sem serifa', stack: "'Mulish', system-ui, sans-serif" },
+            { name: 'Karla',              cat: 'Sem serifa', stack: "'Karla', system-ui, sans-serif" },
+            // Feita para facilitar a leitura
+            { name: 'Atkinson Hyperlegible', cat: 'Acessível', stack: "'Atkinson Hyperlegible', system-ui, sans-serif" }
+        ];
+
+        function fontStackOf(name) {
+            const f = FONT_OPTIONS.find(o => o.name === name);
+            return f ? f.stack : "'Cormorant Garamond', Georgia, serif";
+        }
+
+        const fontesCarregadas = new Set(['Cormorant Garamond', 'Inter', 'Kalam']);
+
+        // Carrega uma fonte só quando ela é realmente usada.
+        function ensureFontLoaded(name) {
+            if (!name || fontesCarregadas.has(name)) return;
+            fontesCarregadas.add(name);
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(name).replace(/%20/g, '+')}:wght@400;700&display=swap`;
+            document.head.appendChild(link);
+        }
+
+        // Ao abrir as configurações, traz todas para a pessoa ver como ficam.
+        let previewFontesCarregado = false;
+        function loadAllFontsForPreview() {
+            if (previewFontesCarregado) return;
+            previewFontesCarregado = true;
+            // Uma requisição por fonte: se um nome falhar, as demais continuam funcionando.
+            FONT_OPTIONS.forEach(f => ensureFontLoaded(f.name));
+        }
+
+        function renderFontPickers() {
+            const grid = document.getElementById('fontReadingGrid');
+            if (grid) {
+                grid.innerHTML = FONT_OPTIONS.map(f => `
+                    <button class="font-card ${f.name === currentTheme.fontDisplay ? 'active' : ''}"
+                            onclick="setFont('display', '${f.name}')">
+                        <span class="font-sample" style="font-family: ${f.stack};">Deus é amor</span>
+                        <span class="font-name">${f.name}<span class="font-cat">${f.cat}</span></span>
+                    </button>`).join('');
+            }
+            const sel = document.getElementById('fontBodySelect');
+            if (sel) {
+                sel.innerHTML = FONT_OPTIONS.map(f =>
+                    `<option value="${f.name}" ${f.name === currentTheme.fontBody ? 'selected' : ''} style="font-family: ${f.stack};">${f.name} — ${f.cat}</option>`
+                ).join('');
+            }
+        }
+
+        function setFont(alvo, name) {
+            ensureFontLoaded(name);
+            const theme = { ...currentTheme };
+            if (alvo === 'display') theme.fontDisplay = name; else theme.fontBody = name;
+            applyTheme(theme);
+            renderFontPickers();
+            localStorage.setItem('bibleThemeName', 'custom');
+            updateActiveThemeButton('custom');
+            persistTheme();
+        }
+
+        // ==========================================
         //  MOTOR DE TEMAS
         // ==========================================
         const THEME_DEFAULTS = {
@@ -2048,7 +2183,8 @@
             accent: '#c9a24d', accent2: '#e8cf90', btnText: '#16150f',
             secBg: '#161925', itemBg: '#1f2333',
             bgGradient: false, btnGradient: true, bgGlow: true,
-            bgImage: null, bgImageOpacity: 35
+            bgImage: null, bgImageOpacity: 35,
+            fontDisplay: 'Cormorant Garamond', fontBody: 'Inter'
         };
 
         const presets = {
@@ -2079,6 +2215,12 @@
             doc.style.setProperty('--btn-text', currentTheme.btnText);
             doc.style.setProperty('--secondary-bg', currentTheme.secBg);
             doc.style.setProperty('--item-bg', currentTheme.itemBg);
+
+            const fd = currentTheme.fontDisplay || 'Cormorant Garamond';
+            const fb = currentTheme.fontBody || 'Inter';
+            ensureFontLoaded(fd); ensureFontLoaded(fb);
+            doc.style.setProperty('--font-display', fontStackOf(fd));
+            doc.style.setProperty('--font-body', fontStackOf(fb));
 
             doc.style.setProperty('--accent-gradient', currentTheme.btnGradient
                 ? `linear-gradient(135deg, ${currentTheme.accent}, ${currentTheme.accent2})`
@@ -2172,7 +2314,8 @@
         }
 
         function applyPreset(presetName) {
-            const base = { ...presets[presetName], bgImage: currentTheme.bgImage, bgImageOpacity: currentTheme.bgImageOpacity };
+            const base = { ...presets[presetName], bgImage: currentTheme.bgImage, bgImageOpacity: currentTheme.bgImageOpacity,
+                           fontDisplay: currentTheme.fontDisplay, fontBody: currentTheme.fontBody };
             applyTheme(base);
             updateActiveThemeButton(presetName);
             localStorage.setItem('bibleThemeName', presetName);
@@ -2186,6 +2329,7 @@
             updateActiveThemeButton(savedName);
             renderSavedThemes();
             renderHighlightSwatches();
+            renderFontPickers();
         }
 
         // ---------- Imagem de fundo ----------
@@ -4641,29 +4785,13 @@
             const foldBtn = document.createElement('button'); foldBtn.className = 'post-it-btn'; foldBtn.title = 'Dobrar / Desdobrar'; foldBtn.innerHTML = data.folded ? '<i class="fa-solid fa-expand"></i>' : '<i class="fa-solid fa-compress"></i>';
             foldBtn.onclick = () => { data.folded = !data.folded; if(data.folded) { postIt.classList.add('folded'); foldBtn.innerHTML = '<i class="fa-solid fa-expand"></i>'; } else { postIt.classList.remove('folded'); foldBtn.innerHTML = '<i class="fa-solid fa-compress"></i>'; applyPostItSizing(postIt, textArea, data); } savePostIts(); };
 
-            // Alterna entre "estica conforme o texto" e "tamanho fixo com rolagem".
-            const growBtn = document.createElement('button'); growBtn.className = 'post-it-btn';
-            const atualizaGrowBtn = () => {
-                const auto = data.autoGrow !== false;
-                growBtn.innerHTML = auto ? '<i class="fa-solid fa-arrows-up-down"></i>' : '<i class="fa-solid fa-ruler-vertical"></i>';
-                growBtn.title = auto ? 'Estica conforme o texto (toque para fixar o tamanho)' : 'Tamanho fixo com rolagem (toque para esticar)';
-            };
-            growBtn.onclick = () => {
-                data.autoGrow = (data.autoGrow === false);
-                if (data.autoGrow === false) data.h = Math.max(180, postIt.offsetHeight);
-                atualizaGrowBtn();
-                applyPostItSizing(postIt, textArea, data);
-                savePostIts();
-            };
-            atualizaGrowBtn();
-
             const colorInput = document.createElement('input'); colorInput.type = 'color'; colorInput.className = 'post-it-color'; colorInput.value = data.color;
             colorInput.addEventListener('input', (e) => { data.color = e.target.value; postIt.style.backgroundColor = data.color; savePostIts(); });
 
             const deleteBtn = document.createElement('button'); deleteBtn.className = 'post-it-btn'; deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
             deleteBtn.onclick = () => { customConfirm("Deseja amassar e jogar fora esta anotação?", (res) => { if(res) { postIt.remove(); postItsData = postItsData.filter(p => p.id !== data.id); savePostIts(); } }); };
 
-            controls.appendChild(foldBtn); controls.appendChild(growBtn); controls.appendChild(colorInput); controls.appendChild(deleteBtn); header.appendChild(controls); postIt.appendChild(header);
+            controls.appendChild(foldBtn); controls.appendChild(colorInput); controls.appendChild(deleteBtn); header.appendChild(controls); postIt.appendChild(header);
 
             const contentWrapper = document.createElement('div'); contentWrapper.className = 'post-it-content-wrapper';
             const textArea = document.createElement('textarea'); textArea.className = 'post-it-content'; textArea.placeholder = 'Sua anotação...'; textArea.value = data.text;
@@ -4695,19 +4823,11 @@
 
         // Define a altura do adesivo conforme o modo escolhido.
         function applyPostItSizing(postIt, textArea, data) {
-            const auto = data.autoGrow !== false;
-            postIt.classList.toggle('auto-grow', auto);
-
+            postIt.classList.add('auto-grow');
             if (data.folded) return;
-
-            if (auto) {
-                postIt.style.height = 'auto';
-                textArea.style.height = 'auto';
-                textArea.style.height = Math.max(100, textArea.scrollHeight) + 'px';
-            } else {
-                postIt.style.height = `${data.h || 180}px`;
-                textArea.style.height = '';
-            }
+            postIt.style.height = 'auto';
+            textArea.style.height = 'auto';
+            textArea.style.height = Math.max(100, textArea.scrollHeight) + 'px';
         }
 
         function makeDraggableAndResizable(element, data, offset) {
@@ -4722,7 +4842,6 @@
                     if (isDragging || data.folded || entry.contentRect.width <= 0) continue;
                     data.w = element.offsetWidth;
                     // No modo automático a altura muda sozinha: não sobrescreve a fixa.
-                    if (data.autoGrow === false) data.h = element.offsetHeight;
                     savePostIts();
                 }
             });
