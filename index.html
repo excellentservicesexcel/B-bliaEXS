@@ -221,7 +221,7 @@
 
         .nav-tab.active {
             opacity: 1;
-            color: #14151b;
+            color: var(--btn-text);
             background: var(--accent-gradient);
             box-shadow: 0 6px 16px color-mix(in srgb, var(--accent-color) 45%, transparent);
             transform: translateY(-1px);
@@ -434,6 +434,14 @@
         .search-jump-item { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 0.95rem; }
         .search-jump-item i { color: var(--accent-color); font-size: 0.85rem; }
         .search-status { padding: 16px; text-align: center; font-size: 0.85rem; opacity: 0.6; line-height: 1.5; }
+
+        .search-count-banner {
+            padding: 13px 16px; text-align: center; font-size: 0.88rem; line-height: 1.5;
+            background: color-mix(in srgb, var(--accent-color) 14%, transparent);
+            border-bottom: 1px solid color-mix(in srgb, var(--accent-color) 22%, transparent);
+        }
+        .search-count-banner strong { color: var(--accent-color); font-size: 1.05rem; }
+        .search-count-banner .count-term { font-family: var(--font-display); font-style: italic; }
         .search-more { padding: 10px 16px 14px; font-size: 0.75rem; opacity: 0.5; text-align: center; }
 
         /* Realce do versículo alcançado pela busca */
@@ -790,7 +798,7 @@
         .preset-btn { flex: 1; padding: 12px 0; border-radius: 10px; border: none; cursor: pointer; font-weight: 600; font-size: 0.9rem; background-color: var(--bg-color); color: var(--text-color); transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .preset-btn:hover { filter: brightness(1.1); }
         .preset-btn.active-theme { background-color: var(--accent-color); color: #ffffff; box-shadow: inset 0 3px 6px rgba(0,0,0,0.3); transform: scale(0.96); }
-        .btn-save { width: 100%; background: var(--accent-color); color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; gap: 8px; }
+        .btn-save { width: 100%; background: var(--accent-gradient); color: var(--btn-text); border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; gap: 8px; }
 
         /* ----- ALERTAS, CONFIRMAÇÕES E PROMPTS ELEGANTES ----- */
         .custom-alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(6px); z-index: 7000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.25s ease; }
@@ -827,7 +835,7 @@
         .format-actions { display: flex; gap: 15px; }
         .btn-popup-cancelar { flex: 1; background: transparent; border: 2px solid rgba(255, 82, 82, 0.5); color: var(--danger-color); padding: 12px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
         .btn-popup-cancelar:hover { background: rgba(255, 82, 82, 0.1); border-color: var(--danger-color); }
-        .btn-popup-manter { flex: 1; background: var(--accent-color); border: none; color: #fff; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .btn-popup-manter { flex: 1; background: var(--accent-gradient); border: none; color: var(--btn-text); padding: 12px; border-radius: 10px; cursor: pointer; font-weight: 600; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
         .btn-popup-manter:hover { filter: brightness(1.1); transform: translateY(-2px); }
 
         /* ----- BOTÕES CONTEXTUAIS (DIREITA) ----- */
@@ -918,7 +926,7 @@
         #ttsWordTranslation { font-size: 1.1rem; font-weight: 500; color: #666; margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 10px; }
         
         .tts-controls, .tts-extra-controls { display: flex; justify-content: center; gap: 12px; }
-        .tts-btn { width: 45px; height: 45px; border-radius: 50%; border: none; background: var(--accent-color); color: #fff; font-size: 1.1rem; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: transform 0.2s; display: flex; justify-content: center; align-items: center; }
+        .tts-btn { width: 45px; height: 45px; border-radius: 50%; border: none; background: var(--accent-gradient); color: var(--btn-text); font-size: 1.1rem; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: transform 0.2s; display: flex; justify-content: center; align-items: center; }
         .tts-btn:hover { transform: scale(1.05); }
         .tts-btn:active { transform: scale(0.95); }
         .tts-btn-small { width: 38px; height: 38px; font-size: 0.95rem; background: #f0f0f0; color: var(--accent-color); }
@@ -1312,6 +1320,11 @@
                 <i class="fa-solid fa-magnifying-glass"></i>
                 <input type="text" id="readerSearch" autocomplete="off" placeholder="Buscar versículo, palavra ou referência (ex: jo 3 16)">
                 <button class="search-clear" onclick="clearReaderSearch()" title="Limpar busca"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="search-scope" id="searchMode">
+                <button class="scope-btn active" id="modeSimilar" onclick="setSearchMode('similar')"><i class="fa-solid fa-wand-magic-sparkles"></i> Semelhante</button>
+                <button class="scope-btn" id="modeExact" onclick="setSearchMode('exact')"><i class="fa-solid fa-equals"></i> Exata</button>
             </div>
 
             <div class="search-scope" id="searchScope">
@@ -3798,9 +3811,10 @@
         }
 
         // Realça os trechos encontrados, ignorando acentos do original.
-        function highlightMatch(text, query) {
+        function highlightMatch(text, query, exact) {
             const raw = String(text || '');
-            const tokens = normalizeSearch(query).split(' ').filter(t => t.length >= 2);
+            const phrase = normalizeSearch(query);
+            const tokens = exact ? (phrase ? [phrase] : []) : phrase.split(' ').filter(t => t.length >= 2);
             if (!tokens.length) return escapeHtml(raw);
 
             const { norm, map } = normalizeWithMap(raw);
@@ -3808,8 +3822,16 @@
             tokens.forEach(tok => {
                 let from = 0, at;
                 while ((at = norm.indexOf(tok, from)) !== -1) {
-                    ranges.push([map[at], map[at + tok.length - 1] + 1]);
-                    from = at + tok.length;
+                    let aceita = true;
+                    if (exact) {
+                        // Na busca exata, só realça a palavra inteira.
+                        const antes = at === 0 ? ' ' : norm[at - 1];
+                        const fim = at + tok.length;
+                        const depois = fim >= norm.length ? ' ' : norm[fim];
+                        aceita = !/[a-z0-9]/.test(antes) && !/[a-z0-9]/.test(depois);
+                    }
+                    if (aceita) ranges.push([map[at], map[at + tok.length - 1] + 1]);
+                    from = at + 1;
                 }
             });
             if (!ranges.length) return escapeHtml(raw);
@@ -3857,6 +3879,33 @@
             } catch (e) { return null; }
         }
 
+        // Conta quantas vezes a expressão aparece como palavra inteira.
+        // O texto já vem normalizado (só letras, números e espaços).
+        function countExact(normText, normPhrase) {
+            if (!normPhrase) return 0;
+            let total = 0, from = 0, at;
+            while ((at = normText.indexOf(normPhrase, from)) !== -1) {
+                const antes = at === 0 ? ' ' : normText[at - 1];
+                const fim = at + normPhrase.length;
+                const depois = fim >= normText.length ? ' ' : normText[fim];
+                if (!/[a-z0-9]/.test(antes) && !/[a-z0-9]/.test(depois)) total++;
+                from = at + 1;
+            }
+            return total;
+        }
+
+        // Percorre toda a Bíblia contando as ocorrências exatas.
+        function tallyExact(index, query) {
+            const phrase = normalizeSearch(query);
+            let ocorrencias = 0, versiculos = 0;
+            const hits = [];
+            for (const entry of index) {
+                const c = countExact(entry.norm, phrase);
+                if (c > 0) { ocorrencias += c; versiculos++; hits.push({ entry, count: c }); }
+            }
+            return { ocorrencias, versiculos, hits };
+        }
+
         function searchInIndex(index, query, limit = 25) {
             const tokens = normalizeSearch(query).split(' ').filter(t => t.length >= 2);
             if (!tokens.length) return [];
@@ -3877,11 +3926,30 @@
         // ---------- Busca da tela de Leitura ----------
         let readerSearchTimer = null;
         let searchScope = 'all'; // 'all' = Bíblia toda | 'chapter' = capítulo aberto
+        let searchMode = 'similar'; // 'similar' = tolera variações | 'exact' = só a expressão exata
 
         function loadSearchScope() {
             searchScope = localStorage.getItem('bibleSearchScope') || 'all';
             if (searchScope === 'chapter' && !currentChapterData) searchScope = 'all';
+            searchMode = localStorage.getItem('bibleSearchMode') || 'similar';
             applyScopeButtons();
+            applyModeButtons();
+        }
+
+        function applyModeButtons() {
+            const sim = document.getElementById('modeSimilar');
+            const ex = document.getElementById('modeExact');
+            if (!sim || !ex) return;
+            sim.classList.toggle('active', searchMode === 'similar');
+            ex.classList.toggle('active', searchMode === 'exact');
+        }
+
+        function setSearchMode(mode) {
+            searchMode = mode;
+            localStorage.setItem('bibleSearchMode', mode);
+            applyModeButtons();
+            const value = document.getElementById('readerSearch').value;
+            if (value.trim().length >= 2) runReaderSearch(value);
         }
 
         function applyScopeButtons() {
@@ -3938,11 +4006,13 @@
             const query = rawQuery.trim();
             if (query.length < 2) { panel.classList.remove('open'); panel.innerHTML = ''; return; }
 
+            const exato = searchMode === 'exact';
+            const phrase = normalizeSearch(query);
             let html = '';
 
-            // 1. Referências ("jo 3 16")
+            // 1. Referências ("jo 3 16"). Na busca exata, só quando há número de capítulo.
             const ref = parseReference(query);
-            if (ref) {
+            if (ref && (!exato || ref.chapter)) {
                 const books = matchBooks(ref.bookQuery);
                 if (books.length) {
                     html += `<div class="search-group-label"><i class="fa-solid fa-location-arrow"></i> Ir para</div>`;
@@ -3959,54 +4029,97 @@
 
             // 2. Dentro do capítulo aberto
             if (searchScope === 'chapter' && currentChapterData && currentChapterData.verses) {
-                const tokens = normalizeSearch(query).split(' ').filter(t => t.length >= 2);
-                const local = currentChapterData.verses.filter(v => {
-                    const norm = normalizeSearch(v.text);
-                    return norm.includes(normalizeSearch(query)) || tokens.every(t => norm.includes(t));
-                }).slice(0, 40);
+                const tokens = phrase.split(' ').filter(t => t.length >= 2);
+                let achados = [];
+                let totalOcorrencias = 0;
 
-                if (local.length) {
-                    html += `<div class="search-group-label"><i class="fa-solid fa-file-lines"></i> ${currentChapterData.reference} — ${local.length} resultado${local.length > 1 ? 's' : ''}</div>`;
-                    local.forEach(v => {
+                currentChapterData.verses.forEach(v => {
+                    const norm = normalizeSearch(v.text);
+                    if (exato) {
+                        const c = countExact(norm, phrase);
+                        if (c > 0) { totalOcorrencias += c; achados.push({ v, count: c }); }
+                    } else if (norm.includes(phrase) || tokens.every(t => norm.includes(t))) {
+                        achados.push({ v, count: 0 });
+                    }
+                });
+
+                if (exato) {
+                    html += contadorHtml(query, totalOcorrencias, achados.length, currentChapterData.reference);
+                }
+
+                const lista = achados.slice(0, 40);
+                if (lista.length) {
+                    if (!exato) html += `<div class="search-group-label"><i class="fa-solid fa-file-lines"></i> ${currentChapterData.reference} — ${achados.length} resultado${achados.length > 1 ? 's' : ''}</div>`;
+                    lista.forEach(({ v, count }) => {
                         const n = v.verse || v.number;
+                        const selo = count > 1 ? ` <span style="opacity:.6">(${count}x)</span>` : '';
                         html += `<button class="search-result-item" onclick="jumpToVerse(${n})">
-                                    <span class="search-result-ref">Versículo ${n}</span>
-                                    <span class="search-result-text">${highlightMatch(v.text, query)}</span>
+                                    <span class="search-result-ref">Versículo ${n}${selo}</span>
+                                    <span class="search-result-text">${highlightMatch(v.text, query, exato)}</span>
                                  </button>`;
                     });
-                } else if (query.length >= 2) {
+                } else if (!exato) {
                     html += `<div class="search-status">Nada encontrado em ${escapeHtml(currentChapterData.reference)}.<br>Toque em <strong>Bíblia toda</strong> para procurar em todos os livros.</div>`;
                 }
             }
 
             // 3. Em toda a Bíblia (versões em arquivo)
             const version = document.getElementById('versionSelect').value;
-            if (searchScope === 'all' && version && version.endsWith('.json') && query.length >= 3) {
+            if (searchScope === 'all' && version && version.endsWith('.json') && query.length >= 2) {
                 if (!bibleIndexCache[version]) {
                     panel.innerHTML = html + `<div class="search-status"><i class="fa-solid fa-circle-notch fa-spin"></i> Preparando a busca completa...</div>`;
                     panel.classList.add('open');
                 }
                 const index = await ensureFullTextIndex(version);
                 if (document.getElementById('readerSearch').value.trim() !== query) return; // digitou de novo
+
                 if (index) {
-                    const hits = searchInIndex(index, query, 30);
-                    if (hits.length) {
-                        html += `<div class="search-group-label"><i class="fa-solid fa-book-bible"></i> Em toda a Bíblia</div>`;
-                        hits.forEach(h => {
-                            html += `<button class="search-result-item" onclick="goToReference('${h.book.replace(/'/g, "\\'")}', ${h.chapter}, ${h.verse})">
-                                        <span class="search-result-ref">${escapeHtml(h.book)} ${h.chapter}:${h.verse}</span>
-                                        <span class="search-result-text">${highlightMatch(h.text, query)}</span>
+                    if (exato) {
+                        const { ocorrencias, versiculos, hits } = tallyExact(index, query);
+                        html += contadorHtml(query, ocorrencias, versiculos, 'toda a Bíblia');
+                        hits.slice(0, 60).forEach(({ entry, count }) => {
+                            const selo = count > 1 ? ` <span style="opacity:.6">(${count}x)</span>` : '';
+                            html += `<button class="search-result-item" onclick="goToReference('${entry.book.replace(/'/g, "\\'")}', ${entry.chapter}, ${entry.verse})">
+                                        <span class="search-result-ref">${escapeHtml(entry.book)} ${entry.chapter}:${entry.verse}${selo}</span>
+                                        <span class="search-result-text">${highlightMatch(entry.text, query, true)}</span>
                                      </button>`;
                         });
+                        if (hits.length > 60) html += `<div class="search-more">Mostrando os 60 primeiros de ${hits.length} versículos.</div>`;
+                    } else {
+                        const hits = searchInIndex(index, query, 30);
+                        if (hits.length) {
+                            html += `<div class="search-group-label"><i class="fa-solid fa-book-bible"></i> Em toda a Bíblia</div>`;
+                            hits.forEach(h => {
+                                html += `<button class="search-result-item" onclick="goToReference('${h.book.replace(/'/g, "\\'")}', ${h.chapter}, ${h.verse})">
+                                            <span class="search-result-ref">${escapeHtml(h.book)} ${h.chapter}:${h.verse}</span>
+                                            <span class="search-result-text">${highlightMatch(h.text, query, false)}</span>
+                                         </button>`;
+                            });
+                        }
                     }
                 }
-            } else if (searchScope === 'all' && !html && query.length >= 3) {
+            } else if (searchScope === 'all' && query.length >= 3 && !html) {
                 html += `<div class="search-status">Para buscar em toda a Bíblia, escolha uma versão em arquivo no seletor de versões.<br>Por aqui dá para buscar referências e, com um capítulo aberto, dentro dele.</div>`;
             }
 
             if (!html) html = `<div class="search-status">Nada encontrado para "${escapeHtml(query)}".</div>`;
             panel.innerHTML = html;
             panel.classList.add('open');
+        }
+
+        // Faixa com a contagem de ocorrências (só na busca exata).
+        function contadorHtml(termo, ocorrencias, versiculos, ondeTexto) {
+            if (ocorrencias === 0) {
+                return `<div class="search-count-banner">
+                            <span class="count-term">"${escapeHtml(termo)}"</span> não aparece em ${escapeHtml(ondeTexto)}.
+                        </div>`;
+            }
+            const vezes = ocorrencias === 1 ? 'vez' : 'vezes';
+            const vers = versiculos === 1 ? 'versículo' : 'versículos';
+            return `<div class="search-count-banner">
+                        <span class="count-term">"${escapeHtml(termo)}"</span> aparece <strong>${ocorrencias}</strong> ${vezes}
+                        em <strong>${versiculos}</strong> ${vers} de ${escapeHtml(ondeTexto)}.
+                    </div>`;
         }
 
         function jumpToVerse(verseNumber) {
