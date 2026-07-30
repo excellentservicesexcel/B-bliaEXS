@@ -683,6 +683,37 @@
         .book-group-title:first-child { margin-top: 0; }
         .book-group-title i { color: var(--accent-color); }
 
+        .type-chips {
+            display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; flex-shrink: 0;
+            scrollbar-width: none;
+        }
+        .type-chips::-webkit-scrollbar { display: none; }
+        .type-chip {
+            flex-shrink: 0; background: var(--item-bg); border: 1px solid rgba(255,255,255,0.06);
+            color: var(--text-color); opacity: 0.6; font-family: var(--font-body); font-size: 0.74rem;
+            font-weight: 700; padding: 7px 12px; border-radius: 999px; cursor: pointer; white-space: nowrap;
+            transition: all 0.25s var(--ease-spring); display: inline-flex; align-items: center; gap: 5px;
+        }
+        .type-chip:hover { opacity: 0.9; }
+        .type-chip.active {
+            opacity: 1; color: var(--btn-text); border-color: transparent;
+            background: var(--accent-gradient);
+            box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-color) 32%, transparent);
+        }
+
+        /* Itens de formatação (negrito, sublinhado, itálico) */
+        .format-text-preview {
+            background: color-mix(in srgb, var(--accent-color) 10%, var(--secondary-bg));
+            color: var(--text-color); padding: 9px 12px; border-radius: 7px; margin-top: 4px;
+            font-family: var(--font-display); font-size: 1rem; line-height: 1.45; display: block;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .kind-badge {
+            font-size: 0.62rem; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase;
+            padding: 2px 7px; border-radius: 4px; margin-left: 6px;
+            background: color-mix(in srgb, var(--accent-color) 22%, transparent); color: var(--accent-color);
+        }
+
         .highlight-item {
             background-color: var(--item-bg); padding: 14px 16px; border-radius: var(--radius-sm); margin-bottom: 10px;
             font-size: 0.9rem; border-left: 4px solid; position: relative; cursor: pointer;
@@ -1137,7 +1168,14 @@
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" id="searchHighlights" placeholder="Buscar por palavra ou trecho..." oninput="updateSidebarList()">
         </div>
-        <select id="filterHighlightsBook" onchange="updateSidebarList()"><option value="all">Todas as Marcações</option></select>
+        <div class="type-chips" id="markTypeFilter">
+            <button class="type-chip active" onclick="setMarkType('all')"><i class="fa-solid fa-layer-group"></i> Tudo</button>
+            <button class="type-chip" onclick="setMarkType('highlight')"><i class="fa-solid fa-highlighter"></i> Marca-texto</button>
+            <button class="type-chip" onclick="setMarkType('bold')"><b>N</b> Negrito</button>
+            <button class="type-chip" onclick="setMarkType('underline')"><span style="text-decoration: underline;">S</span> Sublinhado</button>
+            <button class="type-chip" onclick="setMarkType('italic')"><i style="font-family: var(--font-display);">I</i> Itálico</button>
+        </div>
+        <select id="filterHighlightsBook" onchange="updateSidebarList()"><option value="all">Todos os livros</option></select>
         <div id="highlightsList"></div>
     </div>
 
@@ -1538,6 +1576,7 @@
             setupSmartSearch('readerSearch', 'readerSearchWrap', onReaderSearch);
             setupSmartSearch('harpaSearch', 'harpaSearchWrap', onHarpaSearch);
             loadSearchScope();
+            loadMarkType();
             sanitizeStoredFormats();
             const lastColor = localStorage.getItem('bibleLastHighlightColor');
             if (lastColor) document.getElementById('highlightColor').value = lastColor;
@@ -2936,6 +2975,27 @@
         // ==========================================
         //  A MÁGICA: BÍBLIA CONVERSA COM AS ANOTAÇÕES E HIGHLIGHTS
         // ==========================================
+        // Envolve um trecho dentro do HTML do versículo. Tolera diferenças de espaço
+        // e ignora o que está dentro de tags. Devolve null se não encontrar.
+        function wrapTextInHTML(html, target, wrapStart, wrapEnd) {
+            const alvo = String(target).trim();
+            if (!alvo) return null;
+            const escapado = alvo.replace(/[-[\]{}()*+?.,\\^$|#]/g, '\\$&').replace(/\s+/g, '\\s+');
+            let regex;
+            try { regex = new RegExp(escapado, 'i'); } catch (e) { return null; }
+
+            const match = regex.exec(html);
+            if (!match) return null;
+
+            // Se o trecho encontrado estiver dentro de uma tag, não mexe.
+            const antes = html.slice(0, match.index);
+            const abertas = (antes.match(/</g) || []).length;
+            const fechadas = (antes.match(/>/g) || []).length;
+            if (abertas !== fechadas) return null;
+
+            return html.slice(0, match.index) + wrapStart + match[0] + wrapEnd + html.slice(match.index + match[0].length);
+        }
+
         function renderContent() {
             if (!currentChapterData) return;
             const contentDiv = document.getElementById('bible-content');
@@ -2962,22 +3022,27 @@
                     return vNum >= vStart && vNum <= vEnd;
                 });
 
-                // Remonta a cor dos highlights limpos
+                // Remonta a cor das marcações, pintando apenas o trecho selecionado.
                 activeHighlights.forEach(h => {
                     let vParts = String(h.verse).split('-');
                     let isMultiVerse = (vParts.length > 1 && vParts[0] !== vParts[1]);
-                    
+
                     let wrapStart = `<span class="verse-highlight-bg" data-hl-id="${h.id}" title="Toque para remover a marcação" style="background-color: ${h.color}; color: #121212; border-radius: 4px; padding: 2px;">`;
                     let wrapEnd = `</span>`;
 
-                    if (isMultiVerse) {
-                        verseTextHTML = wrapStart + verseTextHTML + wrapEnd;
+                    // Trecho gravado para ESTE versículo (marcações novas).
+                    const segmento = Array.isArray(h.segments)
+                        ? h.segments.find(sg => String(sg.verse) === String(vNum))
+                        : null;
+                    const alvo = segmento ? segmento.text : (isMultiVerse ? null : h.text);
+
+                    if (alvo && alvo.length > 0) {
+                        const pintado = wrapTextInHTML(verseTextHTML, alvo, wrapStart, wrapEnd);
+                        // Se não localizou o trecho (versículo com formatação no meio),
+                        // pinta o versículo inteiro para a marcação não desaparecer.
+                        verseTextHTML = pintado !== null ? pintado : (wrapStart + verseTextHTML + wrapEnd);
                     } else {
-                        if(h.text && h.text.length > 0) {
-                            let safeText = h.text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
-                            let regex = new RegExp(`(${safeText})`, 'gi');
-                            if(regex.test(verseTextHTML)) { verseTextHTML = verseTextHTML.replace(regex, wrapStart + "$1" + wrapEnd); } else { verseTextHTML = wrapStart + verseTextHTML + wrapEnd; }
-                        } else { verseTextHTML = wrapStart + verseTextHTML + wrapEnd; }
+                        verseTextHTML = wrapStart + verseTextHTML + wrapEnd;
                     }
                 });
 
@@ -3028,6 +3093,36 @@
         // ==========================================
         //  GRIFAR MÚLTIPLOS VERSÍCULOS
         // ==========================================
+        // Descobre, versículo por versículo, exatamente qual trecho foi selecionado.
+        // Sem isso, uma seleção que atravessa versículos acabava pintando cada um por inteiro.
+        function computeSelectionSegments(range) {
+            const segments = [];
+            document.querySelectorAll('#bible-content .verse').forEach(verseEl => {
+                const textEl = verseEl.querySelector('.verse-text');
+                if (!textEl) return;
+                let intersecta = false;
+                try { intersecta = range.intersectsNode(textEl); } catch (e) { intersecta = false; }
+                if (!intersecta) return;
+
+                const limite = document.createRange();
+                limite.selectNodeContents(textEl);
+
+                const parte = range.cloneRange();
+                try {
+                    if (parte.compareBoundaryPoints(Range.START_TO_START, limite) < 0) {
+                        parte.setStart(limite.startContainer, limite.startOffset);
+                    }
+                    if (parte.compareBoundaryPoints(Range.END_TO_END, limite) > 0) {
+                        parte.setEnd(limite.endContainer, limite.endOffset);
+                    }
+                } catch (e) { return; }
+
+                const trecho = parte.toString().trim();
+                if (trecho) segments.push({ verse: verseEl.getAttribute('data-verse'), text: trecho });
+            });
+            return segments;
+        }
+
         function applyColorHighlight() {
             const sel = window.getSelection();
             if(sel.isCollapsed) { customAlert("Selecione uma palavra ou frase primeiro antes de clicar em grifar."); return; }
@@ -3046,18 +3141,22 @@
 
             const color = document.getElementById('highlightColor').value;
             const textSelected = sel.toString().trim();
+            const segments = sel.rangeCount ? computeSelectionSegments(sel.getRangeAt(0)) : [];
 
-            saveToSidebar(textSelected, color, vRef);
+            // Junta os trechos: evita que os números dos versículos entrem no texto salvo.
+            const textoLimpo = segments.length ? segments.map(sg => sg.text).join(' ') : textSelected;
+
+            saveToSidebar(textoLimpo, color, vRef, segments);
             sel.removeAllRanges(); 
             document.getElementById('contextualFormatBtn').classList.remove('visible');
             document.getElementById('fabHighlightTool').classList.remove('visible');
             renderContent();
         }
 
-        function saveToSidebar(text, color, vRef) {
+        function saveToSidebar(text, color, vRef, segments) {
             const book = document.getElementById('bookSelect').value; const chapter = document.getElementById('chapterSelect').value;
             let h = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
-            h.push({ id: Date.now(), book, chapter, verse: vRef, text: text, color });
+            h.push({ id: Date.now(), book, chapter, verse: vRef, text: text, color, segments: segments || [] });
             localStorage.setItem('bibleHighlights', JSON.stringify(h));
             updateSidebarList();
         }
@@ -3066,60 +3165,212 @@
             return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
         }
 
+        // ---------- Filtro por tipo de marcação ----------
+        let markTypeFilter = 'all';
+
+        const KIND_LABELS = { bold: 'Negrito', underline: 'Sublinhado', italic: 'Itálico' };
+
+        function setMarkType(type) {
+            markTypeFilter = type;
+            localStorage.setItem('bibleMarkType', type);
+            document.querySelectorAll('#markTypeFilter .type-chip').forEach(chip => {
+                chip.classList.toggle('active', chip.getAttribute('onclick').includes(`'${type}'`));
+            });
+            updateSidebarList();
+        }
+
+        function loadMarkType() {
+            markTypeFilter = localStorage.getItem('bibleMarkType') || 'all';
+            document.querySelectorAll('#markTypeFilter .type-chip').forEach(chip => {
+                chip.classList.toggle('active', chip.getAttribute('onclick').includes(`'${markTypeFilter}'`));
+            });
+        }
+
+        // Descobre o tipo de destaque de um elemento (tag ou estilo aplicado).
+        function detectKind(el) {
+            const tag = el.tagName.toLowerCase();
+            const style = el.getAttribute('style') || '';
+            if (tag === 'b' || tag === 'strong' || /font-weight\s*:\s*(bold|[6-9]00)/i.test(style)) return 'bold';
+            if (tag === 'u' || /text-decoration[^;]*underline/i.test(style)) return 'underline';
+            if (tag === 'i' || tag === 'em' || /font-style\s*:\s*italic/i.test(style)) return 'italic';
+            return null;
+        }
+
+        // Varre as formatações salvas e monta a lista de trechos em negrito,
+        // sublinhado ou itálico, com a referência de cada um.
+        function collectFormatMarks() {
+            let db = [];
+            try { db = JSON.parse(localStorage.getItem('bibleFormats') || '[]'); } catch (e) { return []; }
+
+            const marks = [];
+            db.forEach(entry => {
+                if (!entry || typeof entry.html !== 'string') return;
+                const temp = document.createElement('div');
+                temp.innerHTML = entry.html;
+                const contadores = { bold: 0, underline: 0, italic: 0 };
+
+                temp.querySelectorAll('b, strong, u, i, em, span[style]').forEach(el => {
+                    const kind = detectKind(el);
+                    if (!kind) return;
+                    const texto = (el.textContent || '').trim();
+                    if (!texto) return;
+                    // Ignora trechos aninhados já contabilizados pelo pai do mesmo tipo.
+                    const pai = el.parentElement;
+                    if (pai && pai !== temp && detectKind(pai) === kind) return;
+                    marks.push({
+                        type: 'format', kind,
+                        version: entry.version, book: entry.book, chapter: entry.chapter, verse: entry.verse,
+                        idx: contadores[kind], text: texto
+                    });
+                    contadores[kind]++;
+                });
+            });
+            return marks;
+        }
+
         function updateSidebarList() {
             const listDiv = document.getElementById('highlightsList');
             const filterSelect = document.getElementById('filterHighlightsBook');
             const currentFilter = filterSelect.value;
             const searchInput = document.getElementById('searchHighlights');
             const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
-            const highlights = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
-            const uniqueBooks = [...new Set(highlights.map(h => h.book))];
 
-            let optionsHTML = '<option value="all">Todas as Marcações</option>';
+            let highlights = [];
+            try { highlights = JSON.parse(localStorage.getItem('bibleHighlights') || '[]'); } catch (e) {}
+
+            const marcasCor = highlights.map(h => ({ ...h, type: 'highlight' }));
+            const marcasFormato = collectFormatMarks();
+            const todas = marcasCor.concat(marcasFormato);
+
+            // Livros do seletor: considera marca-texto e formatações.
+            const uniqueBooks = [...new Set(todas.map(m => m.book))].sort();
+            let optionsHTML = '<option value="all">Todos os livros</option>';
             uniqueBooks.forEach(b => { optionsHTML += `<option value="${b}" ${currentFilter === b ? 'selected' : ''}>${b}</option>`; });
             filterSelect.innerHTML = optionsHTML;
 
+            let lista = todas;
+            if (markTypeFilter === 'highlight') lista = lista.filter(m => m.type === 'highlight');
+            else if (markTypeFilter !== 'all') lista = lista.filter(m => m.type === 'format' && m.kind === markTypeFilter);
+            if (currentFilter !== 'all') lista = lista.filter(m => m.book === currentFilter);
+            if (searchTerm) {
+                lista = lista.filter(m =>
+                    (m.text || '').toLowerCase().includes(searchTerm) ||
+                    (m.book || '').toLowerCase().includes(searchTerm)
+                );
+            }
+
             const countLabel = document.getElementById('sidebarCount');
-            countLabel.textContent = highlights.length === 0 ? 'Nenhuma marcação ainda' : `${highlights.length} marcação${highlights.length > 1 ? 'ões' : ''} salva${highlights.length > 1 ? 's' : ''}`;
+            const nomeTipo = markTypeFilter === 'all' ? 'marcação' :
+                             markTypeFilter === 'highlight' ? 'marcação de cor' :
+                             `trecho em ${KIND_LABELS[markTypeFilter].toLowerCase()}`;
+            if (lista.length === 0) {
+                countLabel.textContent = todas.length === 0 ? 'Nenhuma marcação ainda' : `Nenhum resultado neste filtro`;
+            } else {
+                countLabel.textContent = `${lista.length} ${nomeTipo}${lista.length > 1 ? 's' : ''}`;
+            }
 
-            let filteredHighlights = highlights;
-            if (currentFilter !== 'all') filteredHighlights = filteredHighlights.filter(h => h.book === currentFilter);
-            if (searchTerm) filteredHighlights = filteredHighlights.filter(h => (h.text || '').toLowerCase().includes(searchTerm) || (h.book || '').toLowerCase().includes(searchTerm));
-
-            if (filteredHighlights.length === 0) {
-                const isEmptyOverall = highlights.length === 0;
+            if (lista.length === 0) {
+                const vazioGeral = todas.length === 0;
                 listDiv.innerHTML = `
                     <div class="sidebar-empty">
-                        <i class="fa-solid ${isEmptyOverall ? 'fa-feather-pointed' : 'fa-magnifying-glass'}"></i>
-                        <p>${isEmptyOverall ? 'Você ainda não grifou nenhum versículo.<br>Selecione um texto durante a leitura para marcá-lo aqui.' : 'Nenhuma marcação encontrada para essa busca.'}</p>
-                        ${isEmptyOverall ? `<button onclick="toggleSidebar(); switchView('reader');"><i class="fa-solid fa-book-open-reader"></i> Ir para a leitura</button>` : ''}
+                        <i class="fa-solid ${vazioGeral ? 'fa-feather-pointed' : 'fa-filter-circle-xmark'}"></i>
+                        <p>${vazioGeral
+                            ? 'Você ainda não marcou nenhum versículo.<br>Selecione um texto durante a leitura para grifar ou formatar.'
+                            : 'Nada encontrado com esse filtro.<br>Tente outro tipo ou limpe a busca.'}</p>
+                        ${vazioGeral ? `<button onclick="toggleSidebar(); switchView('reader');"><i class="fa-solid fa-book-open-reader"></i> Ir para a leitura</button>` : ''}
                     </div>`;
                 return;
             }
-            listDiv.innerHTML = '';
 
-            const grouped = filteredHighlights.reduce((acc, h) => { if(!acc[h.book]) acc[h.book] = []; acc[h.book].push(h); return acc; }, {});
+            listDiv.innerHTML = '';
+            const grouped = lista.reduce((acc, m) => { if (!acc[m.book]) acc[m.book] = []; acc[m.book].push(m); return acc; }, {});
             let staggerIndex = 0;
 
             for (const book in grouped) {
-                const header = document.createElement('h3'); header.className = 'book-group-title'; header.innerHTML = `<i class="fa-solid fa-book-bible"></i> ${escapeHtml(book)} <span style="opacity:.5; font-weight:500; font-size:0.8rem;">(${grouped[book].length})</span>`;
+                const header = document.createElement('h3');
+                header.className = 'book-group-title';
+                header.innerHTML = `<i class="fa-solid fa-book-bible"></i> ${escapeHtml(book)} <span style="opacity:.5; font-weight:500; font-size:0.8rem;">(${grouped[book].length})</span>`;
                 listDiv.appendChild(header);
 
-                grouped[book].slice().reverse().forEach(h => {
+                grouped[book].slice().reverse().forEach(m => {
                     const item = document.createElement('div');
                     item.className = 'highlight-item';
-                    item.style.borderLeftColor = h.color;
                     item.style.animationDelay = `${Math.min(staggerIndex * 0.04, 0.4)}s`;
                     staggerIndex++;
-                    item.onclick = (e) => { if (e.target.closest('button')) return; focusHighlight(h.book, h.chapter, h.verse); };
-                    item.innerHTML = `
-                        <button class="btn-delete" onclick="event.stopPropagation(); deleteHighlight(${h.id})" title="Excluir"><i class="fa-solid fa-trash-can"></i></button>
-                        <span class="highlight-ref"><i class="fa-solid fa-location-dot"></i> Capítulo ${escapeHtml(h.chapter)} : ${escapeHtml(h.verse)}</span>
-                        <div class="highlight-text-preview" style="background-color: ${h.color};">${escapeHtml(h.text)}</div>
-                    `;
+
+                    if (m.type === 'highlight') {
+                        item.style.borderLeftColor = m.color;
+                        item.onclick = (e) => { if (e.target.closest('button')) return; focusHighlight(m.book, m.chapter, m.verse); };
+                        item.innerHTML = `
+                            <button class="btn-delete" onclick="event.stopPropagation(); deleteHighlight(${m.id})" title="Excluir"><i class="fa-solid fa-trash-can"></i></button>
+                            <span class="highlight-ref"><i class="fa-solid fa-location-dot"></i> Capítulo ${escapeHtml(m.chapter)} : ${escapeHtml(m.verse)}</span>
+                            <div class="highlight-text-preview" style="background-color: ${m.color};">${escapeHtml(m.text)}</div>`;
+                    } else {
+                        const estilo = m.kind === 'bold' ? 'font-weight: 800;'
+                                     : m.kind === 'underline' ? 'text-decoration: underline;'
+                                     : 'font-style: italic;';
+                        item.style.borderLeftColor = 'var(--accent-color)';
+                        item.onclick = (e) => { if (e.target.closest('button')) return; focusHighlight(m.book, m.chapter, m.verse); };
+                        item.innerHTML = `
+                            <button class="btn-delete" onclick="event.stopPropagation(); removeFormatMark('${encodeURIComponent(JSON.stringify({v:m.version,b:m.book,c:m.chapter,vs:m.verse,k:m.kind,i:m.idx}))}')" title="Remover formatação"><i class="fa-solid fa-trash-can"></i></button>
+                            <span class="highlight-ref">
+                                <i class="fa-solid fa-location-dot"></i> Capítulo ${escapeHtml(m.chapter)} : ${escapeHtml(m.verse)}
+                                <span class="kind-badge">${KIND_LABELS[m.kind]}</span>
+                            </span>
+                            <div class="format-text-preview" style="${estilo}">${escapeHtml(m.text)}</div>`;
+                    }
                     listDiv.appendChild(item);
                 });
             }
+        }
+
+        // Remove apenas aquele trecho formatado, mantendo o resto do versículo.
+        function removeFormatMark(payload) {
+            let ref;
+            try { ref = JSON.parse(decodeURIComponent(payload)); } catch (e) { return; }
+
+            customConfirm(`Remover o ${KIND_LABELS[ref.k].toLowerCase()} deste trecho?`, (ok) => {
+                if (!ok) return;
+                let db = [];
+                try { db = JSON.parse(localStorage.getItem('bibleFormats') || '[]'); } catch (e) { return; }
+
+                const entry = db.find(f => f.book === ref.b && String(f.chapter) === String(ref.c)
+                                        && String(f.verse) === String(ref.vs)
+                                        && (ref.v === undefined || f.version === ref.v));
+                if (!entry) return;
+
+                const temp = document.createElement('div');
+                temp.innerHTML = entry.html;
+                let contador = 0;
+                let alvo = null;
+
+                temp.querySelectorAll('b, strong, u, i, em, span[style]').forEach(el => {
+                    const kind = detectKind(el);
+                    if (kind !== ref.k) return;
+                    if (!(el.textContent || '').trim()) return;
+                    const pai = el.parentElement;
+                    if (pai && pai !== temp && detectKind(pai) === kind) return;
+                    if (contador === ref.i) alvo = el;
+                    contador++;
+                });
+
+                if (alvo) {
+                    // Desembrulha: o texto continua, só o destaque sai.
+                    const pai = alvo.parentNode;
+                    while (alvo.firstChild) pai.insertBefore(alvo.firstChild, alvo);
+                    pai.removeChild(alvo);
+                    temp.normalize();
+                    entry.html = temp.innerHTML;
+
+                    // Sem nenhuma formatação restante, a entrada inteira sai.
+                    const aindaTem = temp.querySelector('b, strong, u, i, em, span[style]');
+                    if (!aindaTem) db = db.filter(f => f !== entry);
+
+                    localStorage.setItem('bibleFormats', JSON.stringify(db));
+                    updateSidebarList();
+                    if (currentChapterData) renderContent();
+                }
+            });
         }
 
         // LIMPEZA CIRÚRGICA DE MARCAÇÕES (O ASPIRADOR DE CORES)
