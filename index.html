@@ -574,6 +574,16 @@
         input:checked + .slider-toggle { background-color: var(--accent-color); }
         input:checked + .slider-toggle:before { transform: translateX(20px); }
 
+        .plan-tools {
+            background: color-mix(in srgb, var(--secondary-bg) 90%, transparent);
+            border: 1px solid color-mix(in srgb, var(--accent-color) 12%, transparent);
+            border-radius: var(--radius-md); padding: 12px; margin-bottom: 18px;
+            box-shadow: var(--shadow-soft); width: 100%; box-sizing: border-box;
+            animation: fadeInUp 0.45s var(--ease-spring);
+        }
+        .plan-tools .search-scope { margin-top: 0; }
+        .plan-filter-info { font-size: 0.76rem; opacity: 0.55; text-align: center; margin: 10px 0 0; }
+
         .plan-book-group {
             margin-bottom: 24px; background: color-mix(in srgb, var(--secondary-bg) 94%, transparent);
             border: 1px solid color-mix(in srgb, var(--accent-color) 8%, transparent);
@@ -1475,7 +1485,7 @@
         </div>
 
         <div class="fab-container">
-            <button class="fab-btn" style="background-color: #f1c40f; color: #121212;" onclick="createNewPostIt()" title="Colar Post-it">
+            <button class="fab-btn" onclick="createNewPostIt()" title="Colar Post-it">
                 <i class="fa-solid fa-sticky-note"></i>
             </button>
             <div id="fabHighlightTool" class="fab-highlight-tool">
@@ -1507,6 +1517,19 @@
             </div>
             <p class="plan-hint"><i class="fa-solid fa-hand-pointer"></i> Toque num número para marcar/desmarcar • Segure e arraste para marcar vários capítulos de uma vez • Toque no <i class="fa-solid fa-book-open" style="color:var(--accent-color);"></i> para abrir o capítulo</p>
         </div>
+
+        <div class="plan-tools">
+            <div class="search-scope" id="planOrderSwitch">
+                <button class="scope-btn" id="orderBiblical" onclick="setPlanOrder('biblical')"><i class="fa-solid fa-list-ol"></i> Ordem bíblica</button>
+                <button class="scope-btn active" id="orderChrono" onclick="setPlanOrder('chrono')"><i class="fa-solid fa-clock-rotate-left"></i> Cronológica</button>
+            </div>
+            <div class="smart-search" id="planSearchWrap" style="margin-top: 10px;">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="planSearch" autocomplete="off" placeholder="Filtrar livro (ex: Mateus, mt, salmos)">
+                <button class="search-clear" onclick="clearPlanSearch()" title="Limpar"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+        </div>
+
         <div id="readingPlanContent"></div>
     </main>
 
@@ -1665,6 +1688,7 @@
         window.onload = async () => {
             initSelects(); await scanLocalVersions(); 
             await loadDevotional(); loadTheme(); updateSidebarList(); loadPostIts(); 
+            loadPlanPrefs();
             initReadingPlan(); 
             setupSmartSearch('readerSearch', 'readerSearchWrap', onReaderSearch);
             setupSmartSearch('harpaSearch', 'harpaSearchWrap', onHarpaSearch);
@@ -2987,20 +3011,105 @@
         // ==========================================
         let planDrag = null;
 
+        // ---------- Ordem e filtro do Plano ----------
+        let planOrder = 'chrono';   // 'chrono' = cronológica | 'biblical' = ordem da Bíblia
+        let planFilter = '';
+
+        function getPlanBooks() {
+            if (planOrder === 'biblical') {
+                // Mesmos livros, na ordem em que aparecem na Bíblia.
+                return booksStandard.map(nome => ({ name: nome, chapters: chaptersOf(nome) }));
+            }
+            return bibleStructureChronological.slice();
+        }
+
+        function filterPlanBooks(lista) {
+            const busca = planFilter.trim();
+            if (!busca) return lista;
+            const compacto = normalizeSearch(busca).replace(/\s/g, '');
+            return lista
+                .map(b => {
+                    let score = fuzzyScore(busca, b.name);
+                    if (bookAbbrev[compacto] === b.name) score = Math.max(score, 1100);
+                    return { b, score };
+                })
+                .filter(x => x.score >= 120)
+                .sort((a, b) => b.score - a.score)
+                .map(x => x.b);
+        }
+
+        function setPlanOrder(ordem) {
+            planOrder = ordem;
+            localStorage.setItem('biblePlanOrder', ordem);
+            applyPlanOrderButtons();
+            initReadingPlan();
+        }
+
+        function applyPlanOrderButtons() {
+            const bib = document.getElementById('orderBiblical');
+            const cro = document.getElementById('orderChrono');
+            if (!bib || !cro) return;
+            bib.classList.toggle('active', planOrder === 'biblical');
+            cro.classList.toggle('active', planOrder === 'chrono');
+        }
+
+        function loadPlanPrefs() {
+            planOrder = localStorage.getItem('biblePlanOrder') || 'chrono';
+            applyPlanOrderButtons();
+            const input = document.getElementById('planSearch');
+            if (input) {
+                input.addEventListener('input', () => {
+                    planFilter = input.value;
+                    document.getElementById('planSearchWrap').classList.toggle('has-text', input.value.length > 0);
+                    initReadingPlan();
+                });
+            }
+        }
+
+        function clearPlanSearch() {
+            const input = document.getElementById('planSearch');
+            input.value = '';
+            planFilter = '';
+            document.getElementById('planSearchWrap').classList.remove('has-text');
+            initReadingPlan();
+            input.focus();
+        }
+
+        // Total geral do plano: sempre a Bíblia inteira, mesmo com filtro ativo.
+        function planTotals() {
+            const savedPlan = JSON.parse(localStorage.getItem('bibleReadingPlan') || '[]');
+            let total = 0;
+            bibleStructureChronological.forEach(b => total += b.chapters);
+            return { total, read: savedPlan.length };
+        }
+
         function initReadingPlan() {
             const planContent = document.getElementById('readingPlanContent');
             const savedPlan = JSON.parse(localStorage.getItem('bibleReadingPlan') || '[]');
             const savedSet = new Set(savedPlan);
-            let totalChapters = 0; let readCount = 0; let html = '';
+            let html = '';
 
-            bibleStructureChronological.forEach(bookData => {
+            const listaCompleta = getPlanBooks();
+            const lista = filterPlanBooks(listaCompleta);
+
+            if (!lista.length) {
+                planContent.innerHTML = `<div class="sidebar-empty" style="margin-top: 12%;">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <p>Nenhum livro encontrado para "${escapeHtml(planFilter)}".</p>
+                    </div>`;
+                const t = planTotals();
+                updateProgress(t.read, t.total);
+                return;
+            }
+
+            lista.forEach(bookData => {
                 totalChapters += bookData.chapters;
                 let bookReadCount = 0;
                 let squaresHtml = '';
                 for (let i = 1; i <= bookData.chapters; i++) {
                     const chapterId = `${bookData.name}-${i}`;
                     const isRead = savedSet.has(chapterId);
-                    if (isRead) { readCount++; bookReadCount++; }
+                    if (isRead) { bookReadCount++; }
                     squaresHtml += `
                         <div class="chapter-square ${isRead ? 'read' : ''}" data-chapter-id="${chapterId}" data-book="${bookData.name}" data-chapter="${i}" tabindex="0" role="button" aria-pressed="${isRead}" aria-label="Capítulo ${i} de ${bookData.name}">
                             ${i}
@@ -3017,7 +3126,12 @@
                          </div>`;
             });
             planContent.innerHTML = html;
-            updateProgress(readCount, totalChapters);
+            if (planFilter.trim()) {
+                planContent.insertAdjacentHTML('afterbegin',
+                    `<p class="plan-filter-info">Mostrando ${lista.length} de ${listaCompleta.length} livros</p>`);
+            }
+            const t = planTotals();
+            updateProgress(t.read, t.total);
             attachChapterGridEvents();
         }
 
@@ -3067,17 +3181,17 @@
         }
 
         function refreshPlanStats() {
-            let totalChapters = 0, readCount = 0;
             document.querySelectorAll('.plan-book-group').forEach(group => {
                 const squares = group.querySelectorAll('.chapter-square');
                 const readSquares = group.querySelectorAll('.chapter-square.read');
-                totalChapters += squares.length; readCount += readSquares.length;
                 const countLabel = group.querySelector('.book-progress-count');
                 if (countLabel) countLabel.textContent = `${readSquares.length}/${squares.length}`;
                 const markAllBtn = group.querySelector('.btn-mark-all');
                 if (markAllBtn) markAllBtn.textContent = (readSquares.length === squares.length) ? 'Desmarcar tudo' : 'Marcar tudo';
             });
-            updateProgress(readCount, totalChapters);
+            // O progresso geral é sempre sobre a Bíblia inteira, não sobre o que está filtrado.
+            const t = planTotals();
+            updateProgress(t.read, t.total);
         }
 
         // --- Motor de seleção múltipla (segurar + arrastar) ---
