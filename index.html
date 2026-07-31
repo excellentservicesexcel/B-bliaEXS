@@ -1520,7 +1520,7 @@
 
         <div class="plan-tools">
             <div class="search-scope" id="planOrderSwitch">
-                <button class="scope-btn" id="orderBiblical" onclick="setPlanOrder('biblical')"><i class="fa-solid fa-list-ol"></i> Ordem bíblica</button>
+                <button class="scope-btn" id="orderBooks" onclick="setPlanOrder('books')"><i class="fa-solid fa-list-ol"></i> Ordem dos livros</button>
                 <button class="scope-btn active" id="orderChrono" onclick="setPlanOrder('chrono')"><i class="fa-solid fa-clock-rotate-left"></i> Cronológica</button>
             </div>
             <div class="smart-search" id="planSearchWrap" style="margin-top: 10px;">
@@ -3012,13 +3012,32 @@
         let planDrag = null;
 
         // ---------- Ordem e filtro do Plano ----------
-        let planOrder = 'chrono';   // 'chrono' = cronológica | 'biblical' = ordem da Bíblia
+        // Ordem aproximada em que os livros foram escritos.
+        // Joel e Jonas entram entre os profetas do mesmo período.
+        const BOOKS_WRITING_ORDER = [
+            'Jó', 'Gênesis', 'Êxodo', 'Levítico', 'Números', 'Deuteronômio', 'Josué', 'Juízes', 'Rute',
+            '1 Samuel', '2 Samuel', 'Joel', 'Amós', 'Oséias', 'Jonas', 'Miquéias', 'Isaías', 'Sofonias',
+            'Naum', 'Habacuque', 'Jeremias', 'Obadias', 'Lamentações', 'Ezequiel', '1 Reis', '2 Reis',
+            'Daniel', 'Ageu', 'Zacarias', 'Malaquias', 'Salmos', 'Provérbios', 'Cânticos', 'Eclesiastes',
+            '1 Crônicas', '2 Crônicas', 'Esdras', 'Neemias', 'Ester',
+            // Novo Testamento — ordem aproximada de escrita
+            'Tiago', 'Gálatas', '1 Tessalonicenses', '2 Tessalonicenses', '1 Coríntios', '2 Coríntios',
+            'Romanos', 'Marcos', 'Colossenses', 'Filemom', 'Efésios', 'Filipenses', 'Lucas', 'Atos',
+            '1 Timóteo', 'Tito', '2 Timóteo', 'Mateus', 'Hebreus', '1 Pedro', 'Judas', '2 Pedro',
+            'João', '1 João', '2 João', '3 João', 'Apocalipse'
+        ];
+
+        let planOrder = 'chrono';   // 'chrono' = cronológica | 'books' = ordem de escrita dos livros
         let planFilter = '';
 
         function getPlanBooks() {
-            if (planOrder === 'biblical') {
-                // Mesmos livros, na ordem em que aparecem na Bíblia.
-                return booksStandard.map(nome => ({ name: nome, chapters: chaptersOf(nome) }));
+            if (planOrder === 'books') {
+                const lista = BOOKS_WRITING_ORDER.map(nome => ({ name: nome, chapters: chaptersOf(nome) }));
+                // Rede de segurança: nenhum livro pode sumir do plano.
+                booksStandard.forEach(nome => {
+                    if (!BOOKS_WRITING_ORDER.includes(nome)) lista.push({ name: nome, chapters: chaptersOf(nome) });
+                });
+                return lista;
             }
             return bibleStructureChronological.slice();
         }
@@ -3046,15 +3065,16 @@
         }
 
         function applyPlanOrderButtons() {
-            const bib = document.getElementById('orderBiblical');
+            const liv = document.getElementById('orderBooks');
             const cro = document.getElementById('orderChrono');
-            if (!bib || !cro) return;
-            bib.classList.toggle('active', planOrder === 'biblical');
+            if (!liv || !cro) return;
+            liv.classList.toggle('active', planOrder === 'books');
             cro.classList.toggle('active', planOrder === 'chrono');
         }
 
         function loadPlanPrefs() {
             planOrder = localStorage.getItem('biblePlanOrder') || 'chrono';
+            if (planOrder === 'biblical') planOrder = 'books'; // nome antigo da opção
             applyPlanOrderButtons();
             const input = document.getElementById('planSearch');
             if (input) {
