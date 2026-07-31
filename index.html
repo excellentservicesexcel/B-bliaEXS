@@ -850,6 +850,16 @@
         .swatch-grid { display: flex; flex-wrap: wrap; gap: 8px; }
         .swatch-chip { position: relative; width: 38px; height: 38px; border-radius: 10px; cursor: pointer; border: 2px solid rgba(255,255,255,0.2); transition: transform 0.2s var(--ease-spring); }
         .swatch-chip:hover { transform: scale(1.12); }
+        .swatch-chip.is-default {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 2px var(--accent-color);
+            transform: scale(1.06);
+        }
+        .swatch-chip.is-default::after {
+            content: '\f00c'; font-family: 'Font Awesome 6 Free'; font-weight: 900;
+            position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; color: rgba(0,0,0,0.55);
+        }
         .swatch-chip .chip-del {
             position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 50%;
             background: var(--danger-color); color: #fff; border: none; font-size: 0.55rem; cursor: pointer;
@@ -1005,7 +1015,7 @@
         .post-it-controls { display: flex; gap: 6px; align-items: center; z-index: 5; }
         .post-it-btn { background: none; border: none; cursor: pointer; border-radius: 6px; color: rgba(0,0,0,0.45); font-size: 0.95rem; padding: 6px 8px; transition: all 0.2s; }
         .post-it-btn:hover { color: #000; background: rgba(255,255,255,0.2); transform: scale(1.05); }
-        .post-it-color { width: 22px; height: 22px; padding: 0; border: none; border-radius: 50%; cursor: pointer; background: transparent; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2); transition: transform 0.2s; }
+        .post-it-color { width: 22px; height: 22px; padding: 0; border: 1px solid rgba(0,0,0,0.25); border-radius: 50%; cursor: pointer; box-shadow: inset 0 1px 3px rgba(0,0,0,0.2); transition: transform 0.2s; }
         .post-it-color:hover { transform: scale(1.1); }
         .post-it-color::-webkit-color-swatch-wrapper { padding: 0; }
         .post-it-color::-webkit-color-swatch { border: 1px solid rgba(0,0,0,0.2); border-radius: 50%; }
@@ -1238,6 +1248,24 @@
         </div>
     </div>
 
+    <div id="postItColorOverlay" class="custom-alert-overlay" onclick="if(event.target === this) closePostItColors()">
+        <div class="custom-alert-box" style="max-width: 330px;">
+            <h3><i class="fa-solid fa-note-sticky" style="color: var(--accent-color);"></i> Cor do post-it</h3>
+            <p style="margin-bottom: 18px;">A cor escolhida também passa a ser a padrão dos próximos.</p>
+            <div class="picker-swatches" id="postItPickerSwatches"></div>
+            <div class="picker-custom">
+                <label class="picker-custom-label">
+                    <input type="color" id="postItPickerCustom" value="#ffeb3b">
+                    <span>Outra cor</span>
+                </label>
+                <button class="btn-mini" onclick="applyPostItColor(document.getElementById('postItPickerCustom').value, true)">Usar e salvar</button>
+            </div>
+            <div class="actions" style="margin-top: 16px;">
+                <button class="btn-cancelar" onclick="closePostItColors()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <div id="sharePreviewOverlay" class="custom-alert-overlay">
         <div class="custom-alert-box">
             <h3><i class="fa-solid fa-image" style="color: var(--accent-color);"></i> Sua imagem está pronta</h3>
@@ -1360,6 +1388,16 @@
                         <input type="range" id="bgImageOpacity" min="5" max="100" value="35" oninput="onColorInput()">
                     </div>
                     <div class="empty-hint" id="bgImageHint">Nenhuma imagem escolhida</div>
+                </div>
+
+                <div class="theme-section">
+                    <label>Minhas cores de post-it</label>
+                    <div class="swatch-grid" id="postItSwatchList"></div>
+                    <div class="settings-row" style="margin-top: 10px;">
+                        <div class="color-picker-group" style="flex: 1;"><span>Nova cor</span><input type="color" id="newPostItColor" value="#ffd166"></div>
+                        <button class="btn-mini" onclick="addPostItColor()"><i class="fa-solid fa-plus"></i> Adicionar</button>
+                    </div>
+                    <p class="empty-hint" style="text-align: left; padding-top: 8px;">Toque numa cor para torná-la a padrão dos novos post-its.</p>
                 </div>
 
                 <div class="theme-section">
@@ -2398,6 +2436,7 @@
             updateActiveThemeButton(savedName);
             renderSavedThemes();
             renderHighlightSwatches();
+            renderPostItSwatches();
             renderFontPickers();
         }
 
@@ -2489,6 +2528,93 @@
                     <span class="saved-theme-name">${escapeHtml(t.name)}</span>
                     <button class="btn-tiny-del" onclick="event.stopPropagation(); deleteSavedTheme('${t.id}')" title="Excluir"><i class="fa-solid fa-trash-can"></i></button>
                 </div>`).join('');
+        }
+
+        // ---------- Cores dos post-its ----------
+        function getPostItColors() {
+            try {
+                const saved = JSON.parse(localStorage.getItem('biblePostItColors') || 'null');
+                if (Array.isArray(saved) && saved.length) return saved;
+            } catch (e) {}
+            return ['#ffeb3b', '#ffd166', '#a3e4d7', '#bae1ff', '#ffb3ba', '#c8e6c9'];
+        }
+
+        function savePostItColors(colors) {
+            localStorage.setItem('biblePostItColors', JSON.stringify(colors));
+            renderPostItSwatches();
+        }
+
+        function addPostItColor() {
+            const color = document.getElementById('newPostItColor').value;
+            const colors = getPostItColors();
+            if (colors.includes(color)) { customAlert('Essa cor já está na sua paleta.'); return; }
+            colors.push(color);
+            savePostItColors(colors);
+        }
+
+        function deletePostItColor(color) {
+            const restantes = getPostItColors().filter(c => c !== color);
+            if (!restantes.length) { customAlert('Deixe ao menos uma cor na paleta.'); return; }
+            savePostItColors(restantes);
+        }
+
+        // A cor escolhida vira o padrão dos próximos adesivos.
+        function setDefaultPostItColor(color) {
+            localStorage.setItem('bibleLastPostItColor', color);
+            renderPostItSwatches();
+        }
+
+        function getDefaultPostItColor() {
+            return localStorage.getItem('bibleLastPostItColor') || getPostItColors()[0] || '#ffeb3b';
+        }
+
+        function renderPostItSwatches() {
+            const list = document.getElementById('postItSwatchList');
+            if (!list) return;
+            const atual = getDefaultPostItColor();
+            list.innerHTML = getPostItColors().map(c => `
+                <div class="swatch-chip ${c === atual ? 'is-default' : ''}" style="background:${c}" title="${c === atual ? 'Cor padrão atual' : 'Definir como padrão'}" onclick="setDefaultPostItColor('${c}')">
+                    <button class="chip-del" onclick="event.stopPropagation(); deletePostItColor('${c}')" title="Excluir cor"><i class="fa-solid fa-xmark"></i></button>
+                </div>`).join('');
+        }
+
+        // Pop-up de cor do post-it (mesmo princípio do marca-texto).
+        let postItColorTargetId = null;
+
+        function openPostItColors(postItId) {
+            postItColorTargetId = postItId;
+            const atual = postItsData.find(p => p.id === postItId);
+            const grid = document.getElementById('postItPickerSwatches');
+            grid.innerHTML = getPostItColors().map(c =>
+                `<div class="picker-swatch" style="background:${c}" title="${c}" onclick="applyPostItColor('${c}')"></div>`
+            ).join('');
+            document.getElementById('postItPickerCustom').value = (atual && atual.color) || getDefaultPostItColor();
+            document.getElementById('postItColorOverlay').classList.add('open');
+        }
+
+        function closePostItColors() {
+            document.getElementById('postItColorOverlay').classList.remove('open');
+            postItColorTargetId = null;
+        }
+
+        function applyPostItColor(color, salvarNaPaleta) {
+            if (salvarNaPaleta) {
+                const cores = getPostItColors();
+                if (!cores.includes(color)) { cores.push(color); savePostItColors(cores); }
+            }
+            const alvo = postItsData.find(p => p.id === postItColorTargetId);
+            if (alvo) {
+                alvo.color = color;
+                const el = document.getElementById(`postit-${alvo.id}`);
+                if (el) {
+                    el.style.backgroundColor = color;
+                    const botao = el.querySelector('.post-it-color');
+                    if (botao) botao.style.backgroundColor = color;
+                }
+                savePostIts();
+            }
+            setDefaultPostItColor(color);
+            closePostItColors();
         }
 
         // ---------- Cores de marca-texto ----------
@@ -5013,7 +5139,7 @@
                 if(targetVerse) { anchorVerse = targetVerse.dataset.verse; const vRect = targetVerse.getBoundingClientRect(); x = (window.innerWidth / 2) - 90 - vRect.left; y = (window.innerHeight / 2) - 90 - vRect.top; if (x < 10) x = 10; if (y < -50) y = -50; }
             } else { const scrollY = window.scrollY || document.documentElement.scrollTop; x = (window.innerWidth / 2) - 90; y = scrollY + (window.innerHeight / 2) - 90; }
 
-            const newPostIt = { id: Date.now(), view: activeViewId, book: loadedBook, chapter: loadedChapter, anchorVerse: anchorVerse, x: x, y: y, w: 180, h: 180, color: '#ffeb3b', text: '', folded: false, autoGrow: true };
+            const newPostIt = { id: Date.now(), view: activeViewId, book: loadedBook, chapter: loadedChapter, anchorVerse: anchorVerse, x: x, y: y, w: 180, h: 180, color: getDefaultPostItColor(), text: '', folded: false, autoGrow: true };
             postItsData.push(newPostIt); savePostIts(); renderAllPostIts();
         }
 
@@ -5029,8 +5155,9 @@
             const foldBtn = document.createElement('button'); foldBtn.className = 'post-it-btn'; foldBtn.title = 'Dobrar / Desdobrar'; foldBtn.innerHTML = data.folded ? '<i class="fa-solid fa-expand"></i>' : '<i class="fa-solid fa-compress"></i>';
             foldBtn.onclick = () => { data.folded = !data.folded; if(data.folded) { postIt.classList.add('folded'); foldBtn.innerHTML = '<i class="fa-solid fa-expand"></i>'; } else { postIt.classList.remove('folded'); foldBtn.innerHTML = '<i class="fa-solid fa-compress"></i>'; applyPostItSizing(postIt, textArea, data); } savePostIts(); };
 
-            const colorInput = document.createElement('input'); colorInput.type = 'color'; colorInput.className = 'post-it-color'; colorInput.value = data.color;
-            colorInput.addEventListener('input', (e) => { data.color = e.target.value; postIt.style.backgroundColor = data.color; savePostIts(); });
+            const colorInput = document.createElement('button'); colorInput.className = 'post-it-color'; colorInput.title = 'Trocar a cor';
+            colorInput.style.backgroundColor = data.color;
+            colorInput.onclick = () => openPostItColors(data.id);
 
             const deleteBtn = document.createElement('button'); deleteBtn.className = 'post-it-btn'; deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
             deleteBtn.onclick = () => { customConfirm("Deseja amassar e jogar fora esta anotação?", (res) => { if(res) { postIt.remove(); postItsData = postItsData.filter(p => p.id !== data.id); savePostIts(); } }); };
