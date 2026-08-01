@@ -269,18 +269,6 @@
             transition: background-color 0.3s, transform 0.3s;
             animation: fadeInUp 0.6s var(--ease-spring);
         }
-        .card-devocional::before {
-            content: "\f72b";
-            font-family: "Font Awesome 6 Free";
-            font-weight: 900;
-            position: absolute;
-            top: -30px; right: -20px;
-            font-size: 9rem;
-            color: color-mix(in srgb, var(--accent-color) 8%, transparent);
-            transform: rotate(12deg);
-            pointer-events: none;
-        }
-
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(22px); }
             to { opacity: 1; transform: translateY(0); }
