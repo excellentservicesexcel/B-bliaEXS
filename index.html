@@ -21,6 +21,8 @@
             --secondary-bg: #161925;
             --item-bg: #1f2333;
             --accent-gradient: linear-gradient(135deg, var(--accent-color), var(--accent-2));
+            --glow: 1;              /* 1 = brilho ligado | 0 = desligado */
+            --font-scale: 1;        /* multiplicador do tamanho das letras */
             --bg-stack: none;
             --bg-image: none;
             --bg-image-opacity: 0.35;
@@ -70,6 +72,8 @@
         /* ----- FUNDO PERSONALIZADO (DEGRADÊ E IMAGEM) -----
            Vai na raiz da página: é a primeira coisa pintada, então nada a cobre. */
         html {
+            /* Tudo no app é medido em "rem", então mudar a raiz escala o app inteiro. */
+            font-size: calc(16px * var(--font-scale));
             background-image: var(--bg-stack);
             background-size: cover;
             background-position: center;
@@ -189,8 +193,10 @@
         h1 i { -webkit-text-fill-color: var(--accent-color); animation: gentleGlow 4s ease-in-out infinite; }
         @keyframes gentleGlow {
             0%, 100% { filter: drop-shadow(0 0 0px color-mix(in srgb, var(--accent-color) 60%, transparent)); }
-            50% { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent-color) 70%, transparent)); }
+            50% { filter: drop-shadow(0 0 calc(8px * var(--glow)) color-mix(in srgb, var(--accent-color) 70%, transparent)); }
         }
+        /* Sem brilho: nada de halo colorido nem pulsação. */
+        body.no-glow h1 i { animation: none; filter: none; }
 
         .nav-tabs {
             display: flex;
@@ -223,7 +229,7 @@
             opacity: 1;
             color: var(--btn-text);
             background: var(--accent-gradient);
-            box-shadow: 0 6px 16px color-mix(in srgb, var(--accent-color) 45%, transparent);
+            box-shadow: 0 6px 16px color-mix(in srgb, var(--accent-color) calc(45% * var(--glow)), transparent);
             transform: translateY(-1px);
         }
 
@@ -296,8 +302,8 @@
         .control-group i { color: var(--accent-color); font-size: 0.9rem; }
         select { border: none; background: transparent; color: var(--text-color); font-size: 0.9rem; outline: none; font-family: var(--font-body); cursor: pointer; width: 100%; padding: 8px 0; -webkit-appearance: none; -moz-appearance: none; appearance: none; }
 
-        .btn-read { background: var(--accent-gradient); color: var(--btn-text); border: none; border-radius: var(--radius-sm); padding: 12px 20px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: filter 0.2s, transform 0.15s var(--ease-spring), box-shadow 0.2s; width: 100%; box-shadow: 0 6px 16px color-mix(in srgb, var(--accent-color) 35%, transparent); }
-        .btn-read:hover { filter: brightness(1.08); transform: translateY(-2px); box-shadow: 0 10px 22px color-mix(in srgb, var(--accent-color) 45%, transparent); }
+        .btn-read { background: var(--accent-gradient); color: var(--btn-text); border: none; border-radius: var(--radius-sm); padding: 12px 20px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: filter 0.2s, transform 0.15s var(--ease-spring), box-shadow 0.2s; width: 100%; box-shadow: 0 6px 16px color-mix(in srgb, var(--accent-color) calc(35% * var(--glow)), transparent); }
+        .btn-read:hover { filter: brightness(1.08); transform: translateY(-2px); box-shadow: 0 10px 22px color-mix(in srgb, var(--accent-color) calc(45% * var(--glow)), transparent); }
         .btn-read:active { transform: scale(0.96); }
         /* Botões secundários: fundo mais discreto, mas a letra segue a configuração. */
         .btn-secondary {
@@ -310,7 +316,7 @@
         .btn-secondary i { color: var(--btn-text) !important; }
         .btn-secondary.is-active {
             filter: none;
-            box-shadow: 0 6px 16px color-mix(in srgb, var(--accent-color) 35%, transparent) !important;
+            box-shadow: 0 6px 16px color-mix(in srgb, var(--accent-color) calc(35% * var(--glow)), transparent) !important;
         }
         .btn-share { width: auto; }
 
@@ -333,7 +339,7 @@
             font-size: 0.72rem !important; vertical-align: middle; opacity: 1;
             display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%;
             background: linear-gradient(135deg, var(--accent-color), color-mix(in srgb, var(--accent-color) 60%, #fff)) !important;
-            font-style: normal !important; text-decoration: none !important; box-shadow: 0 2px 6px color-mix(in srgb, var(--accent-color) 40%, transparent);
+            font-style: normal !important; text-decoration: none !important; box-shadow: 0 2px 6px color-mix(in srgb, var(--accent-color) calc(40% * var(--glow)), transparent);
         }
         .verse-text { transition: background 0.2s; border-radius: 4px; }
 
@@ -350,7 +356,7 @@
         .sel-rect {
             position: absolute; border-radius: 3px; pointer-events: none;
             background: color-mix(in srgb, var(--accent-color) 34%, transparent);
-            box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-color) 22%, transparent);
+            box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent-color) calc(22% * var(--glow)), transparent);
         }
         .sel-handle {
             position: absolute; width: 18px; height: 18px; border-radius: 50%;
@@ -379,7 +385,7 @@
             font-family: var(--font-body); font-size: 0.9rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s;
         }
         .smart-search input::placeholder { opacity: 0.5; }
-        .smart-search input:focus { border-color: color-mix(in srgb, var(--accent-color) 55%, transparent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) 14%, transparent); }
+        .smart-search input:focus { border-color: color-mix(in srgb, var(--accent-color) calc(55% * var(--glow)), transparent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color) calc(14% * var(--glow)), transparent); }
         .search-clear {
             position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
             background: none; border: none; color: var(--text-color); opacity: 0; pointer-events: none;
@@ -451,7 +457,7 @@
         .scope-btn.active {
             opacity: 1; color: var(--btn-text); border-color: transparent;
             background: var(--accent-gradient);
-            box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-color) 35%, transparent);
+            box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-color) calc(35% * var(--glow)), transparent);
         }
         .scope-btn:disabled { cursor: not-allowed; opacity: 0.28; }
 
@@ -552,7 +558,7 @@
         }
         .plan-progress-header { display: flex; flex-direction: column; gap: 12px; margin-bottom: 10px; font-weight: 600; color: var(--text-color); }
         .plan-progress-bar-bg { width: 100%; height: 12px; background-color: var(--item-bg); border-radius: 10px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2); }
-        .plan-progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent-color), color-mix(in srgb, var(--accent-color) 45%, #fff)); width: 0%; border-radius: 10px; transition: width 0.7s var(--ease-spring); box-shadow: 0 0 12px color-mix(in srgb, var(--accent-color) 55%, transparent); }
+        .plan-progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent-color), color-mix(in srgb, var(--accent-color) 45%, #fff)); width: 0%; border-radius: 10px; transition: width 0.7s var(--ease-spring); box-shadow: 0 0 12px color-mix(in srgb, var(--accent-color) calc(55% * var(--glow)), transparent); }
         .plan-hint { font-size: 0.78rem; opacity: 0.55; text-align: center; margin: 2px 0 0; line-height: 1.4; }
 
         .switch-toggle { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
@@ -603,7 +609,7 @@
         .chapter-square.read {
             background: var(--accent-gradient);
             color: var(--btn-text); border-color: var(--accent-color);
-            box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-color) 45%, transparent), inset 0 -2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-color) calc(45% * var(--glow)), transparent), inset 0 -2px 5px rgba(0,0,0,0.1);
         }
         .chapter-square.drag-hover { transform: scale(1.12); box-shadow: 0 0 0 2px var(--accent-color), var(--shadow-elevated); z-index: 2; }
         .chapter-square .chapter-check {
@@ -724,7 +730,7 @@
         .type-chip.active {
             opacity: 1; color: var(--btn-text); border-color: transparent;
             background: var(--accent-gradient);
-            box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-color) 32%, transparent);
+            box-shadow: 0 4px 12px color-mix(in srgb, var(--accent-color) calc(32% * var(--glow)), transparent);
         }
 
         /* Itens de formatação (negrito, sublinhado, itálico) */
@@ -872,6 +878,20 @@
 
         input[type="range"] { width: 100%; accent-color: var(--accent-color); }
 
+        .font-size-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .font-size-row .btn-mini { flex-shrink: 0; min-width: 42px; }
+        .font-size-value {
+            flex: 1; text-align: center; font-weight: 700; font-size: 0.95rem;
+            background: var(--item-bg); border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius-sm); padding: 9px 0;
+        }
+        .font-scale-sample {
+            margin: 10px 0 0; padding: 12px; border-radius: var(--radius-sm);
+            background: color-mix(in srgb, var(--accent-color) 8%, var(--secondary-bg));
+            border: 1px solid rgba(255,255,255,0.05);
+            font-family: var(--font-display); font-size: 1.28rem; text-align: center; font-style: italic;
+        }
+
         /* Paleta rápida de marca-texto */
         .quick-swatches { display: flex; flex-direction: column; gap: 6px; align-items: center; max-height: 40vh; overflow-y: auto; }
         .quick-swatches::-webkit-scrollbar { width: 0; }
@@ -886,7 +906,7 @@
         /* ----- MODAL DE CONFIGURAÇÕES ----- */
         #settingsModal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 3000; backdrop-filter: blur(6px); }
         #settingsModal.open { display: flex; animation: fadeIn 0.25s ease; }
-        .modal-content { background: linear-gradient(165deg, color-mix(in srgb, var(--secondary-bg) 96%, var(--accent-color)), var(--secondary-bg)); border: 1px solid color-mix(in srgb, var(--accent-color) 14%, transparent); padding: 26px; border-radius: var(--radius-lg); width: 90%; max-width: 400px; box-shadow: var(--shadow-elevated); animation: fadeInUp 0.35s var(--ease-spring); }
+        .modal-content { background: linear-gradient(165deg, color-mix(in srgb, var(--secondary-bg) 96%, var(--accent-color)), var(--secondary-bg)); border: 1px solid color-mix(in srgb, var(--accent-color) calc(14% * var(--glow)), transparent); padding: 26px; border-radius: var(--radius-lg); width: 90%; max-width: 400px; box-shadow: var(--shadow-elevated); animation: fadeInUp 0.35s var(--ease-spring); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .modal-header h2 { margin: 0; color: var(--accent-color); font-size: 1.2rem; }
         .theme-section { margin-bottom: 20px; }
@@ -901,13 +921,13 @@
         /* ----- ALERTAS, CONFIRMAÇÕES E PROMPTS ELEGANTES ----- */
         .custom-alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(6px); z-index: 7000; display: none; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.25s ease; }
         .custom-alert-overlay.open { display: flex; opacity: 1; }
-        .custom-alert-box { background: linear-gradient(165deg, color-mix(in srgb, var(--secondary-bg) 96%, var(--accent-color)), var(--secondary-bg)); border: 1px solid color-mix(in srgb, var(--accent-color) 14%, transparent); padding: 26px 30px; border-radius: var(--radius-lg); text-align: center; max-width: 300px; width: 90%; box-shadow: var(--shadow-elevated), inset 0 2px 5px rgba(255,255,255,0.05); transform: scale(0.9); transition: transform 0.25s var(--ease-spring); }
+        .custom-alert-box { background: linear-gradient(165deg, color-mix(in srgb, var(--secondary-bg) 96%, var(--accent-color)), var(--secondary-bg)); border: 1px solid color-mix(in srgb, var(--accent-color) calc(14% * var(--glow)), transparent); padding: 26px 30px; border-radius: var(--radius-lg); text-align: center; max-width: 300px; width: 90%; box-shadow: var(--shadow-elevated), inset 0 2px 5px rgba(255,255,255,0.05); transform: scale(0.9); transition: transform 0.25s var(--ease-spring); }
         .custom-alert-overlay.open .custom-alert-box { transform: scale(1); }
         .custom-alert-box h3 { margin: 0 0 15px 0; color: var(--text-color); font-size: 1.2rem; font-family: var(--font-display); }
         .custom-alert-box p { color: var(--text-color); opacity: 0.8; font-size: 0.95rem; line-height: 1.5; margin-bottom: 25px; }
         .custom-alert-box .actions { display: flex; gap: 10px; justify-content: center; }
         .custom-alert-box button { flex: 1; padding: 12px; border-radius: var(--radius-sm); font-weight: 700; cursor: pointer; transition: all 0.2s var(--ease-spring); border: none; font-family: var(--font-body); }
-        .custom-alert-box .btn-ok { background: var(--accent-gradient); color: var(--btn-text); box-shadow: 0 6px 14px color-mix(in srgb, var(--accent-color) 35%, transparent); }
+        .custom-alert-box .btn-ok { background: var(--accent-gradient); color: var(--btn-text); box-shadow: 0 6px 14px color-mix(in srgb, var(--accent-color) calc(35% * var(--glow)), transparent); }
         .custom-alert-box .btn-ok:hover { transform: translateY(-2px); }
         .custom-alert-box .btn-ok:active { transform: scale(0.95); }
         .custom-alert-box .btn-cancelar { background: transparent; border: 2px solid rgba(255,255,255,0.1); color: var(--text-color); }
@@ -952,8 +972,8 @@
 
         /* ----- BOTÃO FLUTUANTE DE AÇÕES (FAB) E HIGHLIGHT INVISÍVEL ----- */
         .fab-container { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; align-items: center; gap: 12px; z-index: 950; transition: opacity 0.3s ease; }
-        .fab-btn { width: 58px; height: 58px; border-radius: 50%; background: var(--accent-gradient); color: var(--btn-text); border: none; box-shadow: 0 8px 20px color-mix(in srgb, var(--accent-color) 40%, transparent); font-size: 1.4rem; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: transform 0.25s var(--ease-spring), filter 0.2s, box-shadow 0.25s; animation: fadeInUp 0.5s var(--ease-spring); }
-        .fab-btn:hover { transform: scale(1.1) rotate(-4deg); filter: brightness(1.08); box-shadow: 0 12px 28px color-mix(in srgb, var(--accent-color) 55%, transparent); }
+        .fab-btn { width: 58px; height: 58px; border-radius: 50%; background: var(--accent-gradient); color: var(--btn-text); border: none; box-shadow: 0 8px 20px color-mix(in srgb, var(--accent-color) calc(40% * var(--glow)), transparent); font-size: 1.4rem; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: transform 0.25s var(--ease-spring), filter 0.2s, box-shadow 0.25s; animation: fadeInUp 0.5s var(--ease-spring); }
+        .fab-btn:hover { transform: scale(1.1) rotate(-4deg); filter: brightness(1.08); box-shadow: 0 12px 28px color-mix(in srgb, var(--accent-color) calc(55% * var(--glow)), transparent); }
         .fab-btn:active { transform: scale(0.93); }
         .fab-container input[type="color"] { -webkit-appearance: none; border: none; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; padding: 0; background: transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: transform 0.2s; }
         .fab-container input[type="color"]:hover { transform: scale(1.1); }
@@ -1340,6 +1360,17 @@
                 </div>
 
                 <div class="theme-section">
+                    <label>Tamanho das letras</label>
+                    <div class="font-size-row">
+                        <button class="btn-mini ghost" onclick="stepFontScale(-1)" title="Diminuir"><i class="fa-solid fa-minus"></i></button>
+                        <div class="font-size-value" id="fontScaleValue">100%</div>
+                        <button class="btn-mini ghost" onclick="stepFontScale(1)" title="Aumentar"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    <input type="range" id="fontScaleRange" min="80" max="150" step="5" value="100" oninput="setFontScale(this.value)">
+                    <p class="font-scale-sample">Assim ficará o texto da leitura.</p>
+                </div>
+
+                <div class="theme-section">
                     <label>Degradês</label>
                     <div class="switch-row">
                         <span><i class="fa-solid fa-fill-drip" style="color: var(--accent-color); margin-right: 6px;"></i> Degradê no fundo</span>
@@ -1359,6 +1390,13 @@
                         <span><i class="fa-solid fa-wind" style="color: var(--accent-color); margin-right: 6px;"></i> Brilho animado no fundo</span>
                         <label class="switch-toggle">
                             <input type="checkbox" id="toggleBgGlow" checked onchange="onColorInput()">
+                            <span class="slider-toggle"></span>
+                        </label>
+                    </div>
+                    <div class="switch-row">
+                        <span><i class="fa-solid fa-lightbulb" style="color: var(--accent-color); margin-right: 6px;"></i> Brilho nos botões e ícones</span>
+                        <label class="switch-toggle">
+                            <input type="checkbox" id="toggleGlow" checked onchange="onColorInput()">
                             <span class="slider-toggle"></span>
                         </label>
                     </div>
@@ -2259,6 +2297,19 @@
             }
         }
 
+        function setFontScale(valor) {
+            const escala = Math.min(150, Math.max(80, parseInt(valor) || 100));
+            applyTheme({ ...currentTheme, fontScale: escala });
+            localStorage.setItem('bibleThemeName', 'custom');
+            updateActiveThemeButton('custom');
+            persistTheme();
+        }
+
+        function stepFontScale(direcao) {
+            const atual = currentTheme.fontScale || 100;
+            setFontScale(atual + (direcao * 5));
+        }
+
         function setFont(alvo, name) {
             ensureFontLoaded(name);
             const theme = { ...currentTheme };
@@ -2279,7 +2330,8 @@
             secBg: '#161925', itemBg: '#1f2333',
             bgGradient: false, btnGradient: true, bgGlow: true,
             bgImage: null, bgImageOpacity: 35,
-            fontDisplay: 'Cormorant Garamond', fontBody: 'Inter'
+            fontDisplay: 'Cormorant Garamond', fontBody: 'Inter',
+            glow: true, fontScale: 100
         };
 
         const presets = {
@@ -2316,6 +2368,13 @@
             ensureFontLoaded(fd); ensureFontLoaded(fb);
             doc.style.setProperty('--font-display', fontStackOf(fd));
             doc.style.setProperty('--font-body', fontStackOf(fb));
+
+            const brilhoLigado = currentTheme.glow !== false;
+            doc.style.setProperty('--glow', brilhoLigado ? '1' : '0');
+            document.body.classList.toggle('no-glow', !brilhoLigado);
+
+            const escala = Math.min(150, Math.max(80, currentTheme.fontScale || 100));
+            doc.style.setProperty('--font-scale', (escala / 100).toFixed(2));
 
             doc.style.setProperty('--accent-gradient', currentTheme.btnGradient
                 ? `linear-gradient(135deg, ${currentTheme.accent}, ${currentTheme.accent2})`
@@ -2366,9 +2425,17 @@
             const bgG = document.getElementById('toggleBgGradient');
             const btnG = document.getElementById('toggleBtnGradient');
             const glow = document.getElementById('toggleBgGlow');
+            const glowBtns = document.getElementById('toggleGlow');
             if (bgG) bgG.checked = !!currentTheme.bgGradient;
             if (btnG) btnG.checked = !!currentTheme.btnGradient;
             if (glow) glow.checked = currentTheme.bgGlow !== false;
+            if (glowBtns) glowBtns.checked = currentTheme.glow !== false;
+
+            const escalaAtual = currentTheme.fontScale || 100;
+            const range = document.getElementById('fontScaleRange');
+            const label = document.getElementById('fontScaleValue');
+            if (range) range.value = escalaAtual;
+            if (label) label.textContent = escalaAtual + '%';
             const op = document.getElementById('bgImageOpacity');
             if (op) op.value = currentTheme.bgImageOpacity || 35;
         }
@@ -2394,6 +2461,7 @@
                 bgGradient: document.getElementById('toggleBgGradient').checked,
                 btnGradient: document.getElementById('toggleBtnGradient').checked,
                 bgGlow: document.getElementById('toggleBgGlow').checked,
+                glow: document.getElementById('toggleGlow').checked,
                 bgImageOpacity: parseInt(val('bgImageOpacity', currentTheme.bgImageOpacity)) || 35
             };
             applyTheme(theme);
@@ -2410,7 +2478,8 @@
 
         function applyPreset(presetName) {
             const base = { ...presets[presetName], bgImage: currentTheme.bgImage, bgImageOpacity: currentTheme.bgImageOpacity,
-                           fontDisplay: currentTheme.fontDisplay, fontBody: currentTheme.fontBody };
+                           fontDisplay: currentTheme.fontDisplay, fontBody: currentTheme.fontBody,
+                           glow: currentTheme.glow, fontScale: currentTheme.fontScale };
             applyTheme(base);
             updateActiveThemeButton(presetName);
             localStorage.setItem('bibleThemeName', presetName);
