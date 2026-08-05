@@ -879,27 +879,6 @@
         .btn-mini.ghost { background: var(--item-bg); color: var(--text-color); border: 1px solid rgba(255,255,255,0.08); }
         .empty-hint { font-size: 0.78rem; opacity: 0.45; text-align: center; padding: 10px 0; }
 
-        #backToast {
-            position: fixed; bottom: 88px; left: 50%;
-            transform: translate(-50%, 24px) scale(0.94);
-            background: color-mix(in srgb, var(--secondary-bg) 88%, transparent);
-            backdrop-filter: blur(16px) saturate(150%);
-            -webkit-backdrop-filter: blur(16px) saturate(150%);
-            border: 1px solid color-mix(in srgb, var(--accent-color) 28%, transparent);
-            color: var(--text-color); padding: 13px 24px; border-radius: 999px;
-            font-family: var(--font-body); font-size: 0.86rem; font-weight: 600;
-            letter-spacing: 0.2px;
-            box-shadow: 0 12px 32px rgba(0,0,0,0.45),
-                        0 0 0 1px rgba(255,255,255,0.04) inset;
-            z-index: 9000; pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.3s ease, transform 0.42s var(--ease-spring);
-            white-space: nowrap; max-width: 92vw; overflow: hidden; text-overflow: ellipsis;
-            display: flex; align-items: center; gap: 9px;
-        }
-        #backToast.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
-        #backToast i { color: var(--accent-color); font-size: 0.92rem; }
-        #backToast strong { color: var(--accent-color); font-weight: 800; }
 
         input[type="range"] { width: 100%; accent-color: var(--accent-color); }
 
@@ -1859,21 +1838,7 @@
             }
         });
 
-        function switchView(viewName, semRegistrar) {
-            const anterior = document.querySelector('.view-section.active');
-            const idAnterior = anterior ? anterior.id.replace('view-', '') : null;
-            if (!semRegistrar && idAnterior && idAnterior !== viewName) {
-                pushNavAction('aba', () => {
-                    const atual = document.querySelector('.view-section.active');
-                    if (!atual || atual.id.replace('view-', '') === idAnterior) return false;
-                    switchView(idAnterior, true);
-                    return true;
-                });
-            }
-            return switchViewInterno(viewName);
-        }
-
-        function switchViewInterno(viewName) {
+        function switchView(viewName) {
             const views = ['home', 'reader', 'plan', 'harpa'];
             const currentActive = document.querySelector('.view-section.active');
             let currentViewName = currentActive ? currentActive.id.replace('view-', '') : 'home';
@@ -1912,11 +1877,11 @@
         function toggleSidebar() {
             const isOpen = document.getElementById('sidebar').classList.toggle('open');
             document.getElementById('sidebar-overlay').classList.toggle('open', isOpen);
-            if (isOpen) { updateSidebarList(); registerPanelOpen('sidebar', toggleSidebar); }
+            if (isOpen) { updateSidebarList(); }
         }
         function toggleSettings() {
             const aberto = document.getElementById('settingsModal').classList.toggle('open');
-            if (aberto) { loadAllFontsForPreview(); renderFontPickers(); registerPanelOpen('settingsModal', toggleSettings); }
+            if (aberto) { loadAllFontsForPreview(); renderFontPickers(); }
         }
 
         async function loadDevotional() {
@@ -2216,7 +2181,6 @@
             lastShareUrl = URL.createObjectURL(lastShareBlob);
             document.getElementById('sharePreviewImg').src = lastShareUrl;
             document.getElementById('sharePreviewOverlay').classList.add('open');
-            registerPanelOpen('sharePreviewOverlay', closeSharePreview);
         }
 
         function closeSharePreview() {
@@ -2266,82 +2230,41 @@
         //  Fecha o que estiver aberto, depois volta de aba.
         //  Só sai do app com três toques seguidos.
         // ==========================================
-        let backExitCount = 0;
-        let backExitTimer = null;
+        // O botão voltar do celular só fecha o pop-up aberto.
+        // Não troca de aba, não desfaz nada, não sai do app.
+        const BACK_PANELS = [
+            { id: 'customConfirm',             close: () => document.getElementById('customConfirm').classList.remove('open') },
+            { id: 'customAlert',               close: () => document.getElementById('customAlert').classList.remove('open') },
+            { id: 'colorPickerOverlay',        close: () => closeHighlightColors() },
+            { id: 'postItColorOverlay',        close: () => closePostItColors() },
+            { id: 'sharePreviewOverlay',       close: () => closeSharePreview() },
+            { id: 'dictionaryResultOverlay',   close: () => document.getElementById('dictionaryResultOverlay').classList.remove('open') },
+            { id: 'translationResultOverlay',  close: () => document.getElementById('translationResultOverlay').classList.remove('open') },
+            { id: 'selectionTranslateOverlay', close: () => document.getElementById('selectionTranslateOverlay').classList.remove('open') },
+            { id: 'translatePopupOverlay',     close: () => document.getElementById('translatePopupOverlay').classList.remove('open') },
+            { id: 'formatPopupOverlay',        close: () => document.getElementById('formatPopupOverlay').classList.remove('open') },
+            { id: 'settingsModal',             close: () => toggleSettings() },
+            { id: 'sidebar',                   close: () => toggleSidebar() }
+        ];
 
-        // Pilha de ações de navegação. Cada entrada sabe se desfazer.
-        // Só navegação — grifar e colar post-it não entram aqui.
-        let navStack = [];
-        const NAV_STACK_MAX = 40;
-
-        function pushNavAction(tipo, desfazer) {
-            navStack.push({ tipo, desfazer });
-            if (navStack.length > NAV_STACK_MAX) navStack.shift();
-            backExitCount = 0; // navegou: o contador de saída zera
-        }
-
-        // Painéis: abrir registra a ação de fechar.
-        function registerPanelOpen(id, fechar) {
-            pushNavAction('painel:' + id, () => {
-                const el = document.getElementById(id);
-                if (!el || !el.classList.contains('open')) return false;
-                try { fechar(); } catch (e) { el.classList.remove('open'); }
-                return true;
-            });
-        }
-
-        function undoLastNavAction() {
-            while (navStack.length) {
-                const acao = navStack.pop();
-                let feito = false;
-                try { feito = acao.desfazer(); } catch (e) { feito = false; }
-                if (feito) return true;   // desfez de verdade
-                // Se já não valia mais (painel fechado no X), tenta a anterior.
+        function closeTopPanel() {
+            for (const item of BACK_PANELS) {
+                const el = document.getElementById(item.id);
+                if (el && el.classList.contains('open')) {
+                    try { item.close(); } catch (e) { el.classList.remove('open'); }
+                    return true;
+                }
             }
             return false;
         }
 
         function setupBackButton() {
-            // Uma âncora no histórico. Ela é reposta a cada "voltar" tratado,
-            // então o app nunca fica sem estado para consumir.
+            // Âncora no histórico, sempre reposta: o voltar nunca sai do app.
             history.pushState({ app: true }, '');
-
             window.addEventListener('popstate', () => {
-                const desfez = undoLastNavAction();
-
-                if (desfez) {
-                    backExitCount = 0;
-                    history.pushState({ app: true }, '');
-                    return;
-                }
-
-                // Nada mais para desfazer: conta os toques para sair.
-                backExitCount++;
-                clearTimeout(backExitTimer);
-
-                if (backExitCount >= 3) {
-                    history.back(); // sai de verdade
-                    return;
-                }
-
+                closeTopPanel();
                 history.pushState({ app: true }, '');
-                const faltam = 3 - backExitCount;
-                showBackToast(`<i class="fa-solid fa-door-open"></i> Toque voltar mais <strong>${faltam}</strong> ${faltam === 1 ? 'vez' : 'vezes'} para sair`);
-                backExitTimer = setTimeout(() => { backExitCount = 0; }, 2500);
             });
-        }
-
-        function showBackToast(msg) {
-            let toast = document.getElementById('backToast');
-            if (!toast) {
-                toast = document.createElement('div');
-                toast.id = 'backToast';
-                document.body.appendChild(toast);
-            }
-            toast.innerHTML = msg;
-            toast.classList.add('show');
-            clearTimeout(toast._timer);
-            toast._timer = setTimeout(() => toast.classList.remove('show'), 2200);
         }
 
         // ==========================================
@@ -2782,7 +2705,6 @@
             ).join('');
             document.getElementById('postItPickerCustom').value = (atual && atual.color) || getDefaultPostItColor();
             document.getElementById('postItColorOverlay').classList.add('open');
-            registerPanelOpen('postItColorOverlay', closePostItColors);
         }
 
         function closePostItColors() {
@@ -3122,7 +3044,6 @@
                 stopTts();
             } else {
                 document.getElementById('translatePopupOverlay').classList.add('open');
-                registerPanelOpen('translatePopupOverlay', () => document.getElementById('translatePopupOverlay').classList.remove('open'));
             }
         }
 
@@ -3758,12 +3679,6 @@
                 setTimeout(() => {
                     document.body.classList.add('bible-focus-mode');
                     versesToFocus.forEach(el => el.classList.add('verse-focused'));
-                    pushNavAction('foco', () => {
-                        if (!document.body.classList.contains('bible-focus-mode')) return false;
-                        document.body.classList.remove('bible-focus-mode');
-                        document.querySelectorAll('.verse-focused').forEach(el => el.classList.remove('verse-focused'));
-                        return true;
-                    });
                     const removeFocus = (e) => {
                         const clickedInside = versesToFocus.some(el => el.contains(e.target));
                         if (!clickedInside) {
@@ -3836,7 +3751,6 @@
             custom.value = localStorage.getItem('bibleLastHighlightColor') || '#a3e4d7';
 
             document.getElementById('colorPickerOverlay').classList.add('open');
-            registerPanelOpen('colorPickerOverlay', closeHighlightColors);
         }
 
         function closeHighlightColors() {
@@ -4257,7 +4171,6 @@
             
             document.getElementById('dictionaryResultText').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Buscando significado...';
             document.getElementById('dictionaryResultOverlay').classList.add('open');
-            registerPanelOpen('dictionaryResultOverlay', () => document.getElementById('dictionaryResultOverlay').classList.remove('open'));
             document.getElementById('contextualDictionaryBtn').classList.remove('visible');
             document.getElementById('contextualFormatBtn').classList.remove('visible');
 
@@ -4346,7 +4259,6 @@
         function openSelectionTranslatePopup() {
             if(!selectedTranslationText) return;
             document.getElementById('selectionTranslateOverlay').classList.add('open');
-            registerPanelOpen('selectionTranslateOverlay', () => document.getElementById('selectionTranslateOverlay').classList.remove('open'));
             document.getElementById('contextualTranslateBtn').classList.remove('visible');
         }
 
@@ -4361,7 +4273,6 @@
             
             document.getElementById('translationResultText').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Buscando tradução...';
             document.getElementById('translationResultOverlay').classList.add('open');
-            registerPanelOpen('translationResultOverlay', () => document.getElementById('translationResultOverlay').classList.remove('open'));
 
             try {
                 const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(selectedTranslationText)}`;
@@ -4398,7 +4309,6 @@
             savedSelectionRange = sel.getRangeAt(0);
 
             document.getElementById('formatPopupOverlay').classList.add('open'); 
-            registerPanelOpen('formatPopupOverlay', () => document.getElementById('formatPopupOverlay').classList.remove('open'));
             document.getElementById('contextualFormatBtn').classList.remove('visible');
             document.getElementById('contextualDictionaryBtn').classList.remove('visible');
         }
@@ -5651,7 +5561,6 @@
             
             const hymnContainer = document.getElementById('harpa-hymn-container');
             hymnContainer.style.display = 'block';
-            registerHymnOpen();
             document.getElementById('btnBackHarpa').style.display = 'flex';
             
             hymnContainer.innerHTML = '<div style="text-align: center; margin-top: 50px;"><i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: var(--accent-color)"></i></div>';
@@ -5722,15 +5631,6 @@
                 <div class="harpa-hymn-lyrics">${formattedLyrics.trim()}</div>
             `;
             window.scrollTo({top: 0, behavior: 'smooth'});
-        }
-
-        function registerHymnOpen() {
-            pushNavAction('hino', () => {
-                const cont = document.getElementById('harpa-hymn-container');
-                if (!cont || cont.style.display !== 'block') return false;
-                backToHarpaGrid();
-                return true;
-            });
         }
 
         function backToHarpaGrid() {
