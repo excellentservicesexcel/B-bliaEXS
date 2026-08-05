@@ -21,6 +21,8 @@
             --secondary-bg: #161925;
             --item-bg: #1f2333;
             --accent-gradient: linear-gradient(135deg, var(--accent-color), var(--accent-2));
+            --title-color: var(--accent-color);      /* títulos principais */
+            --subtitle-color: var(--accent-color);   /* subtítulos e rótulos */
             --glow: 1;              /* 1 = brilho ligado | 0 = desligado */
             --font-scale: 1;        /* multiplicador do tamanho das letras */
             --bg-stack: none;
@@ -181,7 +183,7 @@
             font-size: 1.5rem;
             font-weight: 700;
             font-style: italic;
-            background: linear-gradient(120deg, var(--accent-color), color-mix(in srgb, var(--accent-color) 55%, #fff));
+            background: linear-gradient(120deg, var(--title-color), color-mix(in srgb, var(--title-color) 55%, #fff));
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -190,7 +192,7 @@
             align-items: center;
             gap: 10px;
         }
-        h1 i { -webkit-text-fill-color: var(--accent-color); animation: gentleGlow 4s ease-in-out infinite; }
+        h1 i { -webkit-text-fill-color: var(--title-color); animation: gentleGlow 4s ease-in-out infinite; }
         @keyframes gentleGlow {
             0%, 100% { filter: drop-shadow(0 0 0px color-mix(in srgb, var(--accent-color) 60%, transparent)); }
             50% { filter: drop-shadow(0 0 calc(8px * var(--glow)) color-mix(in srgb, var(--accent-color) 70%, transparent)); }
@@ -280,7 +282,7 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        .card-devocional h2 { font-family: var(--font-display); color: var(--accent-color); margin-top: 0; font-size: 1.05rem; text-transform: uppercase; letter-spacing: 2.5px; font-weight: 600; }
+        .card-devocional h2 { font-family: var(--font-display); color: var(--subtitle-color); margin-top: 0; font-size: 1.05rem; text-transform: uppercase; letter-spacing: 2.5px; font-weight: 600; }
         .verse-of-day { font-family: var(--font-display); font-size: 1.65rem; font-weight: 500; font-style: italic; line-height: 1.5; margin: 20px 0; position: relative; }
         .verse-ref { font-weight: 600; color: var(--accent-color); display: block; margin-bottom: 20px; }
         .devocional-text { font-size: 0.95rem; line-height: 1.7; color: var(--text-color); opacity: 0.85; text-align: left; border-top: 1px solid var(--item-bg); padding-top: 20px; }
@@ -368,6 +370,7 @@
         .sel-handle-end { transform: translate(-50%, -2px); }
 
         .chapter-title-heading {
+            color: var(--title-color) !important;
             font-family: var(--font-display); font-size: 2rem; font-weight: 700; font-style: italic;
             text-align: center; margin: 6px 0 26px; letter-spacing: 0.5px;
             animation: fadeInUp 0.5s var(--ease-spring);
@@ -404,7 +407,7 @@
 
         .search-group-label {
             font-size: 0.68rem; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase;
-            color: var(--accent-color); opacity: 0.8; padding: 12px 16px 6px; display: flex; align-items: center; gap: 7px;
+            color: var(--subtitle-color); opacity: 0.8; padding: 12px 16px 6px; display: flex; align-items: center; gap: 7px;
         }
         .search-result-item {
             padding: 11px 16px; cursor: pointer; border-left: 3px solid transparent;
@@ -416,7 +419,7 @@
             background-color: color-mix(in srgb, var(--accent-color) 12%, transparent);
             border-left-color: var(--accent-color); outline: none;
         }
-        .search-result-ref { font-size: 0.78rem; font-weight: 700; color: var(--accent-color); display: block; margin-bottom: 3px; }
+        .search-result-ref { font-size: 0.78rem; font-weight: 700; color: var(--subtitle-color); display: block; margin-bottom: 3px; }
         .search-result-text {
             font-family: var(--font-display); font-size: 1rem; line-height: 1.45; opacity: 0.9;
             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
@@ -584,7 +587,7 @@
             padding: 18px; border-radius: var(--radius-md); box-shadow: var(--shadow-soft);
             animation: fadeInUp 0.5s var(--ease-spring) both;
         }
-        .plan-book-title { font-size: 1.1rem; color: var(--accent-color); margin-top: 0; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid var(--item-bg); padding-bottom: 10px; font-family: var(--font-display); font-weight: 700; }
+        .plan-book-title { font-size: 1.1rem; color: var(--subtitle-color); margin-top: 0; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid var(--item-bg); padding-bottom: 10px; font-family: var(--font-display); font-weight: 700; }
         .plan-book-title .book-name-wrap { display: flex; align-items: center; gap: 8px; }
         .plan-book-title .book-progress-count { font-family: var(--font-body); font-size: 0.7rem; opacity: 0.55; font-weight: 600; }
         .btn-mark-all {
@@ -694,7 +697,7 @@
         }
         #sidebar.open { left: 0; }
         .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-shrink: 0;}
-        .sidebar-header h2 { margin: 0; font-family: var(--font-display); font-style: italic; font-size: 1.4rem; font-weight: 700; color: var(--accent-color); display: flex; align-items: center; gap: 8px; }
+        .sidebar-header h2 { margin: 0; font-family: var(--font-display); font-style: italic; font-size: 1.4rem; font-weight: 700; color: var(--title-color); display: flex; align-items: center; gap: 8px; }
         .sidebar-count {
             font-family: var(--font-body); font-size: 0.85rem; color: var(--text-color); opacity: 0.55; margin: -6px 0 16px 2px; flex-shrink: 0;
         }
@@ -713,7 +716,7 @@
         #highlightsList { flex: 1; overflow-y: auto; }
         .book-group-title { margin: 18px 0 10px 0; color: var(--text-color); opacity: 0.9; font-size: 0.95rem; border-bottom: 1px solid var(--item-bg); padding-bottom: 6px; font-weight: 700; letter-spacing: 0.3px; display: flex; align-items: center; gap: 8px; }
         .book-group-title:first-child { margin-top: 0; }
-        .book-group-title i { color: var(--accent-color); }
+        .book-group-title i { color: var(--subtitle-color); }
 
         .type-chips {
             display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; flex-shrink: 0;
@@ -753,7 +756,7 @@
             animation: fadeInUp 0.4s var(--ease-spring) both;
         }
         .highlight-item:hover { transform: translateX(6px); box-shadow: var(--shadow-soft); background-color: color-mix(in srgb, var(--item-bg) 82%, var(--accent-color)); }
-        .highlight-ref { font-weight: 700; color: var(--accent-color); display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-size: 0.8rem; letter-spacing: 0.3px; text-transform: uppercase; }
+        .highlight-ref { font-weight: 700; color: var(--subtitle-color); display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-size: 0.8rem; letter-spacing: 0.3px; text-transform: uppercase; }
         .btn-delete { position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--danger-color); cursor: pointer; font-size: 0.95rem; opacity: 0; transform: scale(0.8); transition: opacity 0.2s, transform 0.2s; z-index: 10; padding: 6px; border-radius: 50%; }
         .highlight-item:hover .btn-delete { opacity: 0.75; transform: scale(1); }
         .btn-delete:hover { opacity: 1 !important; background: color-mix(in srgb, var(--danger-color) 18%, transparent); transform: scale(1.12) !important; }
@@ -774,7 +777,7 @@
 
         /* ----- CONFIGURAÇÕES AVANÇADAS ----- */
         .settings-scroll { max-height: 72vh; overflow-y: auto; padding-right: 6px; margin-right: -6px; }
-        .theme-section label { display: block; font-size: 0.72rem; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase; opacity: 0.65; margin-bottom: 10px; }
+        .theme-section label { display: block; color: var(--subtitle-color); font-size: 0.72rem; font-weight: 700; letter-spacing: 1.1px; text-transform: uppercase; opacity: 0.65; margin-bottom: 10px; }
         .color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .color-picker-group {
             display: flex; align-items: center; justify-content: space-between; gap: 8px;
@@ -876,6 +879,18 @@
         .btn-mini.ghost { background: var(--item-bg); color: var(--text-color); border: 1px solid rgba(255,255,255,0.08); }
         .empty-hint { font-size: 0.78rem; opacity: 0.45; text-align: center; padding: 10px 0; }
 
+        #backToast {
+            position: fixed; bottom: 90px; left: 50%; transform: translate(-50%, 20px);
+            background: color-mix(in srgb, var(--secondary-bg) 94%, var(--accent-color));
+            border: 1px solid color-mix(in srgb, var(--accent-color) 30%, transparent);
+            color: var(--text-color); padding: 12px 22px; border-radius: 999px;
+            font-family: var(--font-body); font-size: 0.85rem; font-weight: 600;
+            box-shadow: var(--shadow-elevated); z-index: 9000; pointer-events: none;
+            opacity: 0; transition: opacity 0.25s ease, transform 0.25s var(--ease-spring);
+            white-space: nowrap; max-width: 90vw;
+        }
+        #backToast.show { opacity: 1; transform: translate(-50%, 0); }
+
         input[type="range"] { width: 100%; accent-color: var(--accent-color); }
 
         .font-size-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
@@ -908,7 +923,7 @@
         #settingsModal.open { display: flex; animation: fadeIn 0.25s ease; }
         .modal-content { background: linear-gradient(165deg, color-mix(in srgb, var(--secondary-bg) 96%, var(--accent-color)), var(--secondary-bg)); border: 1px solid color-mix(in srgb, var(--accent-color) calc(14% * var(--glow)), transparent); padding: 26px; border-radius: var(--radius-lg); width: 90%; max-width: 400px; box-shadow: var(--shadow-elevated); animation: fadeInUp 0.35s var(--ease-spring); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .modal-header h2 { margin: 0; color: var(--accent-color); font-size: 1.2rem; }
+        .modal-header h2 { margin: 0; color: var(--title-color); font-size: 1.2rem; }
         .theme-section { margin-bottom: 20px; }
         .theme-section label { display: block; margin-bottom: 10px; font-size: 0.85rem; font-weight: 600; color: var(--text-color); opacity: 0.8;}
         .color-picker-group { display: flex; justify-content: space-between; align-items: center; background-color: var(--item-bg); padding: 10px 15px; border-radius: 10px; margin-bottom: 8px; font-size: 0.9rem;}
@@ -1354,6 +1369,8 @@
                         <div class="color-picker-group"><span>Destaque</span><input type="color" id="customAccent" value="#c9a24d" oninput="onColorInput()"></div>
                         <div class="color-picker-group"><span>Destaque 2</span><input type="color" id="customAccent2" value="#e8cf90" oninput="onColorInput()"></div>
                         <div class="color-picker-group"><span>Letra do botão</span><input type="color" id="customBtnText" value="#16150f" oninput="onColorInput()"></div>
+                        <div class="color-picker-group"><span>Títulos</span><input type="color" id="customTitle" value="#c9a24d" oninput="onColorInput()"></div>
+                        <div class="color-picker-group"><span>Subtítulos</span><input type="color" id="customSubtitle" value="#c9a24d" oninput="onColorInput()"></div>
                         <div class="color-picker-group"><span>Painéis</span><input type="color" id="customSecBg" value="#161925" oninput="onColorInput()"></div>
                         <div class="color-picker-group"><span>Itens</span><input type="color" id="customItemBg" value="#1f2333" oninput="onColorInput()"></div>
                     </div>
@@ -1753,6 +1770,7 @@
             initSelects(); await scanLocalVersions(); 
             await loadDevotional(); loadTheme(); updateSidebarList(); loadPostIts(); 
             loadPlanPrefs();
+            setupBackButton();
             initReadingPlan(); 
             setupSmartSearch('readerSearch', 'readerSearchWrap', onReaderSearch);
             setupSmartSearch('harpaSearch', 'harpaSearchWrap', onHarpaSearch);
@@ -2219,6 +2237,101 @@
         }
 
         // ==========================================
+        //  BOTÃO VOLTAR DO CELULAR
+        //  Fecha o que estiver aberto, depois volta de aba.
+        //  Só sai do app com três toques seguidos.
+        // ==========================================
+        let backExitCount = 0;
+        let backExitTimer = null;
+
+        // Painéis que devem fechar ao voltar, do mais "por cima" para o mais abaixo.
+        const BACK_CLOSERS = [
+            { id: 'customConfirm',              close: () => document.getElementById('customConfirm').classList.remove('open') },
+            { id: 'customAlert',                close: () => document.getElementById('customAlert').classList.remove('open') },
+            { id: 'colorPickerOverlay',         close: () => closeHighlightColors() },
+            { id: 'postItColorOverlay',         close: () => closePostItColors() },
+            { id: 'sharePreviewOverlay',        close: () => closeSharePreview() },
+            { id: 'dictionaryResultOverlay',    close: () => document.getElementById('dictionaryResultOverlay').classList.remove('open') },
+            { id: 'translationResultOverlay',   close: () => document.getElementById('translationResultOverlay').classList.remove('open') },
+            { id: 'selectionTranslateOverlay',  close: () => document.getElementById('selectionTranslateOverlay').classList.remove('open') },
+            { id: 'translatePopupOverlay',      close: () => document.getElementById('translatePopupOverlay').classList.remove('open') },
+            { id: 'formatPopupOverlay',         close: () => document.getElementById('formatPopupOverlay').classList.remove('open') },
+            { id: 'settingsModal',              close: () => toggleSettings() },
+            { id: 'sidebar',                    close: () => toggleSidebar() }
+        ];
+
+        function handleAppBack() {
+            // 1) Fecha o painel aberto mais acima
+            for (const item of BACK_CLOSERS) {
+                const el = document.getElementById(item.id);
+                if (el && el.classList.contains('open')) {
+                    try { item.close(); } catch (e) { el.classList.remove('open'); }
+                    return true;
+                }
+            }
+
+            // 2) Limpa a seleção de texto
+            if (typeof appSelRange !== 'undefined' && appSelRange) { clearAppSelection(); return true; }
+
+            // 3) Sai do modo foco de leitura
+            if (document.body.classList.contains('bible-focus-mode')) {
+                document.body.classList.remove('bible-focus-mode');
+                document.querySelectorAll('.verse-focused').forEach(el => el.classList.remove('verse-focused'));
+                return true;
+            }
+
+            // 4) Na Harpa, volta da letra para a lista
+            const hinoAberto = document.getElementById('harpa-hymn-container');
+            if (hinoAberto && hinoAberto.style.display === 'block') { backToHarpaGrid(); return true; }
+
+            // 5) Volta para o Início se estiver em outra aba
+            const atual = document.querySelector('.view-section.active');
+            if (atual && atual.id !== 'view-home') { switchView('home'); return true; }
+
+            return false; // já está no Início, sem nada aberto
+        }
+
+        function setupBackButton() {
+            // Estados extras no histórico: cada "voltar" consome um deles.
+            history.pushState({ app: true }, '');
+            history.pushState({ app: true }, '');
+
+            window.addEventListener('popstate', () => {
+                const tratou = handleAppBack();
+
+                if (tratou) {
+                    backExitCount = 0;
+                    history.pushState({ app: true }, '');
+                    return;
+                }
+
+                // Nada para fechar: conta os toques para sair.
+                backExitCount++;
+                clearTimeout(backExitTimer);
+
+                if (backExitCount >= 3) return; // deixa sair de verdade
+
+                history.pushState({ app: true }, '');
+                const faltam = 3 - backExitCount;
+                showBackToast(`Toque voltar mais ${faltam} ${faltam === 1 ? 'vez' : 'vezes'} para sair`);
+                backExitTimer = setTimeout(() => { backExitCount = 0; }, 2000);
+            });
+        }
+
+        function showBackToast(msg) {
+            let toast = document.getElementById('backToast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'backToast';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = msg;
+            toast.classList.add('show');
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(() => toast.classList.remove('show'), 1800);
+        }
+
+        // ==========================================
         //  FONTES
         // ==========================================
         const FONT_OPTIONS = [
@@ -2331,7 +2444,8 @@
             bgGradient: false, btnGradient: true, bgGlow: true,
             bgImage: null, bgImageOpacity: 35,
             fontDisplay: 'Cormorant Garamond', fontBody: 'Inter',
-            glow: true, fontScale: 100
+            glow: true, fontScale: 100,
+            titleColor: null, subtitleColor: null   // null = segue a cor de destaque
         };
 
         const presets = {
@@ -2368,6 +2482,9 @@
             ensureFontLoaded(fd); ensureFontLoaded(fb);
             doc.style.setProperty('--font-display', fontStackOf(fd));
             doc.style.setProperty('--font-body', fontStackOf(fb));
+
+            doc.style.setProperty('--title-color', currentTheme.titleColor || currentTheme.accent);
+            doc.style.setProperty('--subtitle-color', currentTheme.subtitleColor || currentTheme.accent);
 
             const brilhoLigado = currentTheme.glow !== false;
             doc.style.setProperty('--glow', brilhoLigado ? '1' : '0');
@@ -2420,6 +2537,8 @@
             set('customAccent', currentTheme.accent);
             set('customAccent2', currentTheme.accent2);
             set('customBtnText', currentTheme.btnText);
+            set('customTitle', currentTheme.titleColor || currentTheme.accent);
+            set('customSubtitle', currentTheme.subtitleColor || currentTheme.accent);
             set('customSecBg', currentTheme.secBg);
             set('customItemBg', currentTheme.itemBg);
             const bgG = document.getElementById('toggleBgGradient');
@@ -2456,6 +2575,8 @@
                 accent: val('customAccent', currentTheme.accent),
                 accent2: val('customAccent2', currentTheme.accent2),
                 btnText: val('customBtnText', currentTheme.btnText),
+                titleColor: val('customTitle', currentTheme.titleColor || currentTheme.accent),
+                subtitleColor: val('customSubtitle', currentTheme.subtitleColor || currentTheme.accent),
                 secBg: val('customSecBg', currentTheme.secBg),
                 itemBg: val('customItemBg', currentTheme.itemBg),
                 bgGradient: document.getElementById('toggleBgGradient').checked,
@@ -2479,7 +2600,8 @@
         function applyPreset(presetName) {
             const base = { ...presets[presetName], bgImage: currentTheme.bgImage, bgImageOpacity: currentTheme.bgImageOpacity,
                            fontDisplay: currentTheme.fontDisplay, fontBody: currentTheme.fontBody,
-                           glow: currentTheme.glow, fontScale: currentTheme.fontScale };
+                           glow: currentTheme.glow, fontScale: currentTheme.fontScale,
+                           titleColor: null, subtitleColor: null };
             applyTheme(base);
             updateActiveThemeButton(presetName);
             localStorage.setItem('bibleThemeName', presetName);
