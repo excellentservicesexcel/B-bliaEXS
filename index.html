@@ -284,7 +284,7 @@
 
         .card-devocional h2 { font-family: var(--font-display); color: var(--subtitle-color); margin-top: 0; font-size: 1.05rem; text-transform: uppercase; letter-spacing: 2.5px; font-weight: 600; }
         .verse-of-day { font-family: var(--font-display); font-size: 1.65rem; font-weight: 500; font-style: italic; line-height: 1.5; margin: 20px 0; position: relative; }
-        .verse-ref { font-weight: 600; color: var(--accent-color); display: block; margin-bottom: 20px; }
+        .verse-ref { font-weight: 600; color: var(--subtitle-color); display: block; margin-bottom: 20px; }
         .devocional-text { font-size: 0.95rem; line-height: 1.7; color: var(--text-color); opacity: 0.85; text-align: left; border-top: 1px solid var(--item-bg); padding-top: 20px; }
 
         /* ----- LEITURA & CONTROLES ----- */
@@ -880,16 +880,26 @@
         .empty-hint { font-size: 0.78rem; opacity: 0.45; text-align: center; padding: 10px 0; }
 
         #backToast {
-            position: fixed; bottom: 90px; left: 50%; transform: translate(-50%, 20px);
-            background: color-mix(in srgb, var(--secondary-bg) 94%, var(--accent-color));
-            border: 1px solid color-mix(in srgb, var(--accent-color) 30%, transparent);
-            color: var(--text-color); padding: 12px 22px; border-radius: 999px;
-            font-family: var(--font-body); font-size: 0.85rem; font-weight: 600;
-            box-shadow: var(--shadow-elevated); z-index: 9000; pointer-events: none;
-            opacity: 0; transition: opacity 0.25s ease, transform 0.25s var(--ease-spring);
-            white-space: nowrap; max-width: 90vw;
+            position: fixed; bottom: 88px; left: 50%;
+            transform: translate(-50%, 24px) scale(0.94);
+            background: color-mix(in srgb, var(--secondary-bg) 88%, transparent);
+            backdrop-filter: blur(16px) saturate(150%);
+            -webkit-backdrop-filter: blur(16px) saturate(150%);
+            border: 1px solid color-mix(in srgb, var(--accent-color) 28%, transparent);
+            color: var(--text-color); padding: 13px 24px; border-radius: 999px;
+            font-family: var(--font-body); font-size: 0.86rem; font-weight: 600;
+            letter-spacing: 0.2px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.45),
+                        0 0 0 1px rgba(255,255,255,0.04) inset;
+            z-index: 9000; pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.42s var(--ease-spring);
+            white-space: nowrap; max-width: 92vw; overflow: hidden; text-overflow: ellipsis;
+            display: flex; align-items: center; gap: 9px;
         }
-        #backToast.show { opacity: 1; transform: translate(-50%, 0); }
+        #backToast.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
+        #backToast i { color: var(--accent-color); font-size: 0.92rem; }
+        #backToast strong { color: var(--accent-color); font-weight: 800; }
 
         input[type="range"] { width: 100%; accent-color: var(--accent-color); }
 
@@ -1849,7 +1859,21 @@
             }
         });
 
-        function switchView(viewName) {
+        function switchView(viewName, semRegistrar) {
+            const anterior = document.querySelector('.view-section.active');
+            const idAnterior = anterior ? anterior.id.replace('view-', '') : null;
+            if (!semRegistrar && idAnterior && idAnterior !== viewName) {
+                pushNavAction('aba', () => {
+                    const atual = document.querySelector('.view-section.active');
+                    if (!atual || atual.id.replace('view-', '') === idAnterior) return false;
+                    switchView(idAnterior, true);
+                    return true;
+                });
+            }
+            return switchViewInterno(viewName);
+        }
+
+        function switchViewInterno(viewName) {
             const views = ['home', 'reader', 'plan', 'harpa'];
             const currentActive = document.querySelector('.view-section.active');
             let currentViewName = currentActive ? currentActive.id.replace('view-', '') : 'home';
@@ -1888,11 +1912,11 @@
         function toggleSidebar() {
             const isOpen = document.getElementById('sidebar').classList.toggle('open');
             document.getElementById('sidebar-overlay').classList.toggle('open', isOpen);
-            if (isOpen) updateSidebarList();
+            if (isOpen) { updateSidebarList(); registerPanelOpen('sidebar', toggleSidebar); }
         }
         function toggleSettings() {
             const aberto = document.getElementById('settingsModal').classList.toggle('open');
-            if (aberto) { loadAllFontsForPreview(); renderFontPickers(); }
+            if (aberto) { loadAllFontsForPreview(); renderFontPickers(); registerPanelOpen('settingsModal', toggleSettings); }
         }
 
         async function loadDevotional() {
@@ -2192,6 +2216,7 @@
             lastShareUrl = URL.createObjectURL(lastShareBlob);
             document.getElementById('sharePreviewImg').src = lastShareUrl;
             document.getElementById('sharePreviewOverlay').classList.add('open');
+            registerPanelOpen('sharePreviewOverlay', closeSharePreview);
         }
 
         function closeSharePreview() {
@@ -2244,77 +2269,65 @@
         let backExitCount = 0;
         let backExitTimer = null;
 
-        // Painéis que devem fechar ao voltar, do mais "por cima" para o mais abaixo.
-        const BACK_CLOSERS = [
-            { id: 'customConfirm',              close: () => document.getElementById('customConfirm').classList.remove('open') },
-            { id: 'customAlert',                close: () => document.getElementById('customAlert').classList.remove('open') },
-            { id: 'colorPickerOverlay',         close: () => closeHighlightColors() },
-            { id: 'postItColorOverlay',         close: () => closePostItColors() },
-            { id: 'sharePreviewOverlay',        close: () => closeSharePreview() },
-            { id: 'dictionaryResultOverlay',    close: () => document.getElementById('dictionaryResultOverlay').classList.remove('open') },
-            { id: 'translationResultOverlay',   close: () => document.getElementById('translationResultOverlay').classList.remove('open') },
-            { id: 'selectionTranslateOverlay',  close: () => document.getElementById('selectionTranslateOverlay').classList.remove('open') },
-            { id: 'translatePopupOverlay',      close: () => document.getElementById('translatePopupOverlay').classList.remove('open') },
-            { id: 'formatPopupOverlay',         close: () => document.getElementById('formatPopupOverlay').classList.remove('open') },
-            { id: 'settingsModal',              close: () => toggleSettings() },
-            { id: 'sidebar',                    close: () => toggleSidebar() }
-        ];
+        // Pilha de ações de navegação. Cada entrada sabe se desfazer.
+        // Só navegação — grifar e colar post-it não entram aqui.
+        let navStack = [];
+        const NAV_STACK_MAX = 40;
 
-        function handleAppBack() {
-            // 1) Fecha o painel aberto mais acima
-            for (const item of BACK_CLOSERS) {
-                const el = document.getElementById(item.id);
-                if (el && el.classList.contains('open')) {
-                    try { item.close(); } catch (e) { el.classList.remove('open'); }
-                    return true;
-                }
-            }
+        function pushNavAction(tipo, desfazer) {
+            navStack.push({ tipo, desfazer });
+            if (navStack.length > NAV_STACK_MAX) navStack.shift();
+            backExitCount = 0; // navegou: o contador de saída zera
+        }
 
-            // 2) Limpa a seleção de texto
-            if (typeof appSelRange !== 'undefined' && appSelRange) { clearAppSelection(); return true; }
-
-            // 3) Sai do modo foco de leitura
-            if (document.body.classList.contains('bible-focus-mode')) {
-                document.body.classList.remove('bible-focus-mode');
-                document.querySelectorAll('.verse-focused').forEach(el => el.classList.remove('verse-focused'));
+        // Painéis: abrir registra a ação de fechar.
+        function registerPanelOpen(id, fechar) {
+            pushNavAction('painel:' + id, () => {
+                const el = document.getElementById(id);
+                if (!el || !el.classList.contains('open')) return false;
+                try { fechar(); } catch (e) { el.classList.remove('open'); }
                 return true;
+            });
+        }
+
+        function undoLastNavAction() {
+            while (navStack.length) {
+                const acao = navStack.pop();
+                let feito = false;
+                try { feito = acao.desfazer(); } catch (e) { feito = false; }
+                if (feito) return true;   // desfez de verdade
+                // Se já não valia mais (painel fechado no X), tenta a anterior.
             }
-
-            // 4) Na Harpa, volta da letra para a lista
-            const hinoAberto = document.getElementById('harpa-hymn-container');
-            if (hinoAberto && hinoAberto.style.display === 'block') { backToHarpaGrid(); return true; }
-
-            // 5) Volta para o Início se estiver em outra aba
-            const atual = document.querySelector('.view-section.active');
-            if (atual && atual.id !== 'view-home') { switchView('home'); return true; }
-
-            return false; // já está no Início, sem nada aberto
+            return false;
         }
 
         function setupBackButton() {
-            // Estados extras no histórico: cada "voltar" consome um deles.
-            history.pushState({ app: true }, '');
+            // Uma âncora no histórico. Ela é reposta a cada "voltar" tratado,
+            // então o app nunca fica sem estado para consumir.
             history.pushState({ app: true }, '');
 
             window.addEventListener('popstate', () => {
-                const tratou = handleAppBack();
+                const desfez = undoLastNavAction();
 
-                if (tratou) {
+                if (desfez) {
                     backExitCount = 0;
                     history.pushState({ app: true }, '');
                     return;
                 }
 
-                // Nada para fechar: conta os toques para sair.
+                // Nada mais para desfazer: conta os toques para sair.
                 backExitCount++;
                 clearTimeout(backExitTimer);
 
-                if (backExitCount >= 3) return; // deixa sair de verdade
+                if (backExitCount >= 3) {
+                    history.back(); // sai de verdade
+                    return;
+                }
 
                 history.pushState({ app: true }, '');
                 const faltam = 3 - backExitCount;
-                showBackToast(`Toque voltar mais ${faltam} ${faltam === 1 ? 'vez' : 'vezes'} para sair`);
-                backExitTimer = setTimeout(() => { backExitCount = 0; }, 2000);
+                showBackToast(`<i class="fa-solid fa-door-open"></i> Toque voltar mais <strong>${faltam}</strong> ${faltam === 1 ? 'vez' : 'vezes'} para sair`);
+                backExitTimer = setTimeout(() => { backExitCount = 0; }, 2500);
             });
         }
 
@@ -2325,10 +2338,10 @@
                 toast.id = 'backToast';
                 document.body.appendChild(toast);
             }
-            toast.textContent = msg;
+            toast.innerHTML = msg;
             toast.classList.add('show');
             clearTimeout(toast._timer);
-            toast._timer = setTimeout(() => toast.classList.remove('show'), 1800);
+            toast._timer = setTimeout(() => toast.classList.remove('show'), 2200);
         }
 
         // ==========================================
@@ -2769,6 +2782,7 @@
             ).join('');
             document.getElementById('postItPickerCustom').value = (atual && atual.color) || getDefaultPostItColor();
             document.getElementById('postItColorOverlay').classList.add('open');
+            registerPanelOpen('postItColorOverlay', closePostItColors);
         }
 
         function closePostItColors() {
@@ -3108,6 +3122,7 @@
                 stopTts();
             } else {
                 document.getElementById('translatePopupOverlay').classList.add('open');
+                registerPanelOpen('translatePopupOverlay', () => document.getElementById('translatePopupOverlay').classList.remove('open'));
             }
         }
 
@@ -3477,6 +3492,10 @@
         function togglePlanChapter(chapterId, el) {
             const newState = !el.classList.contains('read');
             setChapterReadState(chapterId, newState);
+            pushUndo(newState ? 'Capítulo marcado' : 'Capítulo desmarcado', () => {
+                setChapterReadState(chapterId, !newState);
+                refreshPlanStats();
+            });
             el.classList.add('pop');
             setTimeout(() => el.classList.remove('pop'), 220);
             refreshPlanStats();
@@ -3488,8 +3507,13 @@
             const squares = [...group.querySelectorAll('.chapter-square')];
             const allRead = squares.every(sq => sq.classList.contains('read'));
             const newState = !allRead;
+            const antes = squares.map(sq => ({ id: sq.dataset.chapterId, lido: sq.classList.contains('read') }));
             squares.forEach(sq => setChapterReadState(sq.dataset.chapterId, newState));
             refreshPlanStats();
+            pushUndo(newState ? `${bookName} marcado` : `${bookName} desmarcado`, () => {
+                antes.forEach(x => setChapterReadState(x.id, x.lido));
+                refreshPlanStats();
+            });
         }
 
         function openPlanChapter(bookName, chapterNum) {
@@ -3586,6 +3610,14 @@
             } else {
                 document.querySelectorAll('.plan-chapters-grid.painting').forEach(g => g.classList.remove('painting'));
                 refreshPlanStats();
+                const tocados = [...planDrag.touched];
+                const estadoAnterior = !planDrag.action;
+                if (tocados.length) {
+                    pushUndo(`${tocados.length} capítulos`, () => {
+                        tocados.forEach(id => setChapterReadState(id, estadoAnterior));
+                        refreshPlanStats();
+                    });
+                }
             }
             planDrag = null;
             cleanupPlanDragListeners();
@@ -3726,6 +3758,12 @@
                 setTimeout(() => {
                     document.body.classList.add('bible-focus-mode');
                     versesToFocus.forEach(el => el.classList.add('verse-focused'));
+                    pushNavAction('foco', () => {
+                        if (!document.body.classList.contains('bible-focus-mode')) return false;
+                        document.body.classList.remove('bible-focus-mode');
+                        document.querySelectorAll('.verse-focused').forEach(el => el.classList.remove('verse-focused'));
+                        return true;
+                    });
                     const removeFocus = (e) => {
                         const clickedInside = versesToFocus.some(el => el.contains(e.target));
                         if (!clickedInside) {
@@ -3798,6 +3836,7 @@
             custom.value = localStorage.getItem('bibleLastHighlightColor') || '#a3e4d7';
 
             document.getElementById('colorPickerOverlay').classList.add('open');
+            registerPanelOpen('colorPickerOverlay', closeHighlightColors);
         }
 
         function closeHighlightColors() {
@@ -3856,6 +3895,9 @@
             const textoLimpo = segments.length ? segments.map(sg => sg.text).join(' ') : textSelected;
 
             saveToSidebar(textoLimpo, color, vRef, segments);
+
+            const marcacaoId = JSON.parse(localStorage.getItem('bibleHighlights') || '[]').slice(-1)[0];
+            if (marcacaoId) pushUndo('Grifo', () => deleteHighlightSilent(marcacaoId.id));
             sel.removeAllRanges(); 
             document.getElementById('contextualFormatBtn').classList.remove('visible');
             document.getElementById('fabHighlightTool').classList.remove('visible');
@@ -4048,6 +4090,7 @@
                                         && (ref.v === undefined || f.version === ref.v));
                 if (!entry) return;
 
+                const htmlAnterior = entry.html;
                 const temp = document.createElement('div');
                 temp.innerHTML = entry.html;
                 let contador = 0;
@@ -4078,11 +4121,22 @@
                     localStorage.setItem('bibleFormats', JSON.stringify(db));
                     updateSidebarList();
                     if (currentChapterData) renderContent();
+                    pushUndo('Remoção da formatação', () => {
+                        let atual = JSON.parse(localStorage.getItem('bibleFormats') || '[]');
+                        atual = atual.filter(f => !(f.book === ref.b && String(f.chapter) === String(ref.c) && String(f.verse) === String(ref.vs)));
+                        atual.push({ ...entry, html: htmlAnterior });
+                        localStorage.setItem('bibleFormats', JSON.stringify(atual));
+                        updateSidebarList();
+                        if (currentChapterData) renderContent();
+                    });
                 }
             });
         }
 
         // LIMPEZA CIRÚRGICA DE MARCAÇÕES (O ASPIRADOR DE CORES)
+        // Usada pelo desfazer: remove sem pedir confirmação.
+        function deleteHighlightSilent(id) { deleteHighlight(id); }
+
         function deleteHighlight(id) {
             let highlights = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
             const hlToDelete = highlights.find(h => String(h.id) === String(id));
@@ -4120,7 +4174,18 @@
             if (!hl) return;
             const preview = String(hl.text || '').trim().slice(0, 70);
             const message = preview ? `Remover a marcação de "${preview}"?` : 'Remover esta marcação?';
-            customConfirm(message, (confirmed) => { if (confirmed) deleteHighlight(hl.id); });
+            customConfirm(message, (confirmed) => {
+                if (!confirmed) return;
+                const copia = { ...hl };
+                deleteHighlight(hl.id);
+                pushUndo('Remoção do grifo', () => {
+                    const lista = JSON.parse(localStorage.getItem('bibleHighlights') || '[]');
+                    lista.push(copia);
+                    localStorage.setItem('bibleHighlights', JSON.stringify(lista));
+                    updateSidebarList();
+                    if (currentChapterData) renderContent();
+                });
+            });
         }
 
         // ==========================================
@@ -4192,6 +4257,7 @@
             
             document.getElementById('dictionaryResultText').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Buscando significado...';
             document.getElementById('dictionaryResultOverlay').classList.add('open');
+            registerPanelOpen('dictionaryResultOverlay', () => document.getElementById('dictionaryResultOverlay').classList.remove('open'));
             document.getElementById('contextualDictionaryBtn').classList.remove('visible');
             document.getElementById('contextualFormatBtn').classList.remove('visible');
 
@@ -4280,6 +4346,7 @@
         function openSelectionTranslatePopup() {
             if(!selectedTranslationText) return;
             document.getElementById('selectionTranslateOverlay').classList.add('open');
+            registerPanelOpen('selectionTranslateOverlay', () => document.getElementById('selectionTranslateOverlay').classList.remove('open'));
             document.getElementById('contextualTranslateBtn').classList.remove('visible');
         }
 
@@ -4294,6 +4361,7 @@
             
             document.getElementById('translationResultText').innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Buscando tradução...';
             document.getElementById('translationResultOverlay').classList.add('open');
+            registerPanelOpen('translationResultOverlay', () => document.getElementById('translationResultOverlay').classList.remove('open'));
 
             try {
                 const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(selectedTranslationText)}`;
@@ -4330,6 +4398,7 @@
             savedSelectionRange = sel.getRangeAt(0);
 
             document.getElementById('formatPopupOverlay').classList.add('open'); 
+            registerPanelOpen('formatPopupOverlay', () => document.getElementById('formatPopupOverlay').classList.remove('open'));
             document.getElementById('contextualFormatBtn').classList.remove('visible');
             document.getElementById('contextualDictionaryBtn').classList.remove('visible');
         }
@@ -4635,6 +4704,17 @@
             const verseEl = verseTextEl.closest('.verse'); const vNum = verseEl.getAttribute('data-verse');
             const version = document.getElementById('versionSelect').value; const book = document.getElementById('bookSelect').value; const chapter = document.getElementById('chapterSelect').value;
             let db = JSON.parse(localStorage.getItem('bibleFormats') || '[]');
+            // Guarda como estava, para o desfazer restaurar.
+            const anterior = db.find(f => f.version === version && f.book === book && f.chapter == chapter && f.verse == vNum);
+            const copiaAnterior = anterior ? { ...anterior } : null;
+            pushUndo('Formatação', () => {
+                let atual = JSON.parse(localStorage.getItem('bibleFormats') || '[]');
+                atual = atual.filter(f => !(f.version === version && f.book === book && f.chapter == chapter && f.verse == vNum));
+                if (copiaAnterior) atual.push(copiaAnterior);
+                localStorage.setItem('bibleFormats', JSON.stringify(atual));
+                if (currentChapterData) renderContent();
+                updateSidebarList();
+            });
             db = db.filter(f => !(f.version === version && f.book === book && f.chapter == chapter && f.verse == vNum));
             db.push({ id: Date.now(), version, book, chapter, verse: vNum, html: stripHighlightSpans(verseTextEl.innerHTML) });
             localStorage.setItem('bibleFormats', JSON.stringify(db));
@@ -5339,7 +5419,16 @@
             colorInput.onclick = () => openPostItColors(data.id);
 
             const deleteBtn = document.createElement('button'); deleteBtn.className = 'post-it-btn'; deleteBtn.innerHTML = '<i class="fa-solid fa-trash"></i>';
-            deleteBtn.onclick = () => { customConfirm("Deseja amassar e jogar fora esta anotação?", (res) => { if(res) { postIt.remove(); postItsData = postItsData.filter(p => p.id !== data.id); savePostIts(); } }); };
+            deleteBtn.onclick = () => { customConfirm("Deseja amassar e jogar fora esta anotação?", (res) => {
+                if (!res) return;
+                const copia = { ...data };
+                postIt.remove();
+                postItsData = postItsData.filter(p => p.id !== data.id);
+                savePostIts();
+                pushUndo('Exclusão do post-it', () => {
+                    postItsData.push(copia); savePostIts(); renderAllPostIts();
+                });
+            }); };
 
             controls.appendChild(foldBtn); controls.appendChild(colorInput); controls.appendChild(deleteBtn); header.appendChild(controls); postIt.appendChild(header);
 
@@ -5562,6 +5651,7 @@
             
             const hymnContainer = document.getElementById('harpa-hymn-container');
             hymnContainer.style.display = 'block';
+            registerHymnOpen();
             document.getElementById('btnBackHarpa').style.display = 'flex';
             
             hymnContainer.innerHTML = '<div style="text-align: center; margin-top: 50px;"><i class="fa-solid fa-circle-notch fa-spin fa-2x" style="color: var(--accent-color)"></i></div>';
@@ -5632,6 +5722,15 @@
                 <div class="harpa-hymn-lyrics">${formattedLyrics.trim()}</div>
             `;
             window.scrollTo({top: 0, behavior: 'smooth'});
+        }
+
+        function registerHymnOpen() {
+            pushNavAction('hino', () => {
+                const cont = document.getElementById('harpa-hymn-container');
+                if (!cont || cont.style.display !== 'block') return false;
+                backToHarpaGrid();
+                return true;
+            });
         }
 
         function backToHarpaGrid() {
