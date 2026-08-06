@@ -621,14 +621,6 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.3); opacity: 0; transform: scale(0.4); transition: all 0.25s var(--ease-spring);
         }
         .chapter-square.read .chapter-check { opacity: 1; transform: scale(1); }
-        .chapter-open-btn {
-            position: absolute; bottom: -6px; left: -6px; width: 20px; height: 20px; border-radius: 50%;
-            background: var(--secondary-bg); border: 1px solid rgba(255,255,255,0.12); color: var(--accent-color);
-            font-size: 0.55rem; display: flex; align-items: center; justify-content: center; cursor: pointer;
-            opacity: 0; transform: scale(0.6); transition: all 0.2s var(--ease-spring); box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-        }
-        .chapter-square:hover .chapter-open-btn { opacity: 0.9; transform: scale(1); }
-        .chapter-open-btn:hover { opacity: 1 !important; background: var(--accent-color); color: var(--btn-text); transform: scale(1.15) !important; }
 
         /* ----- TELA HARPA (NOVOS ESTILOS) ----- */
         .harpa-grid { 
@@ -1575,7 +1567,7 @@
                     <span id="planProgressText">0%</span>
                 </div>
                 <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; background: var(--item-bg); padding: 10px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); margin-top: 5px; box-sizing: border-box;">
-                    <span style="font-size: 0.85rem; font-weight: 500; opacity: 0.9;"><i class="fa-solid fa-location-arrow" style="color: var(--accent-color); margin-right: 5px;"></i> Marcar como lido ao abrir</span>
+                    <span style="font-size: 0.85rem; font-weight: 500; opacity: 0.9;"><i class="fa-solid fa-location-arrow" style="color: var(--accent-color); margin-right: 5px;"></i> Marcar como lido e abrir</span>
                     <label class="switch-toggle">
                         <input type="checkbox" id="planAutoNavToggle" checked>
                         <span class="slider-toggle round"></span>
@@ -1585,7 +1577,7 @@
             <div class="plan-progress-bar-bg">
                 <div class="plan-progress-bar-fill" id="planProgressBar"></div>
             </div>
-            <p class="plan-hint"><i class="fa-solid fa-hand-pointer"></i> Toque num número para marcar/desmarcar • Segure e arraste para marcar vários capítulos de uma vez • Toque no <i class="fa-solid fa-book-open" style="color:var(--accent-color);"></i> para abrir o capítulo</p>
+            <p class="plan-hint"><i class="fa-solid fa-hand-pointer"></i> Toque num número para marcar/desmarcar • Segure e arraste para marcar vários capítulos de uma vez</p>
         </div>
 
         <div class="plan-tools">
@@ -3399,7 +3391,6 @@
                         <div class="chapter-square ${isRead ? 'read' : ''}" data-chapter-id="${chapterId}" data-book="${bookData.name}" data-chapter="${i}" tabindex="0" role="button" aria-pressed="${isRead}" aria-label="Capítulo ${i} de ${bookData.name}">
                             ${i}
                             <span class="chapter-check"><i class="fa-solid fa-check"></i></span>
-                            <button class="chapter-open-btn" title="Abrir capítulo ${i}" onclick="event.stopPropagation(); openPlanChapter('${bookData.name}', ${i})"><i class="fa-solid fa-book-open"></i></button>
                         </div>`;
                 }
                 html += `<div class="plan-book-group" data-book="${bookData.name}">
@@ -3445,6 +3436,22 @@
             el.classList.add('pop');
             setTimeout(() => el.classList.remove('pop'), 220);
             refreshPlanStats();
+
+            // Chave ligada: além de marcar, já abre o capítulo para leitura.
+            // (Só ao marcar — desmarcar nunca abre.)
+            const abrirTambem = document.getElementById('planAutoNavToggle').checked;
+            if (newState && abrirTambem) {
+                goToPlanChapter(el.dataset.book, el.dataset.chapter);
+            }
+        }
+
+        // Leva para a leitura, sem mexer na marcação.
+        function goToPlanChapter(bookName, chapterNum) {
+            document.getElementById('bookSelect').value = bookName;
+            updateChapterOptions(chapterNum);
+            document.getElementById('verseSelect').value = "";
+            switchView('reader');
+            loadChapter();
         }
 
         function toggleWholeBook(bookName) {
@@ -3460,18 +3467,6 @@
                 antes.forEach(x => setChapterReadState(x.id, x.lido));
                 refreshPlanStats();
             });
-        }
-
-        function openPlanChapter(bookName, chapterNum) {
-            const markToo = document.getElementById('planAutoNavToggle').checked;
-            if (markToo) { setChapterReadState(`${bookName}-${chapterNum}`, true); refreshPlanStats(); }
-
-            document.getElementById('bookSelect').value = bookName;
-            updateChapterOptions(chapterNum);
-            document.getElementById('verseSelect').value = "";
-
-            switchView('reader');
-            loadChapter();
         }
 
         function refreshPlanStats() {
@@ -3505,7 +3500,7 @@
 
         function onPlanPointerDown(e) {
             const square = e.target.closest ? e.target.closest('.chapter-square') : null;
-            if (!square || e.target.closest('.chapter-open-btn')) return;
+            if (!square) return;
             if (e.pointerType === 'mouse' && e.button !== 0) return;
 
             planDrag = { startX: e.clientX, startY: e.clientY, startSquare: square, longPress: false, action: null, touched: new Set() };
