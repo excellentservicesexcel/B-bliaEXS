@@ -2230,6 +2230,23 @@
         //  Fecha o que estiver aberto, depois volta de aba.
         //  Só sai do app com três toques seguidos.
         // ==========================================
+        // Histórico de ações que podem ser desfeitas (grifos, marcações do plano,
+        // formatação, post-its). Usado pelo botão desfazer, não pelo voltar.
+        let undoStack = [];
+        const UNDO_MAX = 30;
+
+        function pushUndo(descricao, desfazer) {
+            undoStack.push({ descricao, desfazer });
+            if (undoStack.length > UNDO_MAX) undoStack.shift();
+        }
+
+        function undoLastAction() {
+            const acao = undoStack.pop();
+            if (!acao) return false;
+            try { acao.desfazer(); } catch (e) { return false; }
+            return true;
+        }
+
         // O botão voltar do celular só fecha o pop-up aberto.
         // Não troca de aba, não desfaz nada, não sai do app.
         const BACK_PANELS = [
@@ -2255,15 +2272,23 @@
                     return true;
                 }
             }
+            // Letra de hino aberta: volta para a lista da Harpa.
+            const hino = document.getElementById('harpa-hymn-container');
+            if (hino && hino.style.display === 'block') { backToHarpaGrid(); return true; }
+
             return false;
         }
 
         function setupBackButton() {
-            // Âncora no histórico, sempre reposta: o voltar nunca sai do app.
             history.pushState({ app: true }, '');
             window.addEventListener('popstate', () => {
-                closeTopPanel();
-                history.pushState({ app: true }, '');
+                // Com pop-up aberto: fecha e permanece no app.
+                if (closeTopPanel()) {
+                    history.pushState({ app: true }, '');
+                    return;
+                }
+                // Sem pop-up: deixa o navegador fazer o de sempre (voltar/sair).
+                history.back();
             });
         }
 
