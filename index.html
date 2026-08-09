@@ -439,7 +439,19 @@
         }
         .search-count-banner strong { color: var(--accent-color); font-size: 1.05rem; }
         .search-count-banner .count-term { font-family: var(--font-display); font-style: italic; }
-        .search-more { padding: 10px 16px 14px; font-size: 0.75rem; opacity: 0.5; text-align: center; }
+        .search-more { padding: 10px 16px 14px; font-size: 0.75rem; opacity: 0.5; text-align: center; display: block; }
+
+        .search-more-wrap { padding: 12px 16px 16px; text-align: center; }
+        .btn-see-more {
+            width: 100%; background: var(--accent-gradient); color: var(--btn-text);
+            border: none; border-radius: var(--radius-sm); padding: 12px;
+            font-family: var(--font-body); font-size: 0.85rem; font-weight: 700; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: transform 0.2s var(--ease-spring), filter 0.2s;
+        }
+        .btn-see-more:hover { transform: translateY(-2px); filter: brightness(1.06); }
+        .btn-see-more:active { transform: scale(0.97); }
+        .search-more-wrap .search-more { padding: 8px 0 0; }
 
         /* Realce do versículo alcançado pela busca */
         @keyframes searchPulse {
@@ -1490,8 +1502,8 @@
                 <button class="btn-read btn-share btn-secondary" id="btnShare" onclick="shareVerse()">
                     <i class="fa-solid fa-share-nodes"></i> Compartilhar
                 </button>
-                <button class="btn-read" style="width: auto;" onclick="switchView('reader')">
-                    Ler a Bíblia <i class="fa-solid fa-arrow-right"></i>
+                <button class="btn-read" style="width: auto;" onclick="readDevotionalPassage()">
+                    Ler na Bíblia <i class="fa-solid fa-arrow-right"></i>
                 </button>
             </div>
         </div>
@@ -5051,14 +5063,11 @@
                     if (exato) {
                         const { ocorrencias, versiculos, hits } = tallyExact(index, query);
                         html += contadorHtml(query, ocorrencias, versiculos, 'toda a Bíblia');
-                        hits.slice(0, 60).forEach(({ entry, count }) => {
-                            const selo = count > 1 ? ` <span style="opacity:.6">(${count}x)</span>` : '';
-                            html += `<button class="search-result-item" onclick="goToReference('${entry.book.replace(/'/g, "\\'")}', ${entry.chapter}, ${entry.verse})">
-                                        <span class="search-result-ref">${escapeHtml(entry.book)} ${entry.chapter}:${entry.verse}${selo}</span>
-                                        <span class="search-result-text">${highlightMatch(entry.text, query, true)}</span>
-                                     </button>`;
-                        });
-                        if (hits.length > 60) html += `<div class="search-more">Mostrando os 60 primeiros de ${hits.length} versículos.</div>`;
+                        // Guarda tudo: o botão "Ver mais" revela aos poucos.
+                        exactHits = hits;
+                        exactQuery = query;
+                        exactShown = Math.min(RESULTS_PER_PAGE, hits.length);
+                        html += renderExactHits();
                     } else {
                         const hits = searchInIndex(index, query, 30);
                         if (hits.length) {
@@ -5081,6 +5090,49 @@
             panel.classList.add('open');
         }
 
+        // ---------- "Ver mais" nos resultados da busca exata ----------
+        const RESULTS_PER_PAGE = 60;
+        let exactHits = [];
+        let exactQuery = '';
+        let exactShown = 0;
+
+        function renderExactHits() {
+            let html = '';
+            exactHits.slice(0, exactShown).forEach(({ entry, count }) => {
+                const selo = count > 1 ? ` <span style="opacity:.6">(${count}x)</span>` : '';
+                html += `<button class="search-result-item" onclick="goToReference('${entry.book.replace(/'/g, "\\'")}', ${entry.chapter}, ${entry.verse})">
+                            <span class="search-result-ref">${escapeHtml(entry.book)} ${entry.chapter}:${entry.verse}${selo}</span>
+                            <span class="search-result-text">${highlightMatch(entry.text, exactQuery, true)}</span>
+                         </button>`;
+            });
+
+            const restantes = exactHits.length - exactShown;
+            if (restantes > 0) {
+                const proximo = Math.min(RESULTS_PER_PAGE, restantes);
+                html += `<div class="search-more-wrap">
+                            <button class="btn-see-more" onclick="showMoreExactHits()">
+                                <i class="fa-solid fa-chevron-down"></i> Ver mais ${proximo}
+                            </button>
+                            <span class="search-more">Mostrando ${exactShown} de ${exactHits.length} versículos</span>
+                         </div>`;
+            } else if (exactHits.length > RESULTS_PER_PAGE) {
+                html += `<div class="search-more">Todos os ${exactHits.length} versículos estão sendo exibidos</div>`;
+            }
+            return html;
+        }
+
+        function showMoreExactHits() {
+            const panel = document.getElementById('readerSearchResults');
+            const antes = panel.scrollTop;
+            exactShown = Math.min(exactShown + RESULTS_PER_PAGE, exactHits.length);
+
+            // Substitui só a lista, preservando a faixa de contagem no topo.
+            const banner = panel.querySelector('.search-count-banner');
+            const bannerHtml = banner ? banner.outerHTML : '';
+            panel.innerHTML = bannerHtml + renderExactHits();
+            panel.scrollTop = antes;
+        }
+
         // Faixa com a contagem de ocorrências (só na busca exata).
         function contadorHtml(termo, ocorrencias, versiculos, ondeTexto) {
             if (ocorrencias === 0) {
@@ -5094,6 +5146,24 @@
                         <span class="count-term">"${escapeHtml(termo)}"</span> aparece <strong>${ocorrencias}</strong> ${vezes}
                         em <strong>${versiculos}</strong> ${vers} de ${escapeHtml(ondeTexto)}.
                     </div>`;
+        }
+
+        // Abre o capítulo do versículo do dia e destaca o versículo exato.
+        function readDevotionalPassage() {
+            if (!currentDevo || !currentDevo.ref) { switchView('reader'); return; }
+
+            // A referência vem como "João 3:16" ou "Salmos 23:1-2".
+            const m = String(currentDevo.ref).trim().match(/^(.+?)\s+(\d+)(?::\s*(\d+))?/);
+            if (!m) { switchView('reader'); return; }
+
+            const livros = matchBooks(normalizeSearch(m[1]), 1);
+            const livro = livros.length ? livros[0].name : null;
+            if (!livro) { switchView('reader'); return; }
+
+            const capitulo = Math.min(parseInt(m[2]), chaptersOf(livro));
+            const versiculo = m[3] ? parseInt(m[3]) : null;
+
+            goToReference(livro, capitulo, versiculo);
         }
 
         function jumpToVerse(verseNumber) {
