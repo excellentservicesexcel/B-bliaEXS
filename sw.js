@@ -74,11 +74,25 @@ self.addEventListener('message', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const req = event.request;
-  if (req.method !== 'GET') return;
+  if (req.method !== 'GET' && req.method !== 'HEAD') return;
 
   const url = new URL(req.url);
   const mesmaOrigem = url.origin === self.location.origin;
   const ehNavegacao = req.mode === 'navigate';
+
+  // O app pergunta "esse arquivo existe?" com HEAD antes de listar as versões.
+  // Sem internet, respondemos com base no que está guardado.
+  if (req.method === 'HEAD') {
+    event.respondWith(
+      fetch(req).catch(async () => {
+        const guardado = await caches.match(req, { ignoreMethod: true });
+        return guardado
+          ? new Response(null, { status: 200, statusText: 'OK (guardado)' })
+          : new Response(null, { status: 504 });
+      })
+    );
+    return;
+  }
 
   // Abrir o app: tenta a internet, cai para a cópia guardada.
   if (ehNavegacao) {
@@ -98,7 +112,7 @@ self.addEventListener('fetch', (event) => {
   // usa a cópia guardada primeiro — é instantâneo e funciona sem internet.
   if (mesmaOrigem && url.pathname.endsWith('.json')) {
     event.respondWith(
-      caches.match(req).then(guardado => {
+      caches.match(req, { ignoreMethod: true }).then(guardado => {
         const daRede = fetch(req).then(resp => {
           if (resp && resp.ok) {
             const copia = resp.clone();

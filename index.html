@@ -1815,9 +1815,41 @@
                 }
             });
 
+            // Versões encontradas em visitas anteriores: garantem a lista mesmo sem internet.
+            let conhecidas = [];
+            try { conhecidas = JSON.parse(localStorage.getItem('bibleVersionsFound') || '[]'); } catch (e) {}
+            const encontradas = [];
+
             for (const v of possibleFiles) {
-                try { let res = await fetch('./' + v.file, { method: 'HEAD' }); if (res.ok) { const opt = document.createElement('option'); opt.value = './' + v.file; opt.textContent = v.name; select.appendChild(opt); } } catch (e) {}
+                const caminho = './' + v.file;
+                let existe = false;
+
+                // 1º) Já está guardado no aparelho? Funciona sem internet.
+                try {
+                    if (window.caches) {
+                        const guardado = await caches.match(caminho);
+                        if (guardado) existe = true;
+                    }
+                } catch (e) {}
+
+                // 2º) Senão, pergunta ao servidor.
+                if (!existe) {
+                    try { const res = await fetch(caminho, { method: 'HEAD' }); if (res.ok) existe = true; } catch (e) {}
+                }
+
+                // 3º) Sem internet e sem cópia: confia no que já foi visto antes.
+                if (!existe && !navigator.onLine && conhecidas.includes(v.file)) existe = true;
+
+                if (existe) {
+                    const opt = document.createElement('option');
+                    opt.value = caminho;
+                    opt.textContent = v.name;
+                    select.appendChild(opt);
+                    encontradas.push(v.file);
+                }
             }
+
+            if (encontradas.length) localStorage.setItem('bibleVersionsFound', JSON.stringify(encontradas));
             
             const addOpt = document.createElement('option');
             addOpt.value = 'add_custom';
@@ -3017,6 +3049,13 @@
             chapterSelect.value = (desired >= 1 && desired <= total) ? desired : 1;
         }
 
+        // Primeira versão em arquivo disponível no seletor.
+        function primeiraVersaoOffline() {
+            const opts = document.querySelectorAll('#versionSelect option');
+            for (const o of opts) { if (o.value && o.value.endsWith('.json')) return o.value; }
+            return null;
+        }
+
         async function loadChapter() {
             const book = document.getElementById('bookSelect').value; const chapter = document.getElementById('chapterSelect').value; let version = document.getElementById('versionSelect').value; const contentDiv = document.getElementById('bible-content');
             localStorage.setItem('bibleVersion', version);
@@ -3031,6 +3070,16 @@
                     let verses = chapterData.map((txt, idx) => ({ verse: idx + 1, text: txt }));
                     currentChapterData = { reference: `${book} ${chapter}`, verses: verses };
                 } else {
+                    // Essa versão vem da internet. Sem conexão, usa uma já baixada.
+                    if (!navigator.onLine) {
+                        const alternativa = primeiraVersaoOffline();
+                        if (alternativa) {
+                            document.getElementById('versionSelect').value = alternativa;
+                            customAlert('Sem internet: troquei para uma versão baixada no aparelho.');
+                            return loadChapter();
+                        }
+                        throw new Error('Sem internet. Essa versão precisa de conexão — baixe outra versão para ler offline.');
+                    }
                     let ref = `${encodeURIComponent(book)}+${chapter}`; let response = await fetch(`https://bible-api.com/${ref}?translation=${version}`);
                     if (!response.ok) throw new Error('Não encontrei a referência.'); currentChapterData = await response.json();
                 }
