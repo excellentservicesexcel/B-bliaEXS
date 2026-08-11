@@ -175,6 +175,26 @@
         }
 
         .icon-btn:hover { color: var(--accent-color); transform: scale(1.12); background-color: color-mix(in srgb, var(--accent-color) 12%, transparent); }
+
+        /* Modo sem internet ativo */
+        #btnOffline.ativo { color: var(--accent-color); background-color: color-mix(in srgb, var(--accent-color) 18%, transparent); }
+        #btnOffline.baixando i { animation: spin 1.1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        #offlineToast {
+            position: fixed; bottom: 24px; left: 50%; transform: translate(-50%, 20px);
+            background: color-mix(in srgb, var(--secondary-bg) 95%, var(--accent-color));
+            border: 1px solid color-mix(in srgb, var(--accent-color) 30%, transparent);
+            color: var(--text-color); padding: 14px 20px; border-radius: var(--radius-md);
+            font-family: var(--font-body); font-size: 0.85rem; font-weight: 600;
+            box-shadow: var(--shadow-elevated); z-index: 9000; min-width: 240px; max-width: 88vw;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease, transform 0.3s var(--ease-spring);
+        }
+        #offlineToast.show { opacity: 1; transform: translate(-50%, 0); }
+        #offlineToast .ot-linha { display: flex; align-items: center; gap: 9px; }
+        #offlineToast i { color: var(--accent-color); }
+        #offlineToast .ot-barra { height: 5px; background: var(--item-bg); border-radius: 10px; overflow: hidden; margin-top: 10px; }
+        #offlineToast .ot-fill { height: 100%; width: 0%; background: var(--accent-gradient); border-radius: 10px; transition: width 0.25s ease; }
         .icon-btn:active { transform: scale(0.92); }
 
         h1 {
@@ -1482,6 +1502,7 @@
             <h1><i class="fa-solid fa-book-bible"></i> MINHA BÍBLIA</h1>
             <div class="header-actions">
                 <button class="icon-btn" onclick="toggleMusicPopup()" title="Som Ambiente"><i id="musicIconHeader" class="fa-solid fa-music"></i></button>
+                <button class="icon-btn" id="btnOffline" onclick="toggleOfflineMode()" title="Uso sem internet"><i class="fa-solid fa-cloud-arrow-down"></i></button>
                 <button class="icon-btn" id="btnFullscreen" onclick="toggleFullScreen()" title="Tela Cheia"><i class="fa-solid fa-expand"></i></button>
                 <button class="icon-btn" onclick="toggleSettings()" title="Configurações"><i class="fa-solid fa-sliders"></i></button>
             </div>
@@ -1764,6 +1785,7 @@
             await loadDevotional(); loadTheme(); updateSidebarList(); loadPostIts(); 
             loadPlanPrefs();
             setupBackButton();
+            iniciarOffline();
             initReadingPlan(); 
             setupSmartSearch('readerSearch', 'readerSearchWrap', onReaderSearch);
             setupSmartSearch('harpaSearch', 'harpaSearchWrap', onHarpaSearch);
@@ -2295,6 +2317,161 @@
                 history.back();
             });
         }
+
+        // ==========================================
+        //  USO SEM INTERNET
+        //  Guarda uma cópia do app e dos textos no aparelho.
+        //  Uma vez por dia, ao abrir, atualiza o que mudou.
+        // ==========================================
+        let offlineAtivo = false;
+        let offlineBaixando = false;
+
+        function listarArquivosOffline() {
+            const urls = new Set(['./', './index.html', './palavras.json']);
+
+            // Versões da Bíblia disponíveis no seletor
+            document.querySelectorAll('#versionSelect option').forEach(opt => {
+                if (opt.value && opt.value.endsWith('.json')) urls.add(opt.value);
+            });
+
+            // Arquivos da Harpa
+            Object.values(harpaVersions).forEach(v => urls.add('./' + v.file));
+
+            // Ícones e biblioteca de imagem (para o app não ficar sem visual)
+            document.querySelectorAll('link[rel="stylesheet"]').forEach(l => { if (l.href) urls.add(l.href); });
+            document.querySelectorAll('script[src]').forEach(sc => {
+                if (sc.src && !sc.src.includes('youtube')) urls.add(sc.src);
+            });
+
+            return [...urls];
+        }
+
+        function offlineToast(texto, percentual) {
+            let el = document.getElementById('offlineToast');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'offlineToast';
+                document.body.appendChild(el);
+            }
+            const barra = percentual === null || percentual === undefined ? ''
+                : `<div class="ot-barra"><div class="ot-fill" style="width:${percentual}%"></div></div>`;
+            el.innerHTML = `<div class="ot-linha">${texto}</div>${barra}`;
+            el.classList.add('show');
+            clearTimeout(el._t);
+            if (percentual === null || percentual === undefined) {
+                el._t = setTimeout(() => el.classList.remove('show'), 3200);
+            }
+        }
+
+        function esconderOfflineToast() {
+            const el = document.getElementById('offlineToast');
+            if (el) el.classList.remove('show');
+        }
+
+        async function registrarServiceWorker() {
+            if (!('serviceWorker' in navigator)) return null;
+            try {
+                const reg = await navigator.serviceWorker.register('./sw.js');
+                await navigator.serviceWorker.ready;
+                return reg;
+            } catch (e) { return null; }
+        }
+
+        // Baixa tudo para o aparelho.
+        async function baixarParaOffline(silencioso) {
+            if (offlineBaixando) return;
+            offlineBaixando = true;
+            const btn = document.getElementById('btnOffline');
+            btn.classList.add('baixando');
+
+            const urls = listarArquivosOffline();
+            if (!silencioso) offlineToast('<i class="fa-solid fa-cloud-arrow-down"></i> Baixando para uso sem internet...', 0);
+
+            let concluido = false;
+            const terminar = (ok, falhou) => {
+                if (concluido) return;
+                concluido = true;
+                offlineBaixando = false;
+                btn.classList.remove('baixando');
+                localStorage.setItem('bibleOfflineDate', new Date().toDateString());
+                if (!silencioso) {
+                    offlineToast(`<i class="fa-solid fa-circle-check"></i> Pronto para usar sem internet (${ok} arquivos)`, null);
+                } else { esconderOfflineToast(); }
+            };
+
+            const sw = navigator.serviceWorker && navigator.serviceWorker.controller;
+            if (sw) {
+                // O Service Worker guarda e vai avisando o progresso.
+                const ouvinte = (ev) => {
+                    const d = ev.data || {};
+                    if (d.tipo === 'PROGRESSO' && !silencioso) {
+                        const pct = Math.round(((d.ok + d.falhou) / d.total) * 100);
+                        offlineToast(`<i class="fa-solid fa-cloud-arrow-down"></i> Baixando... ${d.ok + d.falhou} de ${d.total}`, pct);
+                    }
+                    if (d.tipo === 'CONCLUIDO') {
+                        navigator.serviceWorker.removeEventListener('message', ouvinte);
+                        terminar(d.ok, d.falhou);
+                    }
+                };
+                navigator.serviceWorker.addEventListener('message', ouvinte);
+                sw.postMessage({ tipo: 'GUARDAR', urls });
+                setTimeout(() => terminar(urls.length, 0), 120000); // trava de segurança
+            } else {
+                // Sem Service Worker: guarda os textos usando o armazenamento do navegador.
+                let ok = 0, falhou = 0;
+                try {
+                    const cache = await caches.open('biblia-dados-v1');
+                    for (let i = 0; i < urls.length; i++) {
+                        try { await cache.add(urls[i]); ok++; } catch (e) { falhou++; }
+                        if (!silencioso) {
+                            const pct = Math.round(((i + 1) / urls.length) * 100);
+                            offlineToast(`<i class="fa-solid fa-cloud-arrow-down"></i> Baixando... ${i + 1} de ${urls.length}`, pct);
+                        }
+                    }
+                } catch (e) { falhou = urls.length; }
+                terminar(ok, falhou);
+            }
+        }
+
+        async function toggleOfflineMode() {
+            offlineAtivo = !offlineAtivo;
+            localStorage.setItem('bibleOffline', offlineAtivo ? '1' : '0');
+            document.getElementById('btnOffline').classList.toggle('ativo', offlineAtivo);
+
+            if (offlineAtivo) {
+                await registrarServiceWorker();
+                await baixarParaOffline(false);
+            } else {
+                localStorage.removeItem('bibleOfflineDate');
+                const sw = navigator.serviceWorker && navigator.serviceWorker.controller;
+                if (sw) sw.postMessage({ tipo: 'LIMPAR' });
+                else { try { await caches.delete('biblia-dados-v1'); } catch (e) {} }
+                offlineToast('<i class="fa-solid fa-cloud-slash"></i> Uso sem internet desligado', null);
+            }
+        }
+
+        // Ao abrir o app: se estiver ligado, atualiza uma vez por dia.
+        async function iniciarOffline() {
+            offlineAtivo = localStorage.getItem('bibleOffline') === '1';
+            document.getElementById('btnOffline').classList.toggle('ativo', offlineAtivo);
+            if (!offlineAtivo) return;
+
+            await registrarServiceWorker();
+
+            const hoje = new Date().toDateString();
+            if (localStorage.getItem('bibleOfflineDate') === hoje) return; // já atualizou hoje
+            if (!navigator.onLine) return;                                 // sem internet agora
+
+            await baixarParaOffline(true);
+        }
+
+        // Voltou a ter internet: atualiza a cópia guardada.
+        window.addEventListener('online', () => {
+            if (!offlineAtivo) return;
+            const hoje = new Date().toDateString();
+            if (localStorage.getItem('bibleOfflineDate') === hoje) return;
+            baixarParaOffline(true);
+        });
 
         // ==========================================
         //  FONTES
