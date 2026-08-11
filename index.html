@@ -324,6 +324,19 @@
         .control-group i { color: var(--accent-color); font-size: 0.9rem; }
         select { border: none; background: transparent; color: var(--text-color); font-size: 0.9rem; outline: none; font-family: var(--font-body); cursor: pointer; width: 100%; padding: 8px 0; -webkit-appearance: none; -moz-appearance: none; appearance: none; }
 
+        /* A lista aberta do seletor é desenhada pelo sistema e usava fundo branco,
+           deixando o texto claro do tema ilegível. Aqui as cores são explícitas. */
+        select option, select optgroup {
+            background-color: var(--secondary-bg);
+            color: var(--text-color);
+            font-family: var(--font-body);
+            padding: 8px 10px;
+        }
+        select option:checked, select option:hover {
+            background-color: color-mix(in srgb, var(--accent-color) 30%, var(--secondary-bg));
+            color: var(--text-color);
+        }
+
         .btn-read { background: var(--accent-gradient); color: var(--btn-text); border: none; border-radius: var(--radius-sm); padding: 12px 20px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: filter 0.2s, transform 0.15s var(--ease-spring), box-shadow 0.2s; width: 100%; box-shadow: 0 6px 16px color-mix(in srgb, var(--accent-color) calc(35% * var(--glow)), transparent); }
         .btn-read:hover { filter: brightness(1.08); transform: translateY(-2px); box-shadow: 0 10px 22px color-mix(in srgb, var(--accent-color) calc(45% * var(--glow)), transparent); }
         .btn-read:active { transform: scale(0.96); }
@@ -2656,6 +2669,10 @@
             ensureFontLoaded(fd); ensureFontLoaded(fb);
             doc.style.setProperty('--font-display', fontStackOf(fd));
             doc.style.setProperty('--font-body', fontStackOf(fb));
+
+            // Avisa o navegador o tom do tema: ajusta listas suspensas,
+            // barras de rolagem e demais controles nativos.
+            doc.style.colorScheme = isLightColor(currentTheme.bg) ? 'light' : 'dark';
 
             doc.style.setProperty('--title-color', currentTheme.titleColor || currentTheme.accent);
             doc.style.setProperty('--subtitle-color', currentTheme.subtitleColor || currentTheme.accent);
